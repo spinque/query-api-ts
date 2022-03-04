@@ -1,0 +1,42 @@
+# Editor-specific
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+.settings
+.vscode
+
+# Installed libs
+node_modules/
+typings/
+
+# Generated
+/dist/
+/dist-compat/
+tmp/
+coverage/
+img/
+spec-js/
+spec-build/
+.out/
+.tmp/
+
+# Import location artifacts
+/ajax/
+/fetch/
+/operators/
+/testing/
+/webSocket/
+
+# Misc
+npm-debug.log
+.DS_STORE
+*.tgz
+.eslintcache
+
+integration/import/**/rx.json
+integration/import/**/operators.json
+
+# The check-side-effects package generates and deletes this file.
+# If the process is killed, it will be left behind.
+check-side-effects.tmp-input.js
