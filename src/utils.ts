@@ -13,7 +13,7 @@ export const pathFromQueries = (queries: Query[]): string => {
  * Takes a Query and returns the path it would represent in a Query API request URL.
  */
 export const pathFromQuery = (query: Query): string => {
-  let parts = ['e', encodeURIComponent(query.endpoint)];
+  const parts = ['e', encodeURIComponent(query.endpoint)];
   if (query.parameters) {
     Object.entries(query.parameters).forEach(([name, value]) => {
       parts.push('p', name, encodeURIComponent(value));
@@ -45,7 +45,7 @@ export const urlFromQueries = (config: ApiConfig, queries: Query[], options?: Re
   // Add the path represented by the Query objects
   url = join(url, pathFromQueries(queries));
 
-  let requestType = options?.requestType || 'results';
+  const requestType = options?.requestType || 'results';
   url = join(url, requestType);
 
   // Add config if provided
@@ -71,11 +71,11 @@ export const tupleListToString = (
   tuples: (string | number)[][] | (string | number)[] | string | number,
   scores?: number[],
 ): string => {
-  let _tuples = ensureTupleList(tuples);
+  const _tuples = ensureTupleList(tuples);
   if (scores && scores.length !== _tuples.length) {
     throw new Error('Scores does not contain as many items as tuples');
   }
-  let _scores = scores || Array.from(Array(_tuples.length)).map(() => 1);
+  const _scores = scores || Array.from(Array(_tuples.length)).map(() => 1);
 
   return _tuples
     .map((tuple, index) => {
@@ -102,7 +102,7 @@ const ensureTupleList = (value: (string|number)[][] | (string|number)[] | (strin
 
   let someAreArrays = false;
   let allAreArrays = true;
-  for (let t of value) {
+  for (const t of value) {
     if (t instanceof Array) {
       someAreArrays = true;
       if (value[0] instanceof Array && t.length !== value[0].length) {
