@@ -86,7 +86,9 @@ export const tupleListToString = (
     .join('|');
 };
 
-const ensureTupleList = (value: (string|number)[][] | (string|number)[] | (string|number)): (string|number)[][] => {
+const ensureTupleList = (
+  value: (string | number)[][] | (string | number)[] | (string | number),
+): (string | number)[][] => {
   // Convert string or number to nested array
   if (typeof value === 'string' || typeof value === 'number') {
     return [[value]];
@@ -118,9 +120,8 @@ const ensureTupleList = (value: (string|number)[][] | (string|number)[] | (strin
   }
 
   if (!someAreArrays) {
-    return (value as (string|number)[]).map(v => [v]);
+    return (value as (string | number)[]).map((v) => [v]);
   }
 
-  return value as (string|number)[][];
-
-}
+  return value as (string | number)[][];
+};

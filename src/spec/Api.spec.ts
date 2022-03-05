@@ -5,7 +5,6 @@ import { fetch } from 'cross-fetch';
 jest.mock('cross-fetch');
 
 describe('Api', () => {
-
   it('should be constructable without ApiConfig', () => {
     const api = new Api();
     expect(api).toBeDefined();
@@ -13,28 +12,28 @@ describe('Api', () => {
 
   it('should be constructable with only a partial ApiConfig', () => {
     let api = new Api({
-      workspace: 'my-workspace'
+      workspace: 'my-workspace',
     });
     expect(api.workspace).toEqual('my-workspace');
 
     api = new Api({
-      config: 'my-config'
+      config: 'my-config',
     });
     expect(api.config).toEqual('my-config');
 
     api = new Api({
-      version: 'my-version'
+      version: 'my-version',
     });
     expect(api.version).toEqual('my-version');
 
     api = new Api({
-      baseUrl: 'my-base-url'
+      baseUrl: 'my-base-url',
     });
     expect(api.baseUrl).toEqual('my-base-url');
 
     api = new Api({
       workspace: 'my-workspace',
-      version: 'my-version'
+      version: 'my-version',
     });
     expect(api.workspace).toEqual('my-workspace');
     expect(api.version).toEqual('my-version');
@@ -67,5 +66,4 @@ describe('Api', () => {
     const response = await api.fetch(queries);
     expect(response).toBeDefined();
   });
-
 });

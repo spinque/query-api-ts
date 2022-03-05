@@ -1,8 +1,8 @@
-import { ApiAuthenticationConfig, ApiConfig, Query, RequestOptions } from "./types";
+import { ApiAuthenticationConfig, ApiConfig, Query, RequestOptions } from './types';
 import fetch, { Headers } from 'cross-fetch';
-import { urlFromQueries } from "./utils";
-import { isBrowser } from "browser-or-node";
-import { join } from "path";
+import { urlFromQueries } from './utils';
+import { isBrowser } from 'browser-or-node';
+import { join } from 'path';
 
 export const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
 export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
@@ -101,7 +101,7 @@ export class Api {
       baseUrl: this.baseUrl,
       config: this.config,
       api: this.api,
-      authentication: this.authentication
+      authentication: this.authentication,
     };
   }
 
@@ -115,7 +115,7 @@ export class Api {
     if (this.authentication) {
       const accessToken = await this.getAccessToken();
       return fetch(url, {
-        headers: new Headers({ 'Authorization': `Bearer ${accessToken}` })
+        headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
       });
     } else {
       return fetch(url);
@@ -126,7 +126,7 @@ export class Api {
     if (!this.authentication) {
       throw new Error('API configuration does not contain authentication details');
     }
-    if (this._accessToken && this._expires && this._expires > (Date.now() + 1000)) {
+    if (this._accessToken && this._expires && this._expires > Date.now() + 1000) {
       return Promise.resolve(this._accessToken);
     }
 
@@ -137,13 +137,15 @@ export class Api {
         grant_type: 'client_credentials',
         client_id: this.authentication.clientId,
         client_secret: this.authentication.clientSecret,
-        audience: this.baseUrl
+        audience: this.baseUrl,
       };
 
       const response = await fetch(join(authServer, 'oauth', 'token'), {
         method: 'POST',
         headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
-        body: Object.entries(body).map(([key, value]) => `${key}=${value}`).join('&')
+        body: Object.entries(body)
+          .map(([key, value]) => `${key}=${value}`)
+          .join('&'),
       });
 
       const json = await response.json();
@@ -160,5 +162,4 @@ export class Api {
       throw new Error('Authentication scheme not implemented yet');
     }
   }
-
 }
