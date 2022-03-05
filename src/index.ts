@@ -1,1 +1,2 @@
-export const Greeter = (name: string) => `Hello ${name}`;
+export { Api } from './Api';
+export { Query, ApiConfig } from './types';
