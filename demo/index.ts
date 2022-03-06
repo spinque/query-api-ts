@@ -1,4 +1,4 @@
-import { Api, ApiConfig, Query } from '../src';
+import { Api, Query, UnauthorizedError } from '../src';
 import { tupleListToString, urlFromQueries } from '../src/utils';
 
 async function main() {
@@ -9,9 +9,9 @@ async function main() {
     api: 'movies'
   });
 
-  // await basic(api);
-  // await statistics(api);
-  // await facet(api);
+  await basic(api);
+  await statistics(api);
+  await facet(api);
   await authentication(api);
 }
 
@@ -27,12 +27,20 @@ async function main() {
   }];
 
   // Fetch response (or get URL and use your own HTTP library)
-  const response = await api.fetch(queries, { count: 10, offset: 0 });
-  console.log(await response.json());
+  try {
+    const response = await api.fetch(queries, { count: 10, offset: 0 });
+    // console.log(await response.json());
 
-  const url = urlFromQueries(api.apiConfig, queries, { count: 10, offset: 0 });
-  console.log(url);
-  // const response = await axios.get(url);
+    const url = urlFromQueries(api.apiConfig, queries, { count: 10, offset: 0 });
+    console.log(url);
+    // const response = await axios.get(url);
+  } catch (error: any) {
+    if (error instanceof UnauthorizedError) {
+      console.log('Unauthorized, this API requires authentication.');      
+    } else {
+      console.error(error);
+    }
+  }
 }
 
 /**
@@ -46,8 +54,8 @@ async function main() {
     parameters: { id: 'https://imdb.com/data/movie/tt0209144' }
   }];
 
-  const response = await api.fetch(queries, { count: 10, offset: 0, requestType: 'statistics' });
-  console.log(await response.json());
+  const response = await api.fetch(queries, { }, 'statistics');
+  console.log(response);
 }
 
 /**
@@ -68,8 +76,8 @@ async function main() {
   const [searchResults, facetOptions] = await Promise.all([api.fetch(search), api.fetch(facet)]);
 
   // Show the results
-  console.log('Search results for \'call me\': ', await searchResults.json());
-  console.log('Options in \'genre\' facet: ', await facetOptions.json());
+  console.log('Search results for \'call me\': ', searchResults);
+  console.log('Options in \'genre\' facet: ', facetOptions);
 
 
   // Now suppose the user selects a genre from the facet
@@ -94,8 +102,8 @@ async function main() {
   const [facetedSearchResults, updatedFacetOptions] = await Promise.all([api.fetch(facetedSearch), api.fetch(updatedFacet)]);
 
   // Show the results
-  console.log('Search results for \'call me\' with facet applied: ', await facetedSearchResults.json());
-  console.log('Options in \'genre\' with facet applied: ', await updatedFacetOptions.json());
+  console.log('Search results for \'call me\' with facet applied: ', facetedSearchResults);
+  console.log('Options in \'genre\' with facet applied: ', updatedFacetOptions);
 }
 
 
@@ -124,7 +132,7 @@ async function main() {
 
   // Fetch response (or get URL and use your own HTTP library)
   const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
-  console.log(await response.json());
+  console.log(response);
 }
 
 main();

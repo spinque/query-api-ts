@@ -1,6 +1,6 @@
 import { ApiConfig, Query } from '.';
 import { join } from 'path';
-import { RequestOptions } from './types';
+import { RequestOptions, RequestType } from './types';
 
 /**
  * Takes an array of Query objects and returns the path they would represent in a Query API request URL.
@@ -25,7 +25,10 @@ export const pathFromQuery = (query: Query): string => {
 /**
  * Takes an ApiConfig object and array of Query objects and returns a Query API request URL.
  */
-export const urlFromQueries = (config: ApiConfig, queries: Query[], options?: RequestOptions): string => {
+export const urlFromQueries = (config: ApiConfig, queries: Query | Query[], options?: RequestOptions, requestType: RequestType = 'results'): string => {
+  if (!(queries instanceof Array)) {
+    queries = [queries];
+  }
   if (!config.baseUrl) {
     throw new Error('Base URL missing');
   }
@@ -42,11 +45,8 @@ export const urlFromQueries = (config: ApiConfig, queries: Query[], options?: Re
   // Construct base URL containing Spinque version and workspace
   let url = join(config.baseUrl, config.version, config.workspace, 'api', config.api);
 
-  // Add the path represented by the Query objects
-  url = join(url, pathFromQueries(queries));
-
-  const requestType = options?.requestType || 'results';
-  url = join(url, requestType);
+  // Add the path represented by the Query objects and request type
+  url = join(url, pathFromQueries(queries), requestType);
 
   // Add config if provided
   if (config.config) {

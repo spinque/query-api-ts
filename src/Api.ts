@@ -1,11 +1,21 @@
-import { ApiAuthenticationConfig, ApiConfig, Query, RequestOptions } from './types';
+import {
+  ApiAuthenticationConfig,
+  ApiConfig,
+  ErrorResponse,
+  Query,
+  RequestOptions,
+  RequestType,
+  ServerError,
+  UnauthorizedError,
+  ResponseType,
+} from './types';
 import fetch, { Headers } from 'cross-fetch';
 import { urlFromQueries } from './utils';
 import { isBrowser } from 'browser-or-node';
 import { join } from 'path';
 
-export const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
-export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
+const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
+const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 
 export class Api {
   _baseUrl = DEFAULT_BASE_URL;
@@ -105,24 +115,50 @@ export class Api {
     };
   }
 
-  async fetch(queries: Query[], options?: RequestOptions): Promise<Response> {
+  async fetch(queries: Query | Query[], options?: RequestOptions, requestType: RequestType = 'results'): Promise<ErrorResponse | ResponseType<RequestType>> {
+    if (!(queries instanceof Array)) {
+      queries = [queries];
+    }
     if (queries.length === 0) {
       throw new Error('Queries array is empty');
     }
 
+    // Construct the URL to request from config and passed queries and options
     const url = urlFromQueries(this.apiConfig, queries, options);
 
+    let requestInit: RequestInit = {};
+
+    // Possibly set authentication details
     if (this.authentication) {
       const accessToken = await this.getAccessToken();
-      return fetch(url, {
+      requestInit = {
         headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
-      });
-    } else {
-      return fetch(url);
+      };
     }
+
+    // Make the request
+    return fetch(url, requestInit).then(res => this.handleErrors<RequestType>(res));
   }
 
-  async getAccessToken(): Promise<any> {
+  private async handleErrors<T extends RequestType>(response: Response): Promise<ErrorResponse | ResponseType<T>> {
+    if (response.status === 200) {
+      return await response.json() as ResponseType<T>;
+    }
+
+    if (response.status === 401) {
+      const json = await response.json();
+      throw new UnauthorizedError(json.message, 401);
+    }
+
+    if (response.status === 500) {
+      const json = await response.json();
+      throw new ServerError(json.message, 401);
+    }
+
+    throw new ErrorResponse('Unknown response', response.status);
+  }
+
+  private async getAccessToken(): Promise<any> {
     if (!this.authentication) {
       throw new Error('API configuration does not contain authentication details');
     }

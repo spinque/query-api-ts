@@ -1,2 +1,14 @@
 export { Api } from './Api';
-export { Query, ApiConfig } from './types';
+export {
+  ApiConfig,
+  ApiAuthenticationConfig,
+  Query,
+  RequestType,
+  RequestOptions,
+  ResponseType,
+  ResultsResponse,
+  StatisticsResponse,
+  ErrorResponse,
+  UnauthorizedError,
+  ServerError,
+} from './types';

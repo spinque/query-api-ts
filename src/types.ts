@@ -23,9 +23,9 @@ export interface Query {
   };
 }
 
-export interface RequestOptions {
-  requestType?: 'results' | 'statistics';
+export type RequestType = 'results' | 'statistics';
 
+export interface RequestOptions {
   // Number of items returned. Default value is 10. Should be between 1 and 100.
   count?: number;
 
@@ -40,4 +40,41 @@ export interface RequestOptions {
 
   // Specifies whether items in a result-tuple are returned as an array (false) or as an object (true). This option was introduced because some programming environments struggle with arrays that contain heterogeneous items (mix of strings, numbers, arrays, objects).
   homogeneousArrays?: boolean;
+}
+
+export type ResponseType<T extends RequestType> = T extends 'results'
+  ? ResultsResponse
+  : StatisticsResponse;
+
+export interface ResultsResponse {
+  count: number;
+  offset: number;
+  type: string[];
+  items: {
+    rank: number;
+    probability: number;
+    tuple: any[];
+  }[]
+}
+
+export interface StatisticsResponse {
+  total: number;
+  stats: {
+    cutoff: string;
+    numResults: number;
+  }[];
+}
+
+export class ErrorResponse {
+  constructor(public message: string, public status: number) {}
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class UnauthorizedError implements ErrorResponse {
+  constructor(public message: string, public status: number) {}
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class ServerError implements ErrorResponse {
+  constructor(public message: string, public status: number) {}
 }
