@@ -2,7 +2,9 @@
 
 TypeScript library to use the Spinque Query API in your project.
 
-## Basic usage
+## Usage
+
+### Defining queries
 
 Defining a single query:
 
@@ -26,6 +28,8 @@ const stacked_queries: Query[] = [{
 }];
 ```
 
+### Fetching results
+
 Fetching results for a single query using an instance of the Api class:
 
 ```typescript
@@ -44,10 +48,12 @@ try {
 }
 ```
 
+### Fetching using custom HTTP-library
+
 Getting the URL for a request to fetch it using your own HTTP-library of preference:
 
 ```typescript
-import { Api } from '@spinque/query-api';
+import { urlFromQueries } from '@spinque/query-api/utils';
 
 const apiConfig = {
   workspace: 'my-workspace',
