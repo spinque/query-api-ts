@@ -25,7 +25,12 @@ export const pathFromQuery = (query: Query): string => {
 /**
  * Takes an ApiConfig object and array of Query objects and returns a Query API request URL.
  */
-export const urlFromQueries = (config: ApiConfig, queries: Query | Query[], options?: RequestOptions, requestType: RequestType = 'results'): string => {
+export const urlFromQueries = (
+  config: ApiConfig,
+  queries: Query | Query[],
+  options?: RequestOptions,
+  requestType: RequestType = 'results',
+): string => {
   if (!(queries instanceof Array)) {
     queries = [queries];
   }

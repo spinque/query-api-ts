@@ -42,9 +42,7 @@ export interface RequestOptions {
   homogeneousArrays?: boolean;
 }
 
-export type ResponseType<T extends RequestType> = T extends 'results'
-  ? ResultsResponse
-  : StatisticsResponse;
+export type ResponseType<T extends RequestType> = T extends 'results' ? ResultsResponse : StatisticsResponse;
 
 export interface ResultsResponse {
   count: number;
@@ -54,7 +52,7 @@ export interface ResultsResponse {
     rank: number;
     probability: number;
     tuple: any[];
-  }[]
+  }[];
 }
 
 export interface StatisticsResponse {

@@ -1,6 +1,6 @@
 import { Query } from '..';
 import { Api } from '../Api';
-import fetchMock from "jest-fetch-mock";
+import fetchMock from 'jest-fetch-mock';
 
 // jest.setMock("cross-fetch", fetchMock);
 

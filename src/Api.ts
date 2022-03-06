@@ -115,7 +115,11 @@ export class Api {
     };
   }
 
-  async fetch(queries: Query | Query[], options?: RequestOptions, requestType: RequestType = 'results'): Promise<ErrorResponse | ResponseType<RequestType>> {
+  async fetch(
+    queries: Query | Query[],
+    options?: RequestOptions,
+    requestType: RequestType = 'results',
+  ): Promise<ErrorResponse | ResponseType<RequestType>> {
     if (!(queries instanceof Array)) {
       queries = [queries];
     }
@@ -137,12 +141,12 @@ export class Api {
     }
 
     // Make the request
-    return fetch(url, requestInit).then(res => this.handleErrors<RequestType>(res));
+    return fetch(url, requestInit).then((res) => this.handleErrors<RequestType>(res));
   }
 
   private async handleErrors<T extends RequestType>(response: Response): Promise<ErrorResponse | ResponseType<T>> {
     if (response.status === 200) {
-      return await response.json() as ResponseType<T>;
+      return (await response.json()) as ResponseType<T>;
     }
 
     if (response.status === 401) {
