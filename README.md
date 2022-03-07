@@ -1,6 +1,6 @@
 # @spinque/query-api
 
-TypeScript library to use the Spinque Query API in your project.
+JavaScript/TypeScript library to use the Spinque Query API in your project.
 
 ## Usage
 
@@ -64,3 +64,26 @@ const apiConfig = {
 const url = urlFromQueries(apiConfig, query, { count: 10, offset: 0 });
 ```
 
+### Vanilla JavaScript
+
+This library can also be used without using TypeScript:
+
+```javascript
+const sqa = require('@spinque/query-api');
+
+const api = new sqa.Api({
+  workspace: 'my-workspace',
+  api: 'my-api'
+});
+
+const query = {
+  endpoint: 'search',
+  parameters: { term: 'utrecht' }
+};
+
+try {
+  const results = api.fetch(query);
+} catch (error) {
+  console.log(error);
+}
+```
