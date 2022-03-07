@@ -13,6 +13,7 @@ import fetch, { Headers } from 'cross-fetch';
 import { urlFromQueries } from './utils';
 import { isBrowser } from 'browser-or-node';
 import { join } from 'path';
+import { ResultsResponse, StatisticsResponse } from '.';
 
 const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
 const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
@@ -115,11 +116,13 @@ export class Api {
     };
   }
 
-  async fetch(
+  async fetch(queries: Query | Query[], options?: RequestOptions, requestType?: RequestType): Promise<ResultsResponse | ErrorResponse>;
+  async fetch(queries: Query | Query[], options: RequestOptions, requestType: 'statistics'): Promise<StatisticsResponse | ErrorResponse>;
+  async fetch<T>(
     queries: Query | Query[],
     options?: RequestOptions,
     requestType: RequestType = 'results',
-  ): Promise<ErrorResponse | ResponseType<RequestType>> {
+  ): Promise<ResponseType<RequestType> | ErrorResponse> {
     if (!(queries instanceof Array)) {
       queries = [queries];
     }
@@ -128,7 +131,7 @@ export class Api {
     }
 
     // Construct the URL to request from config and passed queries and options
-    const url = urlFromQueries(this.apiConfig, queries, options);
+    const url = urlFromQueries(this.apiConfig, queries, options, requestType);
 
     let requestInit: RequestInit = {};
 

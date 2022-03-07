@@ -19,8 +19,8 @@
   "files": [
     "dist/**/*"
   ],
-  "keywords": [],
-  "author": "",
+  "keywords": ["spinque", "query api", "search", "information retrieval", "ranking", "knowledge graph", "search design"],
+  "author": "Spinque BV (olivier@spinque.com)",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^27.4.1",

@@ -29,7 +29,7 @@ async function main() {
   // Fetch response (or get URL and use your own HTTP library)
   try {
     const response = await api.fetch(queries, { count: 10, offset: 0 });
-    // console.log(await response.json());
+    console.log(response);
 
     const url = urlFromQueries(api.apiConfig, queries, { count: 10, offset: 0 });
     console.log(url);
