@@ -8,6 +8,7 @@ import {
   ServerError,
   UnauthorizedError,
   ResponseType,
+  EndpointNotFoundError,
 } from './types';
 import fetch, { Headers } from 'cross-fetch';
 import { urlFromQueries } from './utils';
@@ -46,9 +47,9 @@ export class Api {
       this._config = apiConfig.config;
     }
     if (apiConfig && apiConfig.authentication) {
-      // if (isBrowser && apiConfig.authentication.type === 'client-credentials') {
-      //   throw new Error('The Client Credentials Flow is only allowed for server application.');
-      // }
+      if (isBrowser && apiConfig.authentication.type === 'client-credentials') {
+        throw new Error('The Client Credentials Flow is only allowed for server application.');
+      }
 
       this._authentication = apiConfig.authentication;
     }
@@ -156,21 +157,25 @@ export class Api {
   }
 
   private async handleErrors<T extends RequestType>(response: Response): Promise<ErrorResponse | ResponseType<T>> {
+    const json = await response.json();
+
     if (response.status === 200) {
-      return (await response.json()) as ResponseType<T>;
+      return json as ResponseType<T>;
     }
 
     if (response.status === 401) {
-      const json = await response.json();
       throw new UnauthorizedError(json.message, 401);
     }
 
+    if (response.status === 400 && json.message.startsWith('no endpoint')) {
+      throw new EndpointNotFoundError(json.message, 400);
+    }
+
     if (response.status === 500) {
-      const json = await response.json();
       throw new ServerError(json.message, 401);
     }
 
-    throw new ErrorResponse('Unknown response', response.status);
+    throw new ErrorResponse('Unknown error: ' + (json.message || ''), response.status);
   }
 
   private async getAccessToken(): Promise<any> {

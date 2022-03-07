@@ -69,11 +69,11 @@ const url = urlFromQueries(apiConfig, query, { count: 10, offset: 0 });
 This library can also be used without using TypeScript:
 
 ```javascript
-const sqa = require('@spinque/query-api');
+const sqa = require("@spinque/query-api");
 
 const api = new sqa.Api({
   workspace: 'my-workspace',
-  api: 'my-api'
+  api: 'movies'
 });
 
 const query = {
@@ -82,7 +82,8 @@ const query = {
 };
 
 try {
-  const results = api.fetch(query);
+  const results = await api.fetch(query);
+  console.log(results);
 } catch (error) {
   console.log(error);
 }

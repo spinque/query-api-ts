@@ -1,4 +1,5 @@
 import { Api, Query, UnauthorizedError } from '../src';
+import { EndpointNotFoundError } from '../src/types';
 import { tupleListToString, urlFromQueries } from '../src/utils';
 
 async function main() {
@@ -10,9 +11,9 @@ async function main() {
   });
 
   await basic(api);
-  await statistics(api);
-  await facet(api);
-  await authentication(api);
+  // await statistics(api);
+  // await facet(api);
+  // await authentication(api);
 }
 
 /**
@@ -22,7 +23,7 @@ async function main() {
   console.log('\nBasic\n');
 
   const queries: Query[] = [{
-    endpoint: 'movie',
+    endpoint: 'mowvie',
     parameters: { id: 'https://imdb.com/data/movie/tt0209144' }
   }];
 
@@ -36,7 +37,9 @@ async function main() {
     // const response = await axios.get(url);
   } catch (error: any) {
     if (error instanceof UnauthorizedError) {
-      console.log('Unauthorized, this API requires authentication.');      
+      console.log('Unauthorized, this API requires authentication.');
+    } else if (error instanceof EndpointNotFoundError) {
+      console.log('This endpoint does not exist');
     } else {
       console.error(error);
     }

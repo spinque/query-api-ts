@@ -68,6 +68,11 @@ export class ErrorResponse {
 }
 
 // tslint:disable-next-line: max-classes-per-file
+export class EndpointNotFoundError implements ErrorResponse {
+  constructor(public message: string, public status: number) {}
+}
+
+// tslint:disable-next-line: max-classes-per-file
 export class UnauthorizedError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
 }
