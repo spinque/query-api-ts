@@ -116,8 +116,16 @@ export class Api {
     };
   }
 
-  async fetch(queries: Query | Query[], options?: RequestOptions, requestType?: RequestType): Promise<ResultsResponse | ErrorResponse>;
-  async fetch(queries: Query | Query[], options: RequestOptions, requestType: 'statistics'): Promise<StatisticsResponse | ErrorResponse>;
+  async fetch(
+    queries: Query | Query[],
+    options?: RequestOptions,
+    requestType?: RequestType,
+  ): Promise<ResultsResponse | ErrorResponse>;
+  async fetch(
+    queries: Query | Query[],
+    options: RequestOptions,
+    requestType: 'statistics',
+  ): Promise<StatisticsResponse | ErrorResponse>;
   async fetch<T>(
     queries: Query | Query[],
     options?: RequestOptions,
