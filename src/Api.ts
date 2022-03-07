@@ -1,23 +1,19 @@
+import { isBrowser } from 'browser-or-node';
+import fetch, { Headers } from 'cross-fetch';
+import { ResultsResponse, StatisticsResponse } from '.';
+import { Authenticator, ClientCredentials, PKCE } from './authentication';
 import {
   ApiAuthenticationConfig,
-  ApiConfig,
-  ErrorResponse,
+  ApiConfig, EndpointNotFoundError, ErrorResponse,
   Query,
   RequestOptions,
-  RequestType,
-  ServerError,
-  UnauthorizedError,
-  ResponseType,
-  EndpointNotFoundError,
+  RequestType, ResponseType, ServerError,
+  UnauthorizedError
 } from './types';
-import fetch, { Headers } from 'cross-fetch';
 import { urlFromQueries } from './utils';
-import { isBrowser } from 'browser-or-node';
-import { join } from 'path';
-import { ResultsResponse, StatisticsResponse } from '.';
+
 
 const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
-const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 
 export class Api {
   _baseUrl = DEFAULT_BASE_URL;
@@ -25,10 +21,9 @@ export class Api {
   _workspace?: string;
   _api?: string;
   _config? = 'default';
-  _authentication?: ApiAuthenticationConfig;
 
-  _accessToken?: string;
-  _expires?: number;
+  _authentication?: ApiAuthenticationConfig;
+  _authenticator?: Authenticator;
 
   constructor(apiConfig?: ApiConfig) {
     if (apiConfig && apiConfig.baseUrl) {
@@ -47,11 +42,25 @@ export class Api {
       this._config = apiConfig.config;
     }
     if (apiConfig && apiConfig.authentication) {
-      if (isBrowser && apiConfig.authentication.type === 'client-credentials') {
-        throw new Error('The Client Credentials Flow is only allowed for server application.');
+      if (apiConfig.authentication.type === 'client-credentials') {
+        this._authentication = apiConfig.authentication;
+        this._authenticator = new ClientCredentials(
+          apiConfig.authentication.clientId,
+          apiConfig.authentication.clientSecret,
+          apiConfig.authentication.authServer,
+          apiConfig.baseUrl || DEFAULT_BASE_URL
+        );
       }
 
-      this._authentication = apiConfig.authentication;
+      if (apiConfig.authentication.type === 'pkce') {
+        this._authentication = apiConfig.authentication;
+        this._authenticator = new PKCE(
+          apiConfig.authentication.clientId,
+          apiConfig.authentication.callback,
+          apiConfig.authentication.authServer,
+          apiConfig.baseUrl || DEFAULT_BASE_URL
+        );
+      }
     }
   }
 
@@ -99,13 +108,6 @@ export class Api {
     return this._authentication;
   }
 
-  set authetication(value: ApiAuthenticationConfig | undefined) {
-    if (value && isBrowser && value.type === 'client-credentials') {
-      throw new Error('The Client Credentials Flow is only allowed for server application.');
-    }
-    this._authentication = value;
-  }
-
   get apiConfig(): ApiConfig {
     return {
       workspace: this.workspace,
@@ -145,11 +147,9 @@ export class Api {
     let requestInit: RequestInit = {};
 
     // Possibly set authentication details
-    if (this.authentication) {
-      const accessToken = await this.getAccessToken();
-      requestInit = {
-        headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
-      };
+    if (this.authentication && this._authenticator) {
+      const token = await this._authenticator.accessToken;
+      requestInit = { headers: new Headers({ Authorization: `Bearer ${token}` }) };
     }
 
     // Make the request
@@ -177,45 +177,5 @@ export class Api {
 
     throw new ErrorResponse('Unknown error: ' + (json.message || ''), response.status);
   }
-
-  private async getAccessToken(): Promise<any> {
-    if (!this.authentication) {
-      throw new Error('API configuration does not contain authentication details');
-    }
-    if (this._accessToken && this._expires && this._expires > Date.now() + 1000) {
-      return Promise.resolve(this._accessToken);
-    }
-
-    if (this.authentication.type === 'client-credentials') {
-      const authServer = this.authentication.authServer || DEFAULT_AUTH_SERVER;
-
-      const body = {
-        grant_type: 'client_credentials',
-        client_id: this.authentication.clientId,
-        client_secret: this.authentication.clientSecret,
-        audience: this.baseUrl,
-      };
-
-      const response = await fetch(join(authServer, 'oauth', 'token'), {
-        method: 'POST',
-        headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
-        body: Object.entries(body)
-          .map(([key, value]) => `${key}=${value}`)
-          .join('&'),
-      });
-
-      const json = await response.json();
-
-      if (response.status !== 200 || !json || !json.access_token || !json.expires_in) {
-        throw new Error(json.error_description || json.error || response.status);
-      }
-
-      this._accessToken = json.access_token;
-      this._expires = Date.now() + json.expires_in;
-
-      return this._accessToken;
-    } else {
-      throw new Error('Authentication scheme not implemented yet');
-    }
-  }
 }
+

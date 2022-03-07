@@ -12,8 +12,11 @@ export type ApiAuthenticationConfig = {
   authServer?: string;
   clientId: string;
   clientSecret: string;
-  // } | {
-  //   type: 'pkce';
+} | {
+  type: 'pkce';
+  authServer?: string;
+  clientId: string;
+  callback: string;
 };
 
 export interface Query {

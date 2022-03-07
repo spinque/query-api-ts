@@ -1,0 +1,1 @@
+../../../node_modules/browserify/bin/cmd.js script.js > script-browserify.js
