@@ -22,7 +22,7 @@ export abstract class Authenticator {
 
   public get accessToken(): Promise<string | undefined> {
     // If the class already stores an access token, return it
-    if (this._accessToken && this._expires && this._expires > (Date.now() + 1000)) {
+    if (this._accessToken && this._expires && this._expires > Date.now() + 1000) {
       return Promise.resolve(this._accessToken);
     }
     // If the class is already authenticating, wait for it
@@ -74,7 +74,7 @@ export abstract class Authenticator {
     try {
       const accessToken = localStorage.getItem('@spinque/query-api/access-token');
       const expires = parseInt(localStorage.getItem('@spinque/query-api/expires') || '', 10);
-      if (accessToken && expires && expires > (Date.now() + 1000)) {
+      if (accessToken && expires && expires > Date.now() + 1000) {
         return { accessToken, expires };
       } else {
         localStorage.removeItem('@spinque/query-api/access-token');

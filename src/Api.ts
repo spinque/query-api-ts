@@ -4,14 +4,17 @@ import { ResultsResponse, StatisticsResponse } from '.';
 import { Authenticator, ClientCredentials, PKCE } from './authentication';
 import {
   ApiAuthenticationConfig,
-  ApiConfig, EndpointNotFoundError, ErrorResponse,
+  ApiConfig,
+  EndpointNotFoundError,
+  ErrorResponse,
   Query,
   RequestOptions,
-  RequestType, ResponseType, ServerError,
-  UnauthorizedError
+  RequestType,
+  ResponseType,
+  ServerError,
+  UnauthorizedError,
 } from './types';
 import { urlFromQueries } from './utils';
-
 
 const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
 
@@ -48,7 +51,7 @@ export class Api {
           apiConfig.authentication.clientId,
           apiConfig.authentication.clientSecret,
           apiConfig.authentication.authServer,
-          apiConfig.baseUrl || DEFAULT_BASE_URL
+          apiConfig.baseUrl || DEFAULT_BASE_URL,
         );
       }
 
@@ -58,7 +61,7 @@ export class Api {
           apiConfig.authentication.clientId,
           apiConfig.authentication.callback,
           apiConfig.authentication.authServer,
-          apiConfig.baseUrl || DEFAULT_BASE_URL
+          apiConfig.baseUrl || DEFAULT_BASE_URL,
         );
       }
     }
@@ -178,4 +181,3 @@ export class Api {
     throw new ErrorResponse('Unknown error: ' + (json.message || ''), response.status);
   }
 }
-

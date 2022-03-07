@@ -1,10 +1,15 @@
-import { Authenticator, DEFAULT_AUTH_SERVER } from "./Authenticator";
+import { Authenticator, DEFAULT_AUTH_SERVER } from './Authenticator';
 import { join } from 'path';
-import { isBrowser } from "browser-or-node";
+import { isBrowser } from 'browser-or-node';
 import fetch, { Headers } from 'cross-fetch';
 
 export class PKCE extends Authenticator {
-  constructor(private clientId: string, private callback: string, private authServer?: string, private baseUrl?: string) {
+  constructor(
+    private clientId: string,
+    private callback: string,
+    private authServer?: string,
+    private baseUrl?: string,
+  ) {
     super();
 
     if (!isBrowser) {
@@ -16,7 +21,7 @@ export class PKCE extends Authenticator {
 
   private checkForCallback() {
     // Get query parameters from URL
-    const params = Object.fromEntries((new URLSearchParams(window.location.search)).entries());
+    const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
 
     if (!params.code || !params.state) {
       return;
@@ -51,15 +56,17 @@ export class PKCE extends Authenticator {
       redirect_uri: this.callback,
       audience: this.baseUrl,
       scope: '',
-      state
+      state,
     };
     let authorizationUrl = join(authServer, 'authorize');
-    authorizationUrl += `?${Object.entries(params).map(([key, value]) => `${key}=${value}`).join('&')}`;
-    
+    authorizationUrl += `?${Object.entries(params)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&')}`;
+
     window.location.href = authorizationUrl;
 
     // tslint:disable-next-line: no-empty
-    return new Promise(() => { }) as Promise<undefined>;
+    return new Promise(() => {}) as Promise<undefined>;
   }
 
   public async tradeCodeForToken(code: string, state: string) {
@@ -86,7 +93,7 @@ export class PKCE extends Authenticator {
       client_id: this.clientId,
       code_verifier: verifier,
       redirect_uri: this.callback,
-      code
+      code,
     };
 
     const response = await fetch(join(authServer, 'oauth', 'token'), {
@@ -111,13 +118,12 @@ export class PKCE extends Authenticator {
   }
 }
 
-
 /**
  * Crypto stuff for PKCE
  * Most of this is taken from: https://github.com/auth0/auth0-spa-js (MIT licensed)
  */
 
- export const getCrypto = () => {
+export const getCrypto = () => {
   return (window.crypto || (window as any).msCrypto) as Crypto;
 };
 
@@ -127,21 +133,15 @@ export const getCryptoSubtle = () => {
 };
 
 export const createRandomString = () => {
-  const charset =
-    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_~.';
+  const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_~.';
   let random = '';
-  const randomValues = Array.from(
-    getCrypto().getRandomValues(new Uint8Array(43))
-  );
-  randomValues.forEach(v => (random += charset[v % charset.length]));
+  const randomValues = Array.from(getCrypto().getRandomValues(new Uint8Array(43)));
+  randomValues.forEach((v) => (random += charset[v % charset.length]));
   return random;
 };
 
 export const sha256 = async (s: string) => {
-  const digestOp: any = getCryptoSubtle().digest(
-    { name: 'SHA-256' },
-    new TextEncoder().encode(s)
-  );
+  const digestOp: any = getCryptoSubtle().digest({ name: 'SHA-256' }, new TextEncoder().encode(s));
   if ((window as any).msCrypto) {
     return new Promise((res, rej) => {
       digestOp.oncomplete = (e: any) => {
@@ -163,9 +163,7 @@ export const sha256 = async (s: string) => {
 
 export const bufferToBase64UrlEncoded = (input: number[] | Uint8Array) => {
   const ie11SafeInput = new Uint8Array(input);
-  return urlEncodeB64(
-    window.btoa(String.fromCharCode(...Array.from(ie11SafeInput)))
-  );
+  return urlEncodeB64(window.btoa(String.fromCharCode(...Array.from(ie11SafeInput))));
 };
 
 const urlEncodeB64 = (input: string) => {

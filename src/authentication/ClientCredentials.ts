@@ -1,10 +1,15 @@
-import { Authenticator, DEFAULT_AUTH_SERVER } from "./Authenticator";
+import { Authenticator, DEFAULT_AUTH_SERVER } from './Authenticator';
 import { join } from 'path';
-import { isBrowser } from "browser-or-node";
+import { isBrowser } from 'browser-or-node';
 import fetch, { Headers } from 'cross-fetch';
 
 export class ClientCredentials extends Authenticator {
-  constructor(private clientId: string, private clientSecret: string, private authServer?: string, private baseUrl?: string) {
+  constructor(
+    private clientId: string,
+    private clientSecret: string,
+    private authServer?: string,
+    private baseUrl?: string,
+  ) {
     super();
 
     if (isBrowser) {
@@ -38,7 +43,7 @@ export class ClientCredentials extends Authenticator {
 
     return {
       accessToken: json.access_token as string,
-      expiresIn: json.expires_in as number
+      expiresIn: json.expires_in as number,
     };
-  };
+  }
 }

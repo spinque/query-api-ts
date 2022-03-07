@@ -7,17 +7,19 @@ export interface ApiConfig {
   authentication?: ApiAuthenticationConfig;
 }
 
-export type ApiAuthenticationConfig = {
-  type: 'client-credentials';
-  authServer?: string;
-  clientId: string;
-  clientSecret: string;
-} | {
-  type: 'pkce';
-  authServer?: string;
-  clientId: string;
-  callback: string;
-};
+export type ApiAuthenticationConfig =
+  | {
+      type: 'client-credentials';
+      authServer?: string;
+      clientId: string;
+      clientSecret: string;
+    }
+  | {
+      type: 'pkce';
+      authServer?: string;
+      clientId: string;
+      callback: string;
+    };
 
 export interface Query {
   endpoint: string;
