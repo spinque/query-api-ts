@@ -1,63 +1,71 @@
-import { Api, Query } from '../../src';
-import { tupleListToString } from '../../src/utils';
+import { Api, ResultsResponse } from '../../src';
+import { FacetedSearch } from '../../src/FacetedSearch';
 
 async function main() {
   // Create Api object
   const api = new Api({
     workspace: 'course-main',
     config: 'default',
-    api: 'movies'
+    api: 'movies',
+
+    authentication: {
+      type: 'client-credentials',
+      clientId: 'OhZpdNNu9hWUsVpTZnYa9DzWLLbivlEH',
+      clientSecret: 'cOo6uGbRw7H_qdaZ3EO_jgr3wSKIfJapC0WxV3hPzLEsxnvtL_gukQXYQrw3mq9m',
+    },
   });
 
   await facet(api);
 }
 
 /**
- * Showing search results and a facet
+ * Using FacetedSearch to manage queries in a simple faceted search setup.
  */
  async function facet(api: Api) {
-  console.log('\nFacet\n');
+  try {
+    /**
+     * Initialization
+     */
 
-  // Construct the query for the main search results
-  const search: Query[] = [{
-    endpoint: 'movie_search',
-    parameters: { query: 'call me' }
-  }];
-  // Construct the query for the facet options (query is stacked on top of the search query)
-  const facet: Query[] = [...search, { endpoint: 'genre' }];
+    // Define the search query, start with an empty parameter
+    const searchQuery = {
+      endpoint: 'movie_search',
+      parameters: { query: '' }
+    };
 
-  // Call these two in parallel
-  const [searchResults, facetOptions] = await Promise.all([api.fetch(search), api.fetch(facet)]);
+    // Optionally, we can default an alternative endpoint for when the parameters of the search query are empty
+    const listQuery = {
+      endpoint: 'movies'
+    };
 
-  // Show the results
-  console.log('Search results for \'call me\': ', searchResults);
-  console.log('Options in \'genre\' facet: ', facetOptions);
+    // Define the relation between different Queries in a FacetedSearch instance
+    const fs = new FacetedSearch(searchQuery, listQuery).withFacet('genre', 'multiple');
 
+    // Get results (will fetch the listQuery) and facet options
+    let results = await api.fetch(fs.getResultsQueries());
+    let options = await api.fetch(fs.getFacetOptions());
 
-  // Now suppose the user selects a genre from the facet
+    /**
+     * Interaction
+     */
 
+    // Set the search query parameter (e.g. after the user has typed something)
+    fs.setParameter('query', 'call me');
 
-  // Selected options from the facet
-  const selected = ['https://imdb.com/data/genre/Drama'];
+    // Get results (will fetch the searchQuery) and facet options
+    results = await api.fetch(fs.getResultsQueries());
+    options = await api.fetch(fs.getFacetOptions());
 
-  // Update the search results by applying the facet filter endpoint
-  const facetedSearch: Query[] = [{
-    endpoint: 'movie_search',
-    parameters: { query: 'call me' }
-  }, {
-    endpoint: 'genre:FILTER',
-    parameters: { value: tupleListToString(selected) }
-  }];
+    // Select a facet option
+    fs.setFacetSelection('genre', (options as ResultsResponse).items[0].tuple[0].id);
 
-  // Update the facet options query by stacking it on top of the new search results
-  const updatedFacet: Query[] = [...facetedSearch, { endpoint: 'genre' }];
+    // Get results again
+    results = await api.fetch(fs.getResultsQueries());
 
-  // Fetch both in parallel
-  const [facetedSearchResults, updatedFacetOptions] = await Promise.all([api.fetch(facetedSearch), api.fetch(updatedFacet)]);
+  } catch (error) {
+    console.log(error);
+  }
 
-  // Show the results
-  console.log('Search results for \'call me\' with facet applied: ', facetedSearchResults);
-  console.log('Options in \'genre\' with facet applied: ', updatedFacetOptions);
 }
 
 

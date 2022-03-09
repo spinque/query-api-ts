@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "demo": "npx ts-node -r tsconfig-paths/register ./demo",
+    "demo": "npx ts-node -r tsconfig-paths/register ./demo/facets",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "test": "jest --config jestconfig.json",

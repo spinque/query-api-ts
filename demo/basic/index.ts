@@ -18,8 +18,6 @@ async function main() {
  * Basic usage
  */
  async function basic(api: Api) {
-  console.log('\nBasic\n');
-
   const queries: Query[] = [{
     endpoint: 'mowvie',
     parameters: { id: 'https://imdb.com/data/movie/tt0209144' }
