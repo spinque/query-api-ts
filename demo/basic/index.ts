@@ -19,7 +19,7 @@ async function main() {
  */
  async function basic(api: Api) {
   const queries: Query[] = [{
-    endpoint: 'mowvie',
+    endpoint: 'movie',
     parameters: { id: 'https://imdb.com/data/movie/tt0209144' }
   }];
 

@@ -9,11 +9,9 @@ export interface Facet {
   type: 'single' | 'multiple';
 }
 
-// Assumes the following:
-//  * your filter endpoint has the name `${optionsEndpoint}:FILTER`
-//  * the parameter name of your facet is 'value'
-//  * for single select facets, this parameter is of type STRING
-//  * for multiple select facets, this parameter is of type TUPLE_LIST
+/**
+ * Associate Query objects with each other in a faceted search setup.
+ */
 export class FacetedSearch {
   private facets: Facet[] = [];
 
@@ -23,20 +21,21 @@ export class FacetedSearch {
     }
   }
 
-  public withFacet(endpoint: string, type: 'single' | 'multiple' = 'single'): FacetedSearch {
+  /**
+   * Add a facet to the FacetedSearch object.
+   * 
+   * @returns FacetedSearch
+   */
+  public withFacet(endpoint: string, type: 'single' | 'multiple' = 'single', filterEndpointPrefix = ':FILTER', filterEndpointParameterName = 'value'): FacetedSearch {
     this.facets.push({
       optionsEndpoint: endpoint,
-      filterEndpoint: `${endpoint}:FILTER`,
-      filterParameterName: `value`,
+      filterEndpoint: `${endpoint}${filterEndpointPrefix}`,
+      filterParameterName: filterEndpointParameterName,
       filterParameterValue: undefined,
       type
     });
     return this;
   }
-
-  /**
-   * Export the state of the Queries
-   */
 
   getBaseQuery(): Query {
     if (
@@ -87,10 +86,6 @@ export class FacetedSearch {
       { endpoint: facet.optionsEndpoint }
     ];
   }
-
-  /**
-   * Manipulate the queries
-   */
 
    public setParameter(name: string, value: string) {
     this.searchQuery = {

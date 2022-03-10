@@ -1,4 +1,3 @@
-import { isBrowser } from 'browser-or-node';
 import fetch, { Headers } from 'cross-fetch';
 import { ResultsResponse, StatisticsResponse } from '.';
 import { Authenticator, ClientCredentials, PKCE } from './authentication';
@@ -12,21 +11,24 @@ import {
   RequestType,
   ResponseType,
   ServerError,
-  UnauthorizedError,
+  UnauthorizedError
 } from './types';
 import { urlFromQueries } from './utils';
 
 const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
 
+/**
+ * Send queries to an API.
+ */
 export class Api {
-  _baseUrl = DEFAULT_BASE_URL;
-  _version? = '4';
-  _workspace?: string;
-  _api?: string;
-  _config? = 'default';
 
-  _authentication?: ApiAuthenticationConfig;
-  _authenticator?: Authenticator;
+  private _baseUrl = DEFAULT_BASE_URL;
+  private _version? = '4';
+  private _workspace?: string;
+  private _api?: string;
+  private _config? = 'default';
+  private _authentication?: ApiAuthenticationConfig;
+  private _authenticator?: Authenticator;
 
   constructor(apiConfig?: ApiConfig) {
     if (apiConfig && apiConfig.baseUrl) {
