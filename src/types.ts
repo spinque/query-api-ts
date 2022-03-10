@@ -4,14 +4,14 @@
 export interface ApiConfig {
   /**
    * URL to the Spinque Query API deployment.
-   * 
+   *
    * @default https://rest.spinque.com/
    */
   baseUrl?: string;
 
   /**
    * Version of the Spinque Query API deployment.
-   * 
+   *
    * @default 4
    */
   version?: string;
@@ -32,7 +32,7 @@ export interface ApiConfig {
    * Name of the configuration of the Spinque workspace that should be used.
    * Usually, this is something like 'production', 'development' or 'default'.
    * The Spinque Desk administrator working on your project knowns this value.
-   * 
+   *
    * @default default
    */
   config?: string;
@@ -51,14 +51,14 @@ export type ApiAuthenticationConfig =
       /**
        * OAuth 2.0 Client Credentials flow.
        * Uses Client ID and Client Secret to directly request an access token.
-       * 
+       *
        * @see https://oauth.net/2/grant-types/client-credentials/
        */
       type: 'client-credentials';
 
       /**
        * URL to the authentication server to use.
-       * 
+       *
        * @default https://login.spinque.com/
        */
       authServer?: string;
@@ -68,14 +68,14 @@ export type ApiAuthenticationConfig =
   | {
       /**
        * OAuth 2.0 PKCE flow.
-       * 
+       *
        * @see https://oauth.net/2/pkce/
        */
       type: 'pkce';
 
       /**
        * URL to the authentication server to use.
-       * 
+       *
        * @default https://login.spinque.com/
        */
       authServer?: string;

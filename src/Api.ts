@@ -11,7 +11,7 @@ import {
   RequestType,
   ResponseType,
   ServerError,
-  UnauthorizedError
+  UnauthorizedError,
 } from './types';
 import { urlFromQueries } from './utils';
 
@@ -21,7 +21,6 @@ const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
  * Send queries to an API.
  */
 export class Api {
-
   private _baseUrl = DEFAULT_BASE_URL;
   private _version? = '4';
   private _workspace?: string;
