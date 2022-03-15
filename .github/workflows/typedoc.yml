@@ -44,7 +44,7 @@ jobs:
         run: npm ci
 
       - name: Build Documentation 📖
-        run: npx typedoc src/index.ts
+        run: npm run docs
 
       - name: Deploy Documentation 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.5
