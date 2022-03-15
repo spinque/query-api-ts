@@ -12,19 +12,19 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dependencies 📦
-      - run: npm install
+        run: npm install
 
       - name: Build Library 🛠
-      - run: npm run build
+        run: npm run build
       
       - name: Run Tests 🧐
-      - run: npm run test
+        run: npm run test
 
       - name: Run Linter 🎗
-      - run: npm run lint
+        run: npm run lint
 
       - name: Run Prettier 💄
-      - run: npm run check-format
+        run: npm run check-format
 
       - name: Build Documentation 📖
         run: npm run docs
