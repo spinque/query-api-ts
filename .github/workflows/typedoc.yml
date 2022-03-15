@@ -31,7 +31,7 @@ jobs:
         run: npm run check-format
 
       - name: Build Documentation 📖
-        run: npm run docs
+        run: npx typedoc src/index.ts
 
       - name: Deploy Documentation 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.5
