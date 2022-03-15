@@ -27,9 +27,18 @@ async function main() {
     },
   ];
 
-  // Fetch response (or get URL and use your own HTTP library)
-  const response = await api.fetch(queries, { count: 10, offset: 0 });
-  console.log(response);
+  try {
+    // Fetch response (or get URL and use your own HTTP library)
+    const response = await api.fetch(queries, { count: 10, offset: 0 });
+    console.log(response);
+
+    setTimeout(async () => {
+      const response = await api.fetch(queries, { count: 10, offset: 0 });
+      console.log(response);
+    }, 15 * 1000);
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 main();

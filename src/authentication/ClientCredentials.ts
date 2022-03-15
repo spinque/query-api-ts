@@ -3,21 +3,30 @@ import { join } from 'path';
 import { isBrowser } from 'browser-or-node';
 import fetch, { Headers } from 'cross-fetch';
 
+/**
+ * An Authenticator class for the OAuth 2.0 Client Credentials grant.
+ */
 export class ClientCredentials extends Authenticator {
   constructor(
+    // Client ID from Spinque Desk > Settings > Team Members > System-to-System account
     private clientId: string,
+    // Client Secret from Spinque Desk > Settings > Team Members > System-to-System account
     private clientSecret: string,
+    // URL to the Spinque Authorization server, default is https://login.spinque.com/
     private authServer?: string,
+    // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
     private baseUrl?: string,
   ) {
     super();
-
     if (isBrowser) {
       throw new Error('The Client Credentials Flow is only allowed for server applications.');
     }
   }
 
-  public async fetchAccessToken() {
+  /**
+   * This method fetches an access token using the OAuth 2.0 Client Credentials grant and returns it
+   */
+  public async fetchAccessToken(): Promise<{ accessToken: string; expiresIn: number; }> {
     const authServer = this.authServer || DEFAULT_AUTH_SERVER;
 
     const body = {
@@ -30,6 +39,7 @@ export class ClientCredentials extends Authenticator {
     const response = await fetch(join(authServer, 'oauth', 'token'), {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+      // URL Encode the body
       body: Object.entries(body)
         .map(([key, value]) => `${key}=${value}`)
         .join('&'),

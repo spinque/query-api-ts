@@ -2,6 +2,9 @@ import { isBrowser } from 'browser-or-node';
 
 export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 
+/**
+ * Abstract class with utitily functions for working with access tokens such as storage
+ */
 export abstract class Authenticator {
   _authInProgress = true;
   _accessToken?: string;
@@ -12,6 +15,7 @@ export abstract class Authenticator {
     const res = this.getFromStorage();
 
     if (res) {
+      // Set it as class property
       this._accessToken = res.accessToken;
       this._expires = res.expires;
       this._authInProgress = false;
@@ -20,6 +24,24 @@ export abstract class Authenticator {
     }
   }
 
+  /**
+   * A Promise that delays any operation until an access token is set (with intervals of 50ms)
+   * This is used to delay incoming request from our app when an access token is already
+   * being requested but has not yet been received.
+   */
+  private _waitForAccessToken: Promise<string> = new Promise((resolve) => {
+    const wait = () => {
+      setTimeout(() => (!this._authInProgress && this._accessToken ? resolve(this._accessToken) : wait()), 50);
+    };
+    wait();
+  });
+
+  /**
+   * Promise that will resolve with an access token if available or undefined otherwise.
+   * This will try to fetch a new access token if:
+   *  - the class implements the fetchAccessToken method
+   *  - no unexpired access token is stored in this class
+   */
   public get accessToken(): Promise<string | undefined> {
     // If the class already stores an access token, return it
     if (this._accessToken && this._expires && this._expires > Date.now() + 1000) {
@@ -43,19 +65,15 @@ export abstract class Authenticator {
     });
   }
 
+  /**
+   * Puts an access token and the expiration time in storage for usage when calling Spinque Query API
+   */
   public setAccessToken(accessToken: string, expiresIn: number) {
     this._accessToken = accessToken;
     this._expires = Date.now() + expiresIn;
     this.putInStorage(this._accessToken, this._expires);
     this._authInProgress = false;
   }
-
-  private _waitForAccessToken: Promise<string> = new Promise((resolve) => {
-    const wait = () => {
-      setTimeout(() => (!this._authInProgress && this._accessToken ? resolve(this._accessToken) : wait()), 100);
-    };
-    wait();
-  });
 
   private putInStorage(accessToken: string, expires: number) {
     if (!isBrowser || !localStorage) {
@@ -66,7 +84,10 @@ export abstract class Authenticator {
     localStorage.setItem('@spinque/query-api/expires', `${expires}`);
   }
 
-  private getFromStorage() {
+  /**
+   * Get an access token from local storage (if available)
+   */
+  private getFromStorage(): { accessToken: string; expires: number } | null {
     // Localstorage is only available for browser applications
     if (!isBrowser || !localStorage) {
       return null;
@@ -86,5 +107,8 @@ export abstract class Authenticator {
     }
   }
 
+  /**
+   * Abstract method that must be implemented by extending classes for specific OAuth 2.0 grants/flows.
+   */
   abstract fetchAccessToken(): Promise<{ accessToken: string; expiresIn: number } | undefined>;
 }
