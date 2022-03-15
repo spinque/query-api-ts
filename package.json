@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "demo": "npx ts-node -r tsconfig-paths/register ./demo/authentication/server",
+    "check-format": "prettier --check \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "test": "jest --config jestconfig.json",
