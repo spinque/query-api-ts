@@ -26,7 +26,7 @@ export class ClientCredentials extends Authenticator {
   /**
    * This method fetches an access token using the OAuth 2.0 Client Credentials grant and returns it
    */
-  public async fetchAccessToken(): Promise<{ accessToken: string; expiresIn: number; }> {
+  public async fetchAccessToken(): Promise<{ accessToken: string; expiresIn: number }> {
     const authServer = this.authServer || DEFAULT_AUTH_SERVER;
 
     const body = {
