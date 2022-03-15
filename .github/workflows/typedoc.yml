@@ -38,6 +38,9 @@ jobs:
 
       - name: Install dependencies 📦
         run: npm install
+        
+      - name: Build documentation 📖
+        run: npm run docs
 
       - name: Deploy Documentation 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.5
