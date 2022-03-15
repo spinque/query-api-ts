@@ -30,8 +30,21 @@ jobs:
       - name: Run Prettier 💄
         run: npm run check-format
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        
+      - name: Install dependencies 📦
+        run: npm ci
+
       - name: Build Documentation 📖
-        run: npm install typescript && npx typedoc src/index.ts
+        run: npx typedoc src/index.ts
 
       - name: Deploy Documentation 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.5
