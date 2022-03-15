@@ -9,6 +9,8 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
+      - run: npm install
+
       - name: Build Documentation 🔧
         run: npm run docs
 
