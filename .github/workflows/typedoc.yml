@@ -1,27 +1,40 @@
-name: TypeDoc
+name: Tests
 
 on:
   push:
     branches:
       - master
 jobs:
-  build-test-docs:
+  tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - run: npm install
-      - run: npm test
-      - name: Build
-        run: npm run build
 
-      - name: Build Documentation 🔧
-        run: npx typedoc src/index.ts
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        
+      - name: Install dependencies 📦
+        run: npm install
+
+      - name: Build Library 🛠
+        run: npm run build
+      
+      - name: Run Tests 🧐
+        run: npm run test
+
+      - name: Run Linter 🎗
+        run: npm run lint
+
+      - name: Run Prettier 💄
+        run: npm run check-format
+
+      - name: Build Documentation 📖
+        run: npm run docs
 
       - name: Deploy Documentation 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: docs # The folder the action should deploy.
+          branch: gh-pages
+          folder: docs
