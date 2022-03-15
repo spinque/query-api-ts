@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "test": "jest --config jestconfig.json",
+    "docs": "typedoc src/index.ts",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm run lint",
@@ -43,6 +44,7 @@
     "tsconfig-paths": "^3.13.0",
     "tslint": "^6.1.3",
     "tslint-config-prettier": "^1.18.0",
+    "typedoc": "^0.22.13",
     "typescript": "^4.6.2"
   },
   "dependencies": {
