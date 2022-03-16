@@ -16,7 +16,7 @@ export const pathFromQuery = (query: Query): string => {
   const parts = ['e', encodeURIComponent(query.endpoint)];
   if (query.parameters) {
     Object.entries(query.parameters).forEach(([name, value]) => {
-      parts.push('p', name, encodeURIComponent(value));
+      parts.push('p', encodeURIComponent(name), encodeURIComponent(value));
     });
   }
   return join(...parts);
@@ -47,11 +47,17 @@ export const urlFromQueries = (
     throw new Error('API name missing');
   }
 
+  let url = config.baseUrl;
+
+  if (!url.endsWith('/')) {
+    url += '/';
+  }
+
   // Construct base URL containing Spinque version and workspace
-  let url = join(config.baseUrl, config.version, config.workspace, 'api', config.api);
+  url += join(config.version, config.workspace, 'api', config.api);
 
   // Add the path represented by the Query objects and request type
-  url = join(url, pathFromQueries(queries), requestType);
+  url += '/' + join(pathFromQueries(queries), requestType);
 
   // Add config if provided
   if (config.config) {
