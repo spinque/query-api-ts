@@ -33,16 +33,12 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
       - name: Checkout 🛎️
         uses: actions/checkout@v3
-        
+
       - name: Install dependencies 📦
         run: npm install
-
+        
       - name: Build documentation 📖
         run: npm run docs
 
