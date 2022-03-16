@@ -1,11 +1,11 @@
-name: Tests
+name: CI
 
 on:
   push:
     branches:
       - master
 jobs:
-  tests:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v2
@@ -30,15 +30,6 @@ jobs:
       - name: Run Prettier 💄
         run: npm run check-format
 
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
-
-      - name: Install dependencies 📦
-        run: npm install
-        
       - name: Build documentation 📖
         run: npm run docs
 
