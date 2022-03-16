@@ -3,7 +3,7 @@ import { tupleListToString } from './utils';
 
 /**
  * Interface for objects representing a facet.
- * 
+ *
  * Currently, this interface only supports:
  *  - facets without a parameter for the optionsEndpoint
  *  - facets with only one parameter for the filterEndpoint
@@ -38,7 +38,7 @@ export class FacetedSearch {
     private searchQuery: Query,
     // emptyParameterQuery is used instead of searchQuery when the searchQuery parameters are all empty.
     // If no emptyParameterQuery is passed, searchQuery is fetched with empty parameters.
-    private emptyParameterQuery?: Query
+    private emptyParameterQuery?: Query,
   ) {
     // Throw an error if the searchQuery does not have parameters
     if (!searchQuery.parameters || Object.keys(searchQuery.parameters).length === 0) {
@@ -50,7 +50,7 @@ export class FacetedSearch {
    * Add a facet to the FacetedSearch object.
    */
   public withFacet(
-    // Name of the 
+    // Name of the
     endpoint: string,
     type: 'single' | 'multiple' = 'single',
     filterEndpointPrefix = ':FILTER',
