@@ -82,4 +82,18 @@ describe('utils', () => {
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results?config=my-config',
     );
   });
+
+  it('urlFromQueries should add count and offset parameters', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'my-config',
+    };
+    const query: Query = { endpoint: 'my-endpoint' };
+    expect(urlFromQueries(apiConfig, query, { count: 314, offset: 15 })).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results?config=my-config&count=314&offset=15',
+    );
+  });
 });
