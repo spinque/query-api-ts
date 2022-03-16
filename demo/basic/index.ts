@@ -25,7 +25,7 @@ async function main() {
 
   // Fetch response (or get URL and use your own HTTP library)
   try {
-    const response = await api.fetch(queries, { count: 10, offset: 0 });
+    const response = await api.fetch(queries, { count: 10, offset: 0 }, 'results');
     console.log(response);
 
     const url = urlFromQueries(api.apiConfig, queries, { count: 10, offset: 0 });

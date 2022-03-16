@@ -15,10 +15,11 @@ import {
 } from './types';
 import { urlFromQueries } from './utils';
 
+// This is the default base URL to the Spinque Query API.
 const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
 
 /**
- * Send queries to an API.
+ * Send queries to the Spinque Query API using fetch.
  */
 export class Api {
   private _baseUrl = DEFAULT_BASE_URL;
@@ -68,50 +69,86 @@ export class Api {
     }
   }
 
+  /**
+   * Getter for baseUrl
+   */
   get baseUrl(): string {
     return this._baseUrl;
   }
 
+  /**
+   * Setter for baseUrl
+   */
   set baseUrl(value: string) {
     this._baseUrl = value;
   }
 
+  /**
+   * Getter for version
+   */
   get version(): string | undefined {
     return this._version;
   }
 
+  /**
+   * Setter for version
+   */
   set version(value: string | undefined) {
     this._version = value;
   }
 
+  /**
+   * Getter for workspace
+   */
   get workspace(): string | undefined {
     return this._workspace;
   }
 
+  /**
+   * Setter for workspace
+   */
   set workspace(value: string | undefined) {
     this._workspace = value;
   }
 
+  /**
+   * Getter for API name
+   */
   get api(): string | undefined {
     return this._api;
   }
 
+  /**
+   * Setter for API name
+   */
   set api(value: string | undefined) {
     this._api = value;
   }
 
+  /**
+   * Getter for configuration name
+   */
   get config(): string | undefined {
     return this._config;
   }
 
+  /**
+   * Setter for configuration name
+   */
   set config(value: string | undefined) {
     this._config = value;
   }
 
+  /**
+   * Getter for authentication configuration
+   */
   get authentication(): ApiAuthenticationConfig | undefined {
     return this._authentication;
   }
 
+  /**
+   * Getter for authentication configuration
+   */
   get apiConfig(): ApiConfig {
     return {
       workspace: this.workspace,
@@ -123,6 +160,9 @@ export class Api {
     };
   }
 
+  /**
+   * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
+   */
   async fetch(
     queries: Query | Query[],
     options?: RequestOptions,
@@ -138,6 +178,7 @@ export class Api {
     options?: RequestOptions,
     requestType: RequestType = 'results',
   ): Promise<ResponseType<RequestType> | ErrorResponse> {
+    // Convert single query to array of queries
     if (!(queries instanceof Array)) {
       queries = [queries];
     }
@@ -157,10 +198,13 @@ export class Api {
     }
 
     // Make the request
-    return fetch(url, requestInit).then((res) => this.handleErrors<RequestType>(res));
+    return fetch(url, requestInit).then((res) => this.handleResponse<RequestType>(res));
   }
 
-  private async handleErrors<T extends RequestType>(response: Response): Promise<ErrorResponse | ResponseType<T>> {
+  /**
+   * Handle the response of a fetch to Spinque Query API.
+   */
+  private async handleResponse<T extends RequestType>(response: Response): Promise<ErrorResponse | ResponseType<T>> {
     const json = await response.json();
 
     if (response.status === 200) {

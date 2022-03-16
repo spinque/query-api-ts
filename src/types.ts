@@ -100,6 +100,11 @@ export interface Query {
   };
 }
 
+/**
+ * Any request to the Spinque Query API must be one of these types.
+ * 'results' will return actual result items.
+ * 'statistics' will return the probability distribution for the query.
+ */
 export type RequestType = 'results' | 'statistics';
 
 export interface RequestOptions {
@@ -125,16 +130,42 @@ export interface RequestOptions {
 export type ResponseType<T extends RequestType> = T extends 'results' ? ResultsResponse : StatisticsResponse;
 
 /**
+ * Data types known by Spinque.
+ * OBJ is an object with attributes.
+ * TUPLE_LIST is a list of tuples.
+ * STRING, DATE, INTEGER, DOUBLE are simple data types.
+ */
+export type DataType = 'OBJ' | 'STRING' | 'DATE' | 'INTEGER' | 'DOUBLE' | 'TUPLE_LIST';
+
+/**
  * Response to a Query that contains the results
  */
 export interface ResultsResponse {
+  // Number of results requested. This may be more than the actual number of items returned.
+  // If 'count' is larger than the number of items in the response, you've reached the last page.
   count: number;
+  // The result offset requested.
   offset: number;
-  type: string[];
+  // The output type returned. Can be any combination of the data types.
+  type: DataType[];
+  // A list with result items.
   items: {
+    // The rank of this result item, starting with 1.
     rank: number;
+    // The probability/score of this result item.
     probability: number;
-    tuple: any[];
+    // The contents of this result item
+    tuple: (
+      | string
+      | number
+      | {
+          id: string;
+          type: string[];
+          attributes?: {
+            [attributeName: string]: any;
+          };
+        }
+    )[];
   }[];
 }
 
@@ -142,27 +173,48 @@ export interface ResultsResponse {
  * Response to a Query that contains statistics
  */
 export interface StatisticsResponse {
+  // The total number of results for this query
   total: number;
+  // Array representing the distribution of probabilities.
+  // Every 'cutoff' point is a probability value and 'numResults'
+  // is the number of results that have at least this probability.
   stats: {
+    // A probability value
     cutoff: string;
+    // Number of results with at least the accompanying 'cutoff' value as probability.
     numResults: number;
   }[];
 }
 
+/**
+ * Generic error response class. Is implemented by more specific error type classes.
+ */
 export class ErrorResponse {
   constructor(public message: string, public status: number) {}
 }
 
+/**
+ * Error class used when Spinque cannot find the endpoint you requested.
+ * The endpoint might be misspelled or removed.
+ */
 // tslint:disable-next-line: max-classes-per-file
 export class EndpointNotFoundError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
 }
 
+/**
+ * Error class used when you are not authorized to request results for
+ * this workspace, API or endpoint.
+ */
 // tslint:disable-next-line: max-classes-per-file
 export class UnauthorizedError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
 }
 
+/**
+ * Error class when something fails on the side of Spinque. Please contact
+ * your system administrator when this happens.
+ */
 // tslint:disable-next-line: max-classes-per-file
 export class ServerError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
