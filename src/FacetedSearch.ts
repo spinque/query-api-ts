@@ -66,6 +66,11 @@ export class FacetedSearch {
     return this;
   }
 
+  /**
+   * Get the Query to get the search results.
+   * Will return searchQuery as passed to the constructor unless a emptyParameterQuery was
+   * also passed and all parameters for searchQuery are empty.
+   */
   getBaseQuery(): Query {
     if (
       this.emptyParameterQuery &&
@@ -79,6 +84,9 @@ export class FacetedSearch {
     }
   }
 
+  /**
+   * Get the Query objects to retrieve search results. This includes the facet Query, if applicable.
+   */
   getResultsQueries(): Query[] {
     return [
       this.getBaseQuery(),
@@ -91,6 +99,10 @@ export class FacetedSearch {
     ];
   }
 
+  /**
+   * Get the Query objects to retrieve the facet options. When using multiple facets, the facetEndpoint
+   * parameter is required.
+   */
   getFacetOptions(facetEndpoint?: string): Query[] {
     let facet;
     if (facetEndpoint) {
@@ -123,6 +135,9 @@ export class FacetedSearch {
     ];
   }
 
+  /**
+   * Set a parameter value for the searchQuery
+   */
   public setParameter(name: string, value: string) {
     this.searchQuery = {
       ...this.searchQuery,
@@ -133,6 +148,9 @@ export class FacetedSearch {
     };
   }
 
+  /**
+   * Clear all searchQuery parameters
+   */
   public clearParameters() {
     this.searchQuery = {
       ...this.searchQuery,
@@ -140,6 +158,9 @@ export class FacetedSearch {
     };
   }
 
+  /**
+   * Set the selected options for a given facet.
+   */
   public setFacetSelection(facetEndpoint: string, selection: string | string[]) {
     if (!(selection instanceof Array)) {
       selection = [selection];
@@ -160,6 +181,9 @@ export class FacetedSearch {
     }
   }
 
+  /**
+   * Clear the selection for a given facet.
+   */
   public clearFacetSelection(facetEndpoint?: string) {
     if (facetEndpoint) {
       const facet = this.facets.find((f) => f.optionsEndpoint === facetEndpoint);
