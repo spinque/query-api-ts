@@ -38,13 +38,18 @@ describe('utils', () => {
   });
 
   it('pathFromQuery should add multiple parameters to the path', () => {
-    const q1: Query = { endpoint: 'my-endpoint', parameters: { 'one': 'value-one', 'two': 'value-two', 'three': 'value-three' } };
+    const q1: Query = {
+      endpoint: 'my-endpoint',
+      parameters: { one: 'value-one', two: 'value-two', three: 'value-three' },
+    };
     expect(pathFromQuery(q1)).toBe('e/my-endpoint/p/one/value-one/p/two/value-two/p/three/value-three');
   });
 
-
   it('pathFromQueries should work the same as pathFromQuery for a single Query', () => {
-    const q1: Query = { endpoint: 'my-endpoint', parameters: { 'one': 'value-one', 'two': 'value-two', 'three': 'value-three' } };
+    const q1: Query = {
+      endpoint: 'my-endpoint',
+      parameters: { one: 'value-one', two: 'value-two', three: 'value-three' },
+    };
     expect(pathFromQuery(q1)).toEqual(pathFromQueries([q1]));
 
     const q2: Query = { endpoint: 'my-"crazy$-endpoint' };
@@ -52,10 +57,15 @@ describe('utils', () => {
   });
 
   it('pathFromQueries should join multiple Queries together', () => {
-    const q1: Query = { endpoint: 'my-endpoint', parameters: { 'one': 'value-one', 'two': 'value-two', 'three': 'value-three' } };
+    const q1: Query = {
+      endpoint: 'my-endpoint',
+      parameters: { one: 'value-one', two: 'value-two', three: 'value-three' },
+    };
     const q2: Query = { endpoint: 'my-"crazy$-endpoint' };
     expect(pathFromQueries([q1, q2])).toEqual(pathFromQuery(q1) + '/' + pathFromQuery(q2));
-    expect(pathFromQueries([q1, q2])).toEqual('e/my-endpoint/p/one/value-one/p/two/value-two/p/three/value-three/e/my-%22crazy%24-endpoint');
+    expect(pathFromQueries([q1, q2])).toEqual(
+      'e/my-endpoint/p/one/value-one/p/two/value-two/p/three/value-three/e/my-%22crazy%24-endpoint',
+    );
     expect(pathFromQueries([q2, q1])).toEqual(pathFromQuery(q2) + '/' + pathFromQuery(q1));
   });
 
@@ -65,9 +75,11 @@ describe('utils', () => {
       version: '4',
       workspace: 'my-workspace',
       api: 'my-api',
-      config: 'my-config'
+      config: 'my-config',
     };
     const query: Query = { endpoint: 'my-endpoint' };
-    expect(urlFromQueries(apiConfig, query)).toEqual('https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results?config=my-config');
+    expect(urlFromQueries(apiConfig, query)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results?config=my-config',
+    );
   });
 });
