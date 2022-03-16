@@ -9,6 +9,14 @@ Library to use the Spinque Query API in your JavaScript/TypeScript project.
 
 Also check out the [documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
 
+## Installing
+
+Using npm:
+
+```bash
+$ npm install @spinque/query-api
+```
+
 ## Usage
 
 ### Defining queries
