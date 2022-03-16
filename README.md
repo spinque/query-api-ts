@@ -1,6 +1,9 @@
 # @spinque/query-api
 
 [![npm version](https://img.shields.io/npm/v/@spinque/query-api.svg?style=flat-square)](https://www.npmjs.org/package/@spinque/query-api)
+![Build status](https://github.com/axios/axios/actions/workflows/ci.yml/badge.svg)
+[![install size](https://packagephobia.now.sh/badge?p=@spinque/query-api)](https://packagephobia.now.sh/result?p=@spinque/query-api)
+[![Known Vulnerabilities](https://snyk.io/test/npm/@spinque/query-api/badge.svg)](https://snyk.io/test/npm/@spinque/query-api)
 
 Library to use the Spinque Query API in your JavaScript/TypeScript project.
 
