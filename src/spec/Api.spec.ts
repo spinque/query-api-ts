@@ -1,6 +1,5 @@
+import { Query } from '..';
 import { Api } from '../Api';
-
-// jest.setMock("cross-fetch", fetchMock);
 
 describe('Api', () => {
   it('should be constructable without ApiConfig', () => {
@@ -42,32 +41,21 @@ describe('Api', () => {
     expect(api.baseUrl).toEqual('https://rest.spinque.com/');
   });
 
-  // it('should not try to fetch 0 queries', async () => {
-  //   const api = new Api({ workspace: 'my-workspace' });
-  //   const queries: Query[] = [];
-  //   const res = api.fetch(queries).catch((error) => {
-  //     console.log(error);
-  //     expect(error).toEqual('');
-  //   });
-  //   await res;
-  //   expect(1).toEqual(1);
+  it('should not try to fetch 0 queries', async () => {
+    const api = new Api({ workspace: 'my-workspace', api: 'my-api' });
+    const queries: Query[] = [];
+    await expect(api.fetch(queries)).rejects.toThrow('Queries array is empty');
+  });
 
-  //   // expect(() => {
-  //   // }).toThrow();
-  // });
+  it('should not try to fetch without an API name', async () => {
+    const api = new Api({ workspace: 'course-main' });
+    const queries: Query[] = [{ endpoint: 'my-endpoint' }];
+    await expect(api.fetch(queries)).rejects.toThrow('API name missing');
+  });
 
-  // it('should not try to fetch without workspace', () => {
-  //   const api = new Api();
-  //   const queries: Query[] = [{ endpoint: 'my-endpoint' }];
-  //   expect(() => {
-  //     api.fetch(queries);
-  //   }).toThrow();
-  // });
-
-  // it('should try to fetch single query', async () => {
-  //   const api = new Api({ workspace: 'my-workspace' });
-  //   const queries: Query[] = [{ endpoint: 'my-endpoint' }];
-  //   const response = await api.fetch(queries);
-  //   expect(response).toBeDefined();
-  // });
+  it('should not try to fetch without a workspace name', async () => {
+    const api = new Api({ api: 'movies' });
+    const queries: Query[] = [{ endpoint: 'my-endpoint' }];
+    await expect(api.fetch(queries)).rejects.toThrow('Workspace missing');
+  });
 });
