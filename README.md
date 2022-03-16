@@ -1,5 +1,7 @@
 # @spinque/query-api
 
+[![npm version](https://img.shields.io/npm/v/@spinque/query-api.svg?style=flat-square)](https://www.npmjs.org/package/@spinque/query-api)
+
 Library to use the Spinque Query API in your JavaScript/TypeScript project.
 
 Also check out the [documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
