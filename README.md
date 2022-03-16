@@ -1,13 +1,12 @@
 # @spinque/query-api
 
 [![npm version](https://img.shields.io/npm/v/@spinque/query-api.svg?style=flat-square)](https://www.npmjs.org/package/@spinque/query-api)
-![Build status](https://github.com/axios/axios/actions/workflows/ci.yml/badge.svg)
 [![install size](https://packagephobia.now.sh/badge?p=@spinque/query-api)](https://packagephobia.now.sh/result?p=@spinque/query-api)
 [![Known Vulnerabilities](https://snyk.io/test/npm/@spinque/query-api/badge.svg)](https://snyk.io/test/npm/@spinque/query-api)
 
 Library to use the Spinque Query API in your JavaScript/TypeScript project.
 
-Also check out the [documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
+The Spinque Query API is an HTTP API to retrieve search results for queries. Also check out the [documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
 
 ## Installing
 
@@ -16,6 +15,12 @@ Using npm:
 ```bash
 $ npm install @spinque/query-api
 ```
+
+## Documentation
+
+Documentation for this library can be found [here](https://spinque.github.io/query-api-ts/).
+
+This documents the code exported by this library. For documentation on the Spinque Query API itself, please see [this](https://docs.spinque.com/3.0/using-apis/basic.html).
 
 ## Usage
 
