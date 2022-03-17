@@ -27,7 +27,7 @@ describe('FacetedSearch', () => {
     const sq: Query = { endpoint: 'my-endpoint', parameters: { q: '' } };
     const fs = new FacetedSearch(sq);
     fs.addFacet('genre');
-    fs.setFacetSelection('genre', 'a')
+    fs.setFacetSelection('genre', 'a');
     expect(fs.facets[0].filterParameterValue).toEqual('a');
   });
 
@@ -35,7 +35,7 @@ describe('FacetedSearch', () => {
     const sq: Query = { endpoint: 'my-endpoint', parameters: { q: '' } };
     const fs = new FacetedSearch(sq);
     fs.addFacet('genre', 'multiple');
-    fs.setFacetSelection('genre', ['a', 'b'])
+    fs.setFacetSelection('genre', ['a', 'b']);
     expect(fs.facets[0].filterParameterValue).toEqual('1(a)|1(b)');
   });
 

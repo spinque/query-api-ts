@@ -138,7 +138,7 @@ describe('utils', () => {
       baseUrl: 'https://rest.spinque.com/',
       version: '4',
       workspace: 'my-workspace',
-      api: 'my-api'
+      api: 'my-api',
     };
     const query: Query = { endpoint: 'my-endpoint' };
     expect(urlFromQueries(apiConfig, query)).toEqual(
@@ -152,7 +152,7 @@ describe('utils', () => {
       version: '4',
       workspace: 'my-workspace',
       api: 'my-api',
-      config: 'default'
+      config: 'default',
     };
     const query: Query = { endpoint: 'my-endpoint' };
     expect(urlFromQueries(apiConfig, query, {}, 'statistics')).toEqual(
@@ -180,7 +180,13 @@ describe('utils', () => {
   });
 
   it('tupleListToString should convert an array of arrays of strings or numbers', () => {
-    expect(tupleListToString([['hello', 'there'], ['marco', 'polo'], [123, 456]])).toEqual('1(hello,there)|1(marco,polo)|1(123,456)');
+    expect(
+      tupleListToString([
+        ['hello', 'there'],
+        ['marco', 'polo'],
+        [123, 456],
+      ]),
+    ).toEqual('1(hello,there)|1(marco,polo)|1(123,456)');
   });
 
   it('tupleListToString should throw an error if arrays are not of equal length', () => {
@@ -188,14 +194,22 @@ describe('utils', () => {
   });
 
   it('tupleListToString should use scores if passed', () => {
-    expect(tupleListToString([['hello', 'there'], ['marco', 'polo'], [123, 456]], [0.1, 0.5, 3.1415]))
-      .toEqual('0.1(hello,there)|0.5(marco,polo)|3.1415(123,456)');
+    expect(
+      tupleListToString(
+        [
+          ['hello', 'there'],
+          ['marco', 'polo'],
+          [123, 456],
+        ],
+        [0.1, 0.5, 3.1415],
+      ),
+    ).toEqual('0.1(hello,there)|0.5(marco,polo)|3.1415(123,456)');
   });
 
   it('tupleListToString should throw an error if scores length does not match arrays length', () => {
     expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [])).toThrow();
     expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1])).toThrow();
-    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1,2])).toThrow();
-    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1,2,3,4])).toThrow();
+    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1, 2])).toThrow();
+    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1, 2, 3, 4])).toThrow();
   });
 });
