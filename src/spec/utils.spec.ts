@@ -1,4 +1,4 @@
-import { pathFromQueries, pathFromQuery, urlFromQueries } from '../utils';
+import { pathFromQueries, pathFromQuery, tupleListToString, urlFromQueries } from '../utils';
 import { ApiConfig, Query } from '..';
 
 describe('utils', () => {
@@ -144,5 +144,58 @@ describe('utils', () => {
     expect(urlFromQueries(apiConfig, query)).toEqual(
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results',
     );
+  });
+
+  it('urlFromQueries should be able to request statistics', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default'
+    };
+    const query: Query = { endpoint: 'my-endpoint' };
+    expect(urlFromQueries(apiConfig, query, {}, 'statistics')).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/statistics?config=default',
+    );
+  });
+
+  it('tupleListToString should convert everything to strings', () => {
+    expect(typeof tupleListToString(0)).toEqual('string');
+    expect(typeof tupleListToString('hello')).toEqual('string');
+  });
+
+  it('tupleListToString should convert single strings or numbers', () => {
+    expect(tupleListToString('hello')).toEqual('1(hello)');
+    expect(tupleListToString(123)).toEqual('1(123)');
+  });
+
+  it('tupleListToString should convert an array of strings or numbers', () => {
+    expect(tupleListToString(['hello'])).toEqual('1(hello)');
+    expect(tupleListToString(['hello', 'there'])).toEqual('1(hello)|1(there)');
+    expect(tupleListToString([123])).toEqual('1(123)');
+    expect(tupleListToString([123, 456])).toEqual('1(123)|1(456)');
+    expect(tupleListToString([123, 'marco'])).toEqual('1(123)|1(marco)');
+    expect(tupleListToString(['polo', '456'])).toEqual('1(polo)|1(456)');
+  });
+
+  it('tupleListToString should convert an array of arrays of strings or numbers', () => {
+    expect(tupleListToString([['hello', 'there'], ['marco', 'polo'], [123, 456]])).toEqual('1(hello,there)|1(marco,polo)|1(123,456)');
+  });
+
+  it('tupleListToString should throw an error if arrays are not of equal length', () => {
+    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]])).toThrow();
+  });
+
+  it('tupleListToString should use scores if passed', () => {
+    expect(tupleListToString([['hello', 'there'], ['marco', 'polo'], [123, 456]], [0.1, 0.5, 3.1415]))
+      .toEqual('0.1(hello,there)|0.5(marco,polo)|3.1415(123,456)');
+  });
+
+  it('tupleListToString should throw an error if scores length does not match arrays length', () => {
+    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [])).toThrow();
+    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1])).toThrow();
+    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1,2])).toThrow();
+    expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1,2,3,4])).toThrow();
   });
 });

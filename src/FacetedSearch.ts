@@ -28,7 +28,7 @@ export interface Facet {
  */
 export class FacetedSearch {
   // Internal list of Facet objects
-  private facets: Facet[] = [];
+  private _facets: Facet[] = [];
 
   constructor(
     // Query object for the search results that will serve as the base for this facet.
@@ -49,21 +49,23 @@ export class FacetedSearch {
   /**
    * Add a facet to the FacetedSearch object.
    */
-  public withFacet(
-    // Name of the
+  addFacet(
     endpoint: string,
     type: 'single' | 'multiple' = 'single',
     filterEndpointPrefix = ':FILTER',
     filterEndpointParameterName = 'value',
-  ): FacetedSearch {
-    this.facets.push({
+  ) {
+    this._facets.push({
       optionsEndpoint: endpoint,
       filterEndpoint: `${endpoint}${filterEndpointPrefix}`,
       filterParameterName: filterEndpointParameterName,
       filterParameterValue: undefined,
       type,
     });
-    return this;
+  }
+
+  get facets(): Facet[] {
+    return this._facets;
   }
 
   /**
@@ -87,10 +89,10 @@ export class FacetedSearch {
   /**
    * Get the Query objects to retrieve search results. This includes the facet Query, if applicable.
    */
-  getResultsQueries(): Query[] {
+  getResultsQuery(): Query[] {
     return [
       this.getBaseQuery(),
-      ...this.facets
+      ...this._facets
         .filter((f) => f.filterParameterValue !== undefined && f.filterParameterValue !== '')
         .map((f) => ({
           endpoint: f.filterEndpoint,
@@ -103,24 +105,15 @@ export class FacetedSearch {
    * Get the Query objects to retrieve the facet options. When using multiple facets, the facetEndpoint
    * parameter is required.
    */
-  getFacetOptions(facetEndpoint?: string): Query[] {
-    let facet;
-    if (facetEndpoint) {
-      facet = this.facets.find((f) => f.optionsEndpoint === facetEndpoint);
-    } else if (this.facets.length > 1) {
-      throw new Error(
-        'The facet to get options for has to be specified whenever FactedSearch has more than one facet.',
-      );
-    } else {
-      facet = this.facets[0];
-    }
+  getFacetQuery(facetEndpoint: string): Query[] {
+    const facet = this._facets.find((f) => f.optionsEndpoint === facetEndpoint);
     if (!facet) {
       throw new Error('Facet not found in FacetedSearch');
     }
 
     return [
       this.getBaseQuery(),
-      ...this.facets
+      ...this._facets
         .filter(
           (f) =>
             f.filterParameterValue !== undefined &&
@@ -165,7 +158,7 @@ export class FacetedSearch {
     if (!(selection instanceof Array)) {
       selection = [selection];
     }
-    const facet = this.facets.find((f) => f.optionsEndpoint === facetEndpoint);
+    const facet = this._facets.find((f) => f.optionsEndpoint === facetEndpoint);
     if (!facet) {
       throw new Error(`FacetedSearch does not contain facet ${facetEndpoint}`);
     }
@@ -186,13 +179,13 @@ export class FacetedSearch {
    */
   public clearFacetSelection(facetEndpoint?: string) {
     if (facetEndpoint) {
-      const facet = this.facets.find((f) => f.optionsEndpoint === facetEndpoint);
+      const facet = this._facets.find((f) => f.optionsEndpoint === facetEndpoint);
       if (!facet) {
         throw new Error(`FacetedSearch does not contain facet ${facetEndpoint}`);
       }
       facet.filterParameterValue = '';
     } else {
-      this.facets.forEach((f) => {
+      this._facets.forEach((f) => {
         f.filterParameterValue = '';
       });
     }

@@ -155,24 +155,29 @@ const query: Query = {
   parameters: { query: 'call me' }
 };
 
-const fs = new FacetedSearch(query).withFacet('genre', 'multiple');
+const fs = new FacetedSearch(query);
+
+fs.addFacet('genre', 'multiple');
+fs.addFacet('director', 'single');
 
 // Get results and facet options
-let results = await api.fetch(fs.getResultsQueries());
-let options = await api.fetch(fs.getFacetOptions());
+let results = await api.fetch(fs.getResultsQuery());
+let genreOptions = await api.fetch(fs.getFacetQuery('genre'));
+let directorOptions = await api.fetch(fs.getFacetQuery('director'));
 
 // Set the search query parameter (e.g. after the user has typed something)
 fs.setParameter('query', 'the grand');
 
 // Get updated results and options
-results = await api.fetch(fs.getResultsQueries());
-options = await api.fetch(fs.getFacetOptions());
+results = await api.fetch(fs.getResultsQuery());
+genreOptions = await api.fetch(fs.getFacetQuery('genre'));
+directorOptions = await api.fetch(fs.getFacetQuery('director'));
 
 // Select a facet option
 fs.setFacetSelection('genre', 'https://imdb.com/schema/Drama');
 
 // Get results again
-results = await api.fetch(fs.getResultsQueries());
+results = await api.fetch(fs.getResultsQuery());
 ```
 
 Optionally, you can provide a Query for when the search parameters are empty.
