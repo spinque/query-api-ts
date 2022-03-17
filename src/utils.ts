@@ -78,7 +78,12 @@ export const urlFromQueries = (
   return url;
 };
 
+/**
+ * Given a tuple list (and optionally scores), return a string representation.
+ */
 export const tupleListToString = (
+  // tuples can be either a string, a number, an array of strings or numbers,
+  // or an array of arrays of strings or numbers
   tuples: (string | number)[][] | (string | number)[] | string | number,
   scores?: number[],
 ): string => {

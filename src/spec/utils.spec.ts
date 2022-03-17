@@ -96,4 +96,53 @@ describe('utils', () => {
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results?config=my-config&count=314&offset=15',
     );
   });
+
+  it('urlFromQueries should fail without a baseUrl, version, workspace or API name', () => {
+    const query: Query = { endpoint: 'my-endpoint' };
+
+    const apiConfig1: ApiConfig = {
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'my-config',
+    };
+    expect(() => urlFromQueries(apiConfig1, query)).toThrow('Base URL missing');
+
+    const apiConfig2: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'my-config',
+    };
+    expect(() => urlFromQueries(apiConfig2, query)).toThrow('Version missing');
+
+    const apiConfig3: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      api: 'my-api',
+      config: 'my-config',
+    };
+    expect(() => urlFromQueries(apiConfig3, query)).toThrow('Workspace missing');
+
+    const apiConfig4: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      config: 'my-config',
+    };
+    expect(() => urlFromQueries(apiConfig4, query)).toThrow('API name missing');
+  });
+
+  it('urlFromQueries should not fail without config', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api'
+    };
+    const query: Query = { endpoint: 'my-endpoint' };
+    expect(urlFromQueries(apiConfig, query)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results',
+    );
+  });
 });
