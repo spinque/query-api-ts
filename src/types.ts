@@ -169,7 +169,7 @@ export interface ResultItem {
         };
       }
   )[];
-};
+}
 
 /**
  * Response to a Query that contains statistics
