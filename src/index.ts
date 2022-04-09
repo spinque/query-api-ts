@@ -1,14 +1,5 @@
-export { Api } from './Api';
-export {
-  ApiConfig,
-  ApiAuthenticationConfig,
-  Query,
-  RequestType,
-  RequestOptions,
-  ResponseType,
-  ResultsResponse,
-  StatisticsResponse,
-  ErrorResponse,
-  UnauthorizedError,
-  ServerError,
-} from './types';
+export * from './Api';
+export * from './authentication';
+export * from './FacetedSearch';
+export * from './types';
+export * from './utils';
