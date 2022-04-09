@@ -8,6 +8,7 @@ Library to use the Spinque Query API in your JavaScript/TypeScript project.
 
 The Spinque Query API is an HTTP API to retrieve search results for queries. Also check out the [documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
 
+
 ## Installing
 
 Using npm:
