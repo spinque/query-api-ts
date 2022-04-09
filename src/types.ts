@@ -149,25 +149,27 @@ export interface ResultsResponse {
   // The output type returned. Can be any combination of the data types.
   type: DataType[];
   // A list with result items.
-  items: {
-    // The rank of this result item, starting with 1.
-    rank: number;
-    // The probability/score of this result item.
-    probability: number;
-    // The contents of this result item
-    tuple: (
-      | string
-      | number
-      | {
-          id: string;
-          type: string[];
-          attributes?: {
-            [attributeName: string]: any;
-          };
-        }
-    )[];
-  }[];
+  items: ResultItem[];
 }
+
+export interface ResultItem {
+  // The rank of this result item, starting with 1.
+  rank: number;
+  // The probability/score of this result item.
+  probability: number;
+  // The contents of this result item
+  tuple: (
+    | string
+    | number
+    | {
+        id: string;
+        type: string[];
+        attributes?: {
+          [attributeName: string]: any;
+        };
+      }
+  )[];
+};
 
 /**
  * Response to a Query that contains statistics
