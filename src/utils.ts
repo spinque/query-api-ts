@@ -145,22 +145,22 @@ export const join = (...segments: string[]): string => {
   const parts = segments.reduce((_parts: string[], segment) => {
     // Remove leading slashes from non-first part.
     if (_parts.length > 0) {
-      segment = segment.replace(/^\//, '')
+      segment = segment.replace(/^\//, '');
     }
     // Remove trailing slashes.
-    segment = segment.replace(/\/$/, '')
-    return _parts.concat(segment.split('/'))
-  }, [] as string[])
-  const resultParts: string[] = []
+    segment = segment.replace(/\/$/, '');
+    return _parts.concat(segment.split('/'));
+  }, [] as string[]);
+  const resultParts: string[] = [];
   for (const part of parts) {
     if (part === '.') {
-      continue
+      continue;
     }
     if (part === '..') {
-      resultParts.pop()
-      continue
+      resultParts.pop();
+      continue;
     }
-    resultParts.push(part)
+    resultParts.push(part);
   }
-  return resultParts.join('/')
+  return resultParts.join('/');
 };
