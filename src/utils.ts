@@ -141,6 +141,26 @@ const ensureTupleList = (
   return value as (string | number)[][];
 };
 
-export const join = (...fragments: string[]): string => {
-  return fragments.reduce((acc: string, cur: string) => acc + (acc.endsWith('/') ? '' : '/') + cur, '');
+export const join = (...segments: string[]): string => {
+  const parts = segments.reduce((_parts: string[], segment) => {
+    // Remove leading slashes from non-first part.
+    if (_parts.length > 0) {
+      segment = segment.replace(/^\//, '')
+    }
+    // Remove trailing slashes.
+    segment = segment.replace(/\/$/, '')
+    return _parts.concat(segment.split('/'))
+  }, [] as string[])
+  const resultParts: string[] = []
+  for (const part of parts) {
+    if (part === '.') {
+      continue
+    }
+    if (part === '..') {
+      resultParts.pop()
+      continue
+    }
+    resultParts.push(part)
+  }
+  return resultParts.join('/')
 };
