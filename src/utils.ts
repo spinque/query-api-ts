@@ -143,4 +143,4 @@ const ensureTupleList = (
 
 export const join = (...fragments: string[]): string => {
   return fragments.reduce((acc: string, cur: string) => acc + (acc.endsWith('/') ? '' : '/') + cur, '');
-}
+};
