@@ -1,5 +1,5 @@
 import { Authenticator, DEFAULT_AUTH_SERVER } from './Authenticator';
-import { join } from 'path';
+import { join } from '../utils';
 import { isBrowser } from 'browser-or-node';
 import fetch, { Headers } from 'cross-fetch';
 

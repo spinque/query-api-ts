@@ -48,7 +48,6 @@
   },
   "dependencies": {
     "browser-or-node": "^2.0.0",
-    "cross-fetch": "^3.1.5",
-    "path-browserify": "^1.0.1"
+    "cross-fetch": "^3.1.5"
   }
 }

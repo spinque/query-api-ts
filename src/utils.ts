@@ -1,5 +1,4 @@
 import { ApiConfig, Query } from '.';
-import { join } from 'path';
 import { RequestOptions, RequestType } from './types';
 
 /**
@@ -141,3 +140,7 @@ const ensureTupleList = (
 
   return value as (string | number)[][];
 };
+
+export const join = (...fragments: string[]): string => {
+  return fragments.reduce((acc: string, cur: string) => acc + (acc.endsWith('/') ? '' : '/') + cur, '');
+}
