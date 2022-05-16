@@ -80,6 +80,26 @@ export const urlFromQueries = (
 /**
  * Given a tuple list (and optionally scores), return a string representation.
  */
+export const stringToTupleList = (value: string): { scores: number[]; tuples: (string | number)[][] } | null => {
+  try {
+    return value.split('|').reduce(
+      (acc, cur) => {
+        const score = parseFloat(cur.split('(')[0]);
+        const tuples = cur.split('(')[1].split(')')[0].split(',');
+        acc.scores.push(score);
+        acc.tuples.push(tuples);
+        return acc;
+      },
+      { scores: [], tuples: [] } as { scores: number[]; tuples: (string | number)[][] },
+    );
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Given a string, try to parse as tuple list.
+ */
 export const tupleListToString = (
   // tuples can be either a string, a number, an array of strings or numbers,
   // or an array of arrays of strings or numbers

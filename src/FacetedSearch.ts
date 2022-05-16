@@ -162,7 +162,9 @@ export class FacetedSearch {
     if (!facet) {
       throw new Error(`FacetedSearch does not contain facet ${facetEndpoint}`);
     }
-    if (facet.type === 'single') {
+    if (selection.length === 0) {
+      facet.filterParameterValue = undefined;
+    } else if (facet.type === 'single') {
       if (selection.length > 1) {
         throw new Error(
           `Facet ${facetEndpoint} is a single selection facet but more than one selected option was given.`,
