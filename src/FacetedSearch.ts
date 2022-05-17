@@ -70,7 +70,7 @@ export class FacetedSearch {
     return this._facets;
   }
 
-  setModifier(modifier: Query) {
+  setModifier(modifier: Query | undefined) {
     this._modifier = modifier;
   }
 
@@ -105,7 +105,7 @@ export class FacetedSearch {
           parameters: { [f.filterParameterName]: f.filterParameterValue as string },
         })),
     ];
-    if (this._modifier) {
+    if (this._modifier !== undefined && this._modifier !== null) {
       q.push(this._modifier);
     }
     return q;
