@@ -11,6 +11,7 @@ import {
   RequestType,
   ResponseType,
   ServerError,
+  ResultItemTupleTypes,
   UnauthorizedError,
 } from './types';
 import { urlFromQueries } from './utils';
@@ -163,21 +164,21 @@ export class Api {
   /**
    * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
    */
-  async fetch(
+  async fetch<T = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>>(
     queries: Query | Query[],
     options?: RequestOptions,
     requestType?: RequestType,
-  ): Promise<ResultsResponse | ErrorResponse>;
+  ): Promise<ResultsResponse<T> | ErrorResponse>;
   async fetch(
     queries: Query | Query[],
     options: RequestOptions,
     requestType: 'statistics',
   ): Promise<StatisticsResponse | ErrorResponse>;
-  async fetch<T>(
+  async fetch<T = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>>(
     queries: Query | Query[],
     options?: RequestOptions,
     requestType: RequestType = 'results',
-  ): Promise<ResponseType<RequestType> | ErrorResponse> {
+  ): Promise<ResponseType<RequestType, T> | ErrorResponse> {
     // Convert single query to array of queries
     if (!(queries instanceof Array)) {
       queries = [queries];
@@ -198,17 +199,19 @@ export class Api {
     }
 
     // Make the request
-    return fetch(url, requestInit).then((res) => this.handleResponse<RequestType>(res));
+    return fetch(url, requestInit).then((res) => this.handleResponse<RequestType, T>(res));
   }
 
   /**
    * Handle the response of a fetch to Spinque Query API.
    */
-  private async handleResponse<T extends RequestType>(response: Response): Promise<ErrorResponse | ResponseType<T>> {
+  private async handleResponse<T extends RequestType, U = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>>(
+    response: Response,
+  ): Promise<ErrorResponse | ResponseType<T, U>> {
     const json = await response.json();
 
     if (response.status === 200) {
-      return json as ResponseType<T>;
+      return json as ResponseType<T, U>;
     }
 
     if (response.status === 401) {

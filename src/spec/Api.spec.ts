@@ -1,4 +1,4 @@
-import { Query } from '..';
+import { ErrorResponse, Query, SpinqueResultObject } from '..';
 import { Api } from '../Api';
 
 describe('Api', () => {

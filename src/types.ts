@@ -127,7 +127,10 @@ export interface RequestOptions {
 /**
  * ResponseType based on RequestType
  */
-export type ResponseType<T extends RequestType> = T extends 'results' ? ResultsResponse : StatisticsResponse;
+export type ResponseType<
+  T extends RequestType,
+  U = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>,
+> = T extends 'results' ? ResultsResponse<U> : StatisticsResponse;
 
 /**
  * Data types known by Spinque.
@@ -137,10 +140,12 @@ export type ResponseType<T extends RequestType> = T extends 'results' ? ResultsR
  */
 export type DataType = 'OBJ' | 'STRING' | 'DATE' | 'INTEGER' | 'DOUBLE' | 'TUPLE_LIST';
 
+export type ResultItemTupleTypes = string | number | SpinqueResultObject;
+
 /**
  * Response to a Query that contains the results
  */
-export interface ResultsResponse {
+export interface ResultsResponse<T = ResultItemTupleTypes[]> {
   // Number of results requested. This may be more than the actual number of items returned.
   // If 'count' is larger than the number of items in the response, you've reached the last page.
   count: number;
@@ -149,26 +154,24 @@ export interface ResultsResponse {
   // The output type returned. Can be any combination of the data types.
   type: DataType[];
   // A list with result items.
-  items: ResultItem[];
+  items: ResultItem<T>[];
 }
 
-export interface ResultItem {
+export interface ResultItem<T = ResultItemTupleTypes[]> {
   // The rank of this result item, starting with 1.
   rank: number;
   // The probability/score of this result item.
   probability: number;
   // The contents of this result item
-  tuple: (
-    | string
-    | number
-    | {
-        id: string;
-        type: string[];
-        attributes?: {
-          [attributeName: string]: any;
-        };
-      }
-  )[];
+  tuple: T;
+}
+
+export interface SpinqueResultObject {
+  id: string;
+  type: string[];
+  attributes?: {
+    [attributeName: string]: any;
+  };
 }
 
 /**
