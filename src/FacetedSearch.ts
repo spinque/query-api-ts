@@ -30,6 +30,8 @@ export class FacetedSearch {
   // Internal list of Facet objects
   private _facets: Facet[] = [];
 
+  private _modifier?: Query;
+
   constructor(
     // Query object for the search results that will serve as the base for this facet.
     // The searchQuery is used to fetch the options of the facet and will be filtered once
@@ -68,6 +70,10 @@ export class FacetedSearch {
     return this._facets;
   }
 
+  setModifier(modifier: Query) {
+    this._modifier = modifier;
+  }
+
   /**
    * Get the Query to get the search results.
    * Will return searchQuery as passed to the constructor unless a emptyParameterQuery was
@@ -90,7 +96,7 @@ export class FacetedSearch {
    * Get the Query objects to retrieve search results. This includes the facet Query, if applicable.
    */
   getResultsQuery(): Query[] {
-    return [
+    const q = [
       this.getBaseQuery(),
       ...this._facets
         .filter((f) => f.filterParameterValue !== undefined && f.filterParameterValue !== '')
@@ -99,6 +105,10 @@ export class FacetedSearch {
           parameters: { [f.filterParameterName]: f.filterParameterValue as string },
         })),
     ];
+    if (this._modifier) {
+      q.push(this._modifier);
+    }
+    return q;
   }
 
   /**

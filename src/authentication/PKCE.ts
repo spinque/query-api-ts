@@ -1,4 +1,4 @@
-import { Authenticator, DEFAULT_AUTH_SERVER } from './Authenticator';
+import { Authenticator, DEFAULT_AUDIENCE, DEFAULT_AUTH_SERVER } from './Authenticator';
 import { join } from '../utils';
 import { isBrowser } from 'browser-or-node';
 import fetch, { Headers } from 'cross-fetch';
@@ -49,6 +49,7 @@ export class PKCE extends Authenticator {
 
   private async authorize() {
     const authServer = this.authServer || DEFAULT_AUTH_SERVER;
+    const audience = this.baseUrl || DEFAULT_AUDIENCE;
 
     // Create code verifier and challenge
     const verifier = createRandomString();
@@ -66,7 +67,7 @@ export class PKCE extends Authenticator {
       code_challenge_method: 'S256',
       client_id: this.clientId,
       redirect_uri: this.callback,
-      audience: this.baseUrl,
+      audience,
       scope: '',
       state,
     };

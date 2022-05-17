@@ -1,6 +1,7 @@
 import { isBrowser } from 'browser-or-node';
 
 export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
+export const DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
 
 /**
  * Abstract class with utitily functions for working with access tokens such as storage
