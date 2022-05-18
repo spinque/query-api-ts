@@ -30,7 +30,8 @@ export class FacetedSearch {
   // Internal list of Facet objects
   private _facets: Facet[] = [];
 
-  private _modifier?: Query;
+  private _modifiers?: Query[];
+  private _activeModifier?: Query;
 
   constructor(
     // Query object for the search results that will serve as the base for this facet.
@@ -41,10 +42,14 @@ export class FacetedSearch {
     // emptyParameterQuery is used instead of searchQuery when the searchQuery parameters are all empty.
     // If no emptyParameterQuery is passed, searchQuery is fetched with empty parameters.
     private emptyParameterQuery?: Query,
+    private modifiers?: Query[],
   ) {
     // Throw an error if the searchQuery does not have parameters
     if (!searchQuery.parameters || Object.keys(searchQuery.parameters).length === 0) {
       throw new Error('searchQuery has no parameters. Please initialize with an empty parameter');
+    }
+    if (modifiers) {
+      this._modifiers = modifiers;
     }
   }
 
@@ -71,7 +76,15 @@ export class FacetedSearch {
   }
 
   setModifier(modifier: Query | undefined) {
-    this._modifier = modifier;
+    if (modifier === undefined) {
+      this._activeModifier = undefined;
+    } else if (this._modifiers) {
+      const allowed = this._modifiers.find((m) => m.endpoint === modifier?.endpoint);
+      if (!allowed) {
+        return;
+      }
+      this._activeModifier = modifier;
+    }
   }
 
   /**
@@ -105,8 +118,8 @@ export class FacetedSearch {
           parameters: { [f.filterParameterName]: f.filterParameterValue as string },
         })),
     ];
-    if (this._modifier !== undefined && this._modifier !== null) {
-      q.push(this._modifier);
+    if (this._activeModifier !== undefined && this._activeModifier !== null) {
+      q.push(this._activeModifier);
     }
     return q;
   }
