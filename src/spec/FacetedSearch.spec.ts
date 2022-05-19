@@ -1,5 +1,5 @@
 import { Api, Query } from '..';
-import { FacetedSearch } from '../FacetedSearch';
+import { FacetedSearch, FacetType } from '../FacetedSearch';
 
 describe('FacetedSearch', () => {
   it('should be constructable with only a searchQuery', () => {
@@ -34,7 +34,7 @@ describe('FacetedSearch', () => {
   it('should set the facet value using setFacetSelection for multiple-select', () => {
     const sq: Query = { endpoint: 'my-endpoint', parameters: { q: '' } };
     const fs = new FacetedSearch(sq);
-    fs.addFacet('genre', 'multiple');
+    fs.addFacet('genre', FacetType.multiple);
     fs.setFacetSelection('genre', ['a', 'b']);
     expect(fs.facets[0].filterParameterValue).toEqual('1(a)|1(b)');
   });
@@ -49,7 +49,7 @@ describe('FacetedSearch', () => {
   it('should create mulitple-select facets on request', () => {
     const sq: Query = { endpoint: 'my-endpoint', parameters: { q: '' } };
     const fs = new FacetedSearch(sq);
-    fs.addFacet('genre', 'multiple');
-    expect(fs.facets[0].type).toEqual('multiple');
+    fs.addFacet('genre', FacetType.multiple);
+    expect(fs.facets[0].type).toEqual(FacetType.multiple);
   });
 });
