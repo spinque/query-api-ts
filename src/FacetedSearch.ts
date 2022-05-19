@@ -166,7 +166,7 @@ export class FacetedSearch {
         [name]: value,
       },
     };
-    this._facets.forEach(f => {
+    this._facets.forEach((f) => {
       if (f.resetOnQueryChange) {
         f.filterParameterValue = undefined;
       }
