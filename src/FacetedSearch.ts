@@ -1,6 +1,11 @@
 import { Query } from './types';
 import { tupleListToString } from './utils';
 
+export enum FacetType {
+  single = 'single',
+  multiple = 'multiple',
+}
+
 /**
  * Interface for objects representing a facet.
  *
@@ -20,7 +25,7 @@ export interface Facet {
   filterParameterValue: string | undefined;
   // Type of this facet: 'single' means only one value can be selected,
   // 'multiple' means multiple values may be selected.
-  type: 'single' | 'multiple';
+  type: FacetType;
   // Should the facet selection reset when the search query changes?
   resetOnQueryChange: boolean;
 }
@@ -60,7 +65,7 @@ export class FacetedSearch {
    */
   addFacet(
     endpoint: string,
-    type: 'single' | 'multiple' = 'single',
+    type: FacetType = FacetType.single,
     resetOnQueryChange = true,
     filterEndpointPostfix = ':FILTER',
     filterEndpointParameterName = 'value',
