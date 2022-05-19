@@ -59,12 +59,12 @@ export class FacetedSearch {
   addFacet(
     endpoint: string,
     type: 'single' | 'multiple' = 'single',
-    filterEndpointPrefix = ':FILTER',
+    filterEndpointPostfix = ':FILTER',
     filterEndpointParameterName = 'value',
   ) {
     this._facets.push({
       optionsEndpoint: endpoint,
-      filterEndpoint: `${endpoint}${filterEndpointPrefix}`,
+      filterEndpoint: `${endpoint}${filterEndpointPostfix}`,
       filterParameterName: filterEndpointParameterName,
       filterParameterValue: undefined,
       type,
