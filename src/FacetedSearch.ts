@@ -91,6 +91,10 @@ export class FacetedSearch {
     }
   }
 
+  getModifier(): Query | undefined {
+    return this._activeModifier;
+  }
+
   /**
    * Get the Query to get the search results.
    * Will return searchQuery as passed to the constructor unless a emptyParameterQuery was
