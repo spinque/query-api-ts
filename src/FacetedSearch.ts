@@ -21,6 +21,8 @@ export interface Facet {
   // Type of this facet: 'single' means only one value can be selected,
   // 'multiple' means multiple values may be selected.
   type: 'single' | 'multiple';
+  // Should the facet selection reset when the search query changes?
+  resetOnQueryChange: boolean;
 }
 
 /**
@@ -59,6 +61,7 @@ export class FacetedSearch {
   addFacet(
     endpoint: string,
     type: 'single' | 'multiple' = 'single',
+    resetOnQueryChange = true,
     filterEndpointPostfix = ':FILTER',
     filterEndpointParameterName = 'value',
   ) {
@@ -67,6 +70,7 @@ export class FacetedSearch {
       filterEndpoint: `${endpoint}${filterEndpointPostfix}`,
       filterParameterName: filterEndpointParameterName,
       filterParameterValue: undefined,
+      resetOnQueryChange,
       type,
     });
   }
@@ -162,6 +166,11 @@ export class FacetedSearch {
         [name]: value,
       },
     };
+    this._facets.forEach(f => {
+      if (f.resetOnQueryChange) {
+        f.filterParameterValue = undefined;
+      }
+    });
   }
 
   /**
