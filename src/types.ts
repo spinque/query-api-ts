@@ -168,7 +168,7 @@ export interface ResultItem<T = ResultItemTupleTypes[]> {
 
 export interface SpinqueResultObject {
   id: string;
-  type: string[];
+  class: string[];
   attributes?: {
     [attributeName: string]: any;
   };

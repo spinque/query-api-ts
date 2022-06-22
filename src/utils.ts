@@ -121,6 +121,9 @@ export const tupleListToString = (
     .join('|');
 };
 
+/**
+ * Takes a value that should be a tuple list and ensures it has a normalized form.
+ */
 const ensureTupleList = (
   value: (string | number)[][] | (string | number)[] | (string | number),
 ): (string | number)[][] => {
@@ -161,6 +164,9 @@ const ensureTupleList = (
   return value as (string | number)[][];
 };
 
+/**
+ * Joins together URL parts into an URL
+ */
 export const join = (...segments: string[]): string => {
   const parts = segments.reduce((_parts: string[], segment) => {
     // Remove leading slashes from non-first part.
