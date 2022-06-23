@@ -71,7 +71,7 @@ export abstract class Authenticator {
    */
   public setAccessToken(accessToken: string, expiresIn: number) {
     this._accessToken = accessToken;
-    this._expires = Date.now() + expiresIn;
+    this._expires = Date.now() + (expiresIn * 1000);
     this.putInStorage(this._accessToken, this._expires);
     this._authInProgress = false;
   }
