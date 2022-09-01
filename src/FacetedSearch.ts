@@ -84,6 +84,9 @@ export class FacetedSearch {
     return this._facets;
   }
 
+  /**
+   * Set a query as modifier. Only modifiers in the list passed to constructor are allowed.
+   */
   setModifier(modifier: Query | undefined) {
     if (modifier === undefined) {
       this._activeModifier = undefined;
@@ -96,6 +99,9 @@ export class FacetedSearch {
     }
   }
 
+  /**
+   * Get the currently active modifier query.
+   */
   getModifier(): Query | undefined {
     return this._activeModifier;
   }

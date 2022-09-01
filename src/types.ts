@@ -166,9 +166,29 @@ export interface ResultItem<T = ResultItemTupleTypes[]> {
   tuple: T;
 }
 
+/**
+ * Output format of Spinque's OBJ type
+ */
 export interface SpinqueResultObject {
+  /**
+   * The unique identifier of the object.
+   * Will always be a valid URI.
+   */
   id: string;
+
+  /**
+   * Array of classes assigned to this object.
+   *
+   * If a value is in this list, then there is
+   * a <https://www.w3.org/2000/01/rdf-schema#Class>
+   * relation between that value and `id`.
+   */
   class: string[];
+
+  /**
+   * Object with attribute names and values.
+   * Values can be any valid JSON type.
+   */
   attributes?: {
     [attributeName: string]: any;
   };
