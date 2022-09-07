@@ -21,7 +21,7 @@ $ npm install @spinque/query-api
 
 Documentation for this library can be found [here](https://spinque.github.io/query-api-ts/).
 
-This documents the code exported by this library. For documentation on the Spinque Query API itself, please see [this](https://docs.spinque.com/3.0/using-apis/basic.html).
+For documentation on the Spinque Query API itself, please see [this](https://docs.spinque.com/3.0/using-apis/basic.html).
 
 ## Usage
 
@@ -40,23 +40,26 @@ const query: Query = {
 
 ### Fetching results
 
-Fetching results for a single query using an instance of the Api class:
+Fetching results for a single query using an instance of the Api class and its `fetch` method:
 
 ```typescript
 import { Api, Query } from '@spinque/query-api';
 
+// Configure the API with workspace, configuration and API name
 const api = new Api({
   workspace: 'my-workspace',
   config: 'default',
   api: 'movies'
 });
 
+// Construct the query to fetch results for
 const query: Query = {
   endpoint: 'movie_search',
   parameters: { terms: 'call me' }
 };
 
 try {
+  // Fetch the 10 first results of the query
   const response = await api.fetch(query, { count: 10 });
 } catch (error: any) {
   console.error(error);
@@ -82,6 +85,8 @@ const query: Query = {
 };
 
 const url = urlFromQueries(apiConfig, query, { count: 10, offset: 0 });
+
+// Make the request here using `url`
 ```
 
 ### Authentication
@@ -141,12 +146,28 @@ const response = await api.fetch(queries, { count: 10, offset: 0 });
 Note: the Client ID and Callback URL cannot yet be configured from Spinque Desk. Ask your system administrator to help you out.
 
 
+### Utility functions
+
+Many utility functions are available for import under `@spinque/query-api/utils`.
+
+* `urlFromQueries`, takes an ApiConfig object and an array of Query objects and returns a Spinque Query API request URL.
+* `pathFromQuery`, takes a single Query and returns the path of its Spinque Query API URL.
+* `pathFromQueries`, takes an array of Query objects and returns the path of their Spinque Query API URL.
+* `join`, joints together URL parts into a valid URL.
+* `stringifyQueries`, takes an array of Query objects and returns a string representation that can be used to e.g. store in the address baer.
+* `parseQueries`, takes a string from `stringifyQueries` and tries to parse it into an array of Query objects.
+* `stringToTupleList`, given a string, try to parse it as a tuple list (array of arrays of numbers or strings, and array of scores).
+* `tupleListToString`, given a tuple list, return a string representation.
+* `ensureTupleList`, takes a value (string, number, array of strings or numbers, or array of arrays of strings or numbers) and normalizes it into a tuple list.
+
+See the [documentation](https://spinque.github.io/query-api-ts/) for a complete list.
+
 ### Faceted search
 
 Faceted search is a common use-case for application built on Spinque.
 This library provides a FacetedSearch to ease the interaction between queries in a faceted search setup.
 
-The following example shows how a search endpoint 'movie_search' can be used in combination with a facet endpoint 'genre'.
+The following example shows how a search endpoint 'movie_search' can be used in combination with facet endpoints 'genre' and 'director'.
 
 ```typescript
 import { Api, FacetedSearch } from '@spinque/query-api';
@@ -174,11 +195,11 @@ results = await api.fetch(fs.getResultsQuery());
 genreOptions = await api.fetch(fs.getFacetQuery('genre'));
 directorOptions = await api.fetch(fs.getFacetQuery('director'));
 
-// Select a facet option
+// Select some facet options
 fs.setFacetSelection('genre', ['https://imdb.com/data/Drama', 'https://imdb.com/data/Biography']);
 fs.setFacetSelection('director', 'https://imdb.com/data/PabloLarrain');
 
-// Get results again
+// Get results again, now with facets applied
 results = await api.fetch(fs.getResultsQuery());
 ```
 
