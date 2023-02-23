@@ -239,4 +239,8 @@ export class FacetedSearch {
       });
     }
   }
+
+  public setSearchQuery(query: Query) {
+    this.searchQuery = query;
+  }
 }
