@@ -35,12 +35,12 @@ export class PKCE extends Authenticator {
     // Get query parameters from URL
     const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
 
-    if (!params.code || !params.state) {
+    if (!params['code'] || !params['state']) {
       return;
     }
 
     this._authInProgress = true;
-    this.tradeCodeForToken(params.code, params.state).catch(() => this.authorize());
+    this.tradeCodeForToken(params['code'], params['state']).catch(() => this.authorize());
   }
 
   public async fetchAccessToken() {

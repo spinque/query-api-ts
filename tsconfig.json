@@ -6,6 +6,13 @@
     "outDir": "./dist",
     "strict": true,
     "baseUrl": ".",
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
     "paths": {
       "@spinque/query-api": ["src/*"],
     }
