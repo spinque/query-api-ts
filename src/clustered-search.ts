@@ -1,5 +1,5 @@
-import { Query, ResultItemTupleTypes, ResultsResponse, SpinqueResultObject } from "./types";
-import { tupleListToString } from "./utils";
+import { Query, ResultItemTupleTypes, ResultsResponse, SpinqueResultObject } from './types';
+import { tupleListToString } from './utils';
 
 export interface Cluster {
   probability: number;
@@ -17,7 +17,7 @@ interface GetClustersOptions {
 
 const DEFAULT_CLUSTER_ENDPOINT: NonNullable<GetClustersOptions['clusterEndpoint']> = 'type:FILTER';
 const DEFAULT_CLUSTER_PARAMETER_NAME: NonNullable<GetClustersOptions['clusterParameterName']> = 'value';
-const DEFAULT_CLUSTER_PARAMETER_TYPE: NonNullable<GetClustersOptions['clusterParameterType']> = 'TUPLE_LIST'
+const DEFAULT_CLUSTER_PARAMETER_TYPE: NonNullable<GetClustersOptions['clusterParameterType']> = 'TUPLE_LIST';
 
 const RDFS_CLASS = 'http://www.w3.org/2000/01/rdf-schema#Class';
 
@@ -45,9 +45,9 @@ export const getClusters = (results: ResultsResponse, options: GetClustersOption
       query: {
         endpoint,
         parameters: {
-          [parameterName]: parameterType === 'TUPLE_LIST' ? tupleListToString([item.tuple[0].id]) : item.tuple[0].id
-        }
-      }
+          [parameterName]: parameterType === 'TUPLE_LIST' ? tupleListToString([item.tuple[0].id]) : item.tuple[0].id,
+        },
+      },
     };
     clusters.push(cluster);
   }
