@@ -222,7 +222,6 @@ export class ErrorResponse {
  * Error class used when Spinque cannot find the endpoint you requested.
  * The endpoint might be misspelled or removed.
  */
-// tslint:disable-next-line: max-classes-per-file
 export class EndpointNotFoundError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
 }
@@ -231,7 +230,6 @@ export class EndpointNotFoundError implements ErrorResponse {
  * Error class used when you are not authorized to request results for
  * this workspace, API or endpoint.
  */
-// tslint:disable-next-line: max-classes-per-file
 export class UnauthorizedError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
 }
@@ -240,7 +238,6 @@ export class UnauthorizedError implements ErrorResponse {
  * Error class when something fails on the side of Spinque. Please contact
  * your system administrator when this happens.
  */
-// tslint:disable-next-line: max-classes-per-file
 export class ServerError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
 }

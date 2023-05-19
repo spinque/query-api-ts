@@ -78,7 +78,6 @@ export class PKCE extends Authenticator {
 
     window.location.href = authorizationUrl;
 
-    // tslint:disable-next-line: no-empty
     return new Promise(() => {}) as Promise<undefined>;
   }
 
