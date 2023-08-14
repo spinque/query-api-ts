@@ -105,7 +105,7 @@ export abstract class Authenticator {
 
   private getFromBrowserLocalStorage(): { accessToken: string; expires: number } | null {
     if (!localStorage) {
-      return null
+      return null;
     }
     try {
       const accessToken = localStorage.getItem('@spinque/query-api/access-token');
