@@ -64,6 +64,12 @@ export type ApiAuthenticationConfig =
       authServer?: string;
       clientId: string;
       clientSecret: string;
+
+      /**
+       * Path to a file that will store a cached token.
+       * This is useful during development, when in-memory caching doesn't work due to frequent server restarts.
+       */
+      tokenCachePath?: string;
     }
   | {
       /**

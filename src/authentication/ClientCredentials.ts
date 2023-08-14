@@ -14,10 +14,12 @@ export class ClientCredentials extends Authenticator {
     private clientSecret: string,
     // URL to the Spinque Authorization server, default is https://login.spinque.com/
     private authServer?: string,
+    // Optional path to store the authentication token and make it persistent through server restarts
+    private tokenCachePath?: string,
     // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
     private baseUrl?: string,
   ) {
-    super();
+    super(tokenCachePath);
     if (isBrowser) {
       throw new Error('The Client Credentials Flow is only allowed for server applications.');
     }

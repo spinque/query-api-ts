@@ -15,8 +15,9 @@ async function main() {
     // from Spinque Desk > Settings > Team Members > Add System-to-System Account
     authentication: {
       type: 'client-credentials',
-      clientId: 'OhZpdNNu9hWUsVpTZnYa9DzWLLbivlEH',
-      clientSecret: 'cOo6uGbRw7H_qdaZ3EO_jgr3wSKIfJapC0WxV3hPzLEsxnvtL_gukQXYQrw3mq9m',
+      clientId: '57LX9miPDlxWU1YskTKMwBAaGvn8Tzgo',
+      clientSecret: 'mgz38DUofG112FEIZ4eHJz2RvlGMY5KR0EKakscMHDPG8aE5Quxts_7CrxFXsccA',
+      tokenCachePath: './token.txt'
     },
   });
 
@@ -30,11 +31,15 @@ async function main() {
   try {
     // Fetch response (or get URL and use your own HTTP library)
     const response = await api.fetch(queries, { count: 10, offset: 0 });
+
+    const accessToken = `${api.accessToken}`;
+
     console.log(response);
 
     setTimeout(async () => {
       const response = await api.fetch(queries, { count: 10, offset: 0 });
       console.log(response);
+      console.log(`Same access token used?`, api.accessToken === accessToken);
     }, 15 * 1000);
   } catch (error) {
     console.log(error);

@@ -54,6 +54,7 @@ export class Api {
           apiConfig.authentication.clientId,
           apiConfig.authentication.clientSecret,
           apiConfig.authentication.authServer,
+          apiConfig.authentication.tokenCachePath,
           apiConfig.baseUrl || DEFAULT_BASE_URL,
         );
       }
@@ -89,6 +90,10 @@ export class Api {
    */
   get version(): string | undefined {
     return this._version;
+  }
+
+  get accessToken(): string | undefined {
+    return this._authenticator?._accessToken;
   }
 
   /**

@@ -1,4 +1,5 @@
 import { isBrowser } from 'browser-or-node';
+import * as fs from 'fs';
 
 export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 export const DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
@@ -11,7 +12,7 @@ export abstract class Authenticator {
   _accessToken?: string;
   _expires?: number;
 
-  constructor() {
+  constructor(private _tokenCachePath?: string) {
     // First thing to do: check if there's an access token in localStorage
     const res = this.getFromStorage();
 
@@ -77,21 +78,34 @@ export abstract class Authenticator {
   }
 
   private putInStorage(accessToken: string, expires: number) {
-    if (!isBrowser || !localStorage) {
-      return;
+    if (isBrowser && !!localStorage) {
+      // TODO: configure keys
+      localStorage.setItem('@spinque/query-api/access-token', accessToken);
+      localStorage.setItem('@spinque/query-api/expires', `${expires}`);
     }
-    // TODO: configure keys
-    localStorage.setItem('@spinque/query-api/access-token', accessToken);
-    localStorage.setItem('@spinque/query-api/expires', `${expires}`);
+    if (!isBrowser && this._tokenCachePath) {
+      const json = JSON.stringify({ accessToken, expires });
+      fs.writeFileSync(this._tokenCachePath, json);
+    }
   }
 
   /**
-   * Get an access token from local storage (if available)
+   * Get an access token from storage (if available)
    */
-  private getFromStorage(): { accessToken: string; expires: number } | null {
+  private getFromStorage() {
     // Localstorage is only available for browser applications
-    if (!isBrowser || !localStorage) {
-      return null;
+    if (isBrowser) {
+      return this.getFromBrowserLocalStorage();
+    }
+    if (!isBrowser && this._tokenCachePath) {
+      return this.getFromFileStorage(this._tokenCachePath);
+    }
+    return null;
+  }
+
+  private getFromBrowserLocalStorage(): { accessToken: string; expires: number } | null {
+    if (!localStorage) {
+      return null
     }
     try {
       const accessToken = localStorage.getItem('@spinque/query-api/access-token');
@@ -103,6 +117,20 @@ export abstract class Authenticator {
         localStorage.removeItem('@spinque/query-api/expires');
         return null;
       }
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private getFromFileStorage(path: string): { accessToken: string; expires: number } | null {
+    try {
+      const data = fs.readFileSync(path, { encoding: 'utf8' });
+      const { accessToken, expires } = JSON.parse(data);
+      if (typeof accessToken !== 'string' && typeof expires !== 'number') {
+        // TODO: delete file
+        return null;
+      }
+      return { accessToken, expires };
     } catch (error) {
       return null;
     }
