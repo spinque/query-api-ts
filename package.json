@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "demo": "npx ts-node -r tsconfig-paths/register ./demo/authentication/server/index",
-    "docs": "npx typedoc src/index.ts",
+    "docs": "typedoc src/index.ts",
     "check-format": "prettier --check \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest --config jestconfig.json",
@@ -41,7 +41,8 @@
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.2",
+    "typedoc": "0.24.8"
   },
   "dependencies": {
     "browser-or-node": "^2.1.1",
