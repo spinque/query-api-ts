@@ -23,29 +23,59 @@ const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
  * Send queries to the Spinque Query API using fetch.
  */
 export class Api {
-  private _baseUrl = DEFAULT_BASE_URL;
-  private _version? = '4';
-  private _workspace?: string;
-  private _api?: string;
-  private _config? = 'default';
+  /**
+   * URL to the Spinque Query API deployment.
+   *
+   * @default https://rest.spinque.com/
+   */
+  baseUrl = DEFAULT_BASE_URL;
+
+  /**
+   * Version of the Spinque Query API deployment.
+   *
+   * @default 4
+   */
+  version? = '4';
+
+  /**
+   * Name of the Spinque workspace that should be addressed.
+   * The Spinque Desk administrator working on your project knowns this value.
+   */
+  workspace?: string;
+
+  /**
+   * Name of the API that is provided by the workspace.
+   * The Spinque Desk administrator working on your project knowns this value.
+   */
+  api?: string;
+
+  /**
+   * Name of the configuration of the Spinque workspace that should be used.
+   * Usually, this is something like 'production', 'development' or 'default'.
+   * The Spinque Desk administrator working on your project knowns this value.
+   *
+   * @default default
+   */
+  config? = 'default';
+
   private _authentication?: ApiAuthenticationConfig;
   private _authenticator?: Authenticator;
 
   constructor(apiConfig?: ApiConfig) {
     if (apiConfig && apiConfig.baseUrl) {
-      this._baseUrl = apiConfig.baseUrl;
+      this.baseUrl = apiConfig.baseUrl;
     }
     if (apiConfig && apiConfig.version) {
-      this._version = apiConfig.version;
+      this.version = apiConfig.version;
     }
     if (apiConfig && apiConfig.workspace) {
-      this._workspace = apiConfig.workspace;
+      this.workspace = apiConfig.workspace;
     }
     if (apiConfig && apiConfig.api) {
-      this._api = apiConfig.api;
+      this.api = apiConfig.api;
     }
     if (apiConfig && apiConfig.config) {
-      this._config = apiConfig.config;
+      this.config = apiConfig.config;
     }
     if (apiConfig && apiConfig.authentication) {
       if (apiConfig.authentication.type === 'client-credentials') {
@@ -71,78 +101,8 @@ export class Api {
     }
   }
 
-  /**
-   * Getter for baseUrl
-   */
-  get baseUrl(): string {
-    return this._baseUrl;
-  }
-
-  /**
-   * Setter for baseUrl
-   */
-  set baseUrl(value: string) {
-    this._baseUrl = value;
-  }
-
-  /**
-   * Getter for version
-   */
-  get version(): string | undefined {
-    return this._version;
-  }
-
   get accessToken(): string | undefined {
     return this._authenticator?._accessToken;
-  }
-
-  /**
-   * Setter for version
-   */
-  set version(value: string | undefined) {
-    this._version = value;
-  }
-
-  /**
-   * Getter for workspace
-   */
-  get workspace(): string | undefined {
-    return this._workspace;
-  }
-
-  /**
-   * Setter for workspace
-   */
-  set workspace(value: string | undefined) {
-    this._workspace = value;
-  }
-
-  /**
-   * Getter for API name
-   */
-  get api(): string | undefined {
-    return this._api;
-  }
-
-  /**
-   * Setter for API name
-   */
-  set api(value: string | undefined) {
-    this._api = value;
-  }
-
-  /**
-   * Getter for configuration name
-   */
-  get config(): string | undefined {
-    return this._config;
-  }
-
-  /**
-   * Setter for configuration name
-   */
-  set config(value: string | undefined) {
-    this._config = value;
   }
 
   /**
