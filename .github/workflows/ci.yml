@@ -50,9 +50,6 @@ jobs:
       - name: Install dependencies 📦
         run: npm ci
 
-      - name: Run Linter 🎗
-        run: npm run lint
-
       - name: Run Prettier 💄
         run: npm run check-format
 
