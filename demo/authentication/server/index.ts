@@ -15,9 +15,9 @@ async function main() {
     // from Spinque Desk > Settings > Team Members > Add System-to-System Account
     authentication: {
       type: 'client-credentials',
-      clientId: '57LX9miPDlxWU1YskTKMwBAaGvn8Tzgo',
-      clientSecret: 'mgz38DUofG112FEIZ4eHJz2RvlGMY5KR0EKakscMHDPG8aE5Quxts_7CrxFXsccA',
-      tokenCachePath: './token.txt'
+      clientId: 'abcdefghijklmnopqrstuvwxyz',
+      clientSecret: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      tokenCachePath: '/tmp/spinque_token_cache'
     },
   });
 

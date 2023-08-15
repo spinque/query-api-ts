@@ -1,5 +1,5 @@
 /**
- * Configuration of an API to send queries to.
+ * Configuration of an API to send queries to. Used to instantiate the Api class.
  */
 export interface ApiConfig {
   /**
