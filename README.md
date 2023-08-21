@@ -6,21 +6,23 @@
 
 Library to use the Spinque Query API in your JavaScript/TypeScript project.
 
-The Spinque Query API is an HTTP API to retrieve search results for queries. Also check out the [documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
+The Spinque Query API is an HTTP API to retrieve search results for queries.
+Also check out the
+[documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
 
 ## Table of contents
 
- * [Installing](https://github.com/spinque/query-api-ts#installing)
- * [Documentation](https://github.com/spinque/query-api-ts#documentation)
- * [Usage](https://github.com/spinque/query-api-ts#usage)
-   * [Defining queries](https://github.com/spinque/query-api-ts#defining-queries)
-   * [Fetching results](https://github.com/spinque/query-api-ts#fetching-results)
-   * [Fetching using custom HTTP-library](https://github.com/spinque/query-api-ts#fetching-using-custom-http-library)
-   * [Authentication](https://github.com/spinque/query-api-ts#authentication)
-   * [Utility functions](https://github.com/spinque/query-api-ts#utility-functions)
-   * [Faceted search](https://github.com/spinque/query-api-ts#faceted-search)
-   * [Clustered search](https://github.com/spinque/query-api-ts#clustered-search)
-   * [Vanilla JavaScript](https://github.com/spinque/query-api-ts#vanilla-javascript)
+- [Installing](https://github.com/spinque/query-api-ts#installing)
+- [Documentation](https://github.com/spinque/query-api-ts#documentation)
+- [Usage](https://github.com/spinque/query-api-ts#usage)
+  - [Defining queries](https://github.com/spinque/query-api-ts#defining-queries)
+  - [Fetching results](https://github.com/spinque/query-api-ts#fetching-results)
+  - [Fetching using custom HTTP-library](https://github.com/spinque/query-api-ts#fetching-using-custom-http-library)
+  - [Authentication](https://github.com/spinque/query-api-ts#authentication)
+  - [Utility functions](https://github.com/spinque/query-api-ts#utility-functions)
+  - [Faceted search](https://github.com/spinque/query-api-ts#faceted-search)
+  - [Clustered search](https://github.com/spinque/query-api-ts#clustered-search)
+  - [Vanilla JavaScript](https://github.com/spinque/query-api-ts#vanilla-javascript)
 
 ## Installing
 
@@ -32,9 +34,11 @@ $ npm install @spinque/query-api
 
 ## Documentation
 
-Documentation for this library can be found [here](https://spinque.github.io/query-api-ts/).
+Documentation for this library can be found
+[here](https://spinque.github.io/query-api-ts/).
 
-For documentation on the Spinque Query API itself, please see [this](https://docs.spinque.com/3.0/using-apis/basic.html).
+For documentation on the Spinque Query API itself, please see
+[this](https://docs.spinque.com/3.0/using-apis/basic.html).
 
 ## Usage
 
@@ -43,32 +47,33 @@ For documentation on the Spinque Query API itself, please see [this](https://doc
 Defining a single query:
 
 ```typescript
-import { Query } from '@spinque/query-api';
+import { Query } from "@spinque/query-api";
 
 const query: Query = {
-  endpoint: 'movie_search',
-  parameters: { terms: 'call me' }
+  endpoint: "movie_search",
+  parameters: { terms: "call me" },
 };
 ```
 
 ### Fetching results
 
-Fetching results for a single query using an instance of the Api class and its `fetch` method:
+Fetching results for a single query using an instance of the Api class and its
+`fetch` method:
 
 ```typescript
-import { Api, Query } from '@spinque/query-api';
+import { Api, Query } from "@spinque/query-api";
 
 // Configure the API with workspace, configuration and API name
 const api = new Api({
-  workspace: 'my-workspace',
-  config: 'default',
-  api: 'movies'
+  workspace: "my-workspace",
+  config: "default",
+  api: "movies",
 });
 
 // Construct the query to fetch results for
 const query: Query = {
-  endpoint: 'movie_search',
-  parameters: { terms: 'call me' }
+  endpoint: "movie_search",
+  parameters: { terms: "call me" },
 };
 
 try {
@@ -81,20 +86,21 @@ try {
 
 ### Fetching using custom HTTP-library
 
-Getting the URL for a request to fetch it using your own HTTP-library of preference:
+Getting the URL for a request to fetch it using your own HTTP-library of
+preference:
 
 ```typescript
-import { urlFromQueries } from '@spinque/query-api/utils';
+import { urlFromQueries } from "@spinque/query-api/utils";
 
 const apiConfig = {
-  workspace: 'my-workspace',
-  config: 'default',
-  api: 'movies'
+  workspace: "my-workspace",
+  config: "default",
+  api: "movies",
 };
 
 const query: Query = {
-  endpoint: 'movie_search',
-  parameters: { terms: 'call me' }
+  endpoint: "movie_search",
+  parameters: { terms: "call me" },
 };
 
 const url = urlFromQueries(apiConfig, query, { count: 10, offset: 0 });
@@ -104,116 +110,137 @@ const url = urlFromQueries(apiConfig, query, { count: 10, offset: 0 });
 
 ### Authentication
 
-Some Spinque APIs require authentication using OAuth 2.0. The Client Credentials flow (for server applications) and PKCE flow (for browser applications) are provided by `@spinque/query-api`:
+Some Spinque APIs require authentication using OAuth 2.0. The Client Credentials
+flow (for server applications) and PKCE flow (for browser applications) are
+provided by `@spinque/query-api`:
 
 #### Client Credentials flow (for server applications)
 
 ```typescript
-import { Api } from '@spinque/query-api';
+import { Api } from "@spinque/query-api";
 
 const api = new Api({
-  workspace: 'my-workspace',
-  config: 'default',
-  api: 'movies',
+  workspace: "my-workspace",
+  config: "default",
+  api: "movies",
   authentication: {
-    type: 'client-credentials',
-    clientId: 'abcdefghijklmnopqrstuvwxyz',
-    clientSecret: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    tokenCachePath: '/tmp/spinque_token_cache'
-  }
+    type: "client-credentials",
+    clientId: "abcdefghijklmnopqrstuvwxyz",
+    clientSecret: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    tokenCachePath: "/tmp/spinque_token_cache",
+  },
 });
 
 const query: Query = {
-  endpoint: 'movie_search',
-  parameters: { terms: 'call me' }
+  endpoint: "movie_search",
+  parameters: { terms: "call me" },
 };
 
 const response = await api.fetch(queries);
 ```
 
-The Client ID and Client Secret can be generated by creating a new System-to-System account in the Settings > Team Members section of Spinque Desk.
+The Client ID and Client Secret can be generated by creating a new
+System-to-System account in the Settings > Team Members section of Spinque Desk.
 
-The (optional) `tokenCachePath` saves the access token to a file. When the application is restarted, the token in the file cache will be read and reused if still valid. This is useful during development, when your application might restarted often and in-memory cache does not work. Not only does this speed things up, it also helps stay under your access token usage limits.
+The (optional) `tokenCachePath` saves the access token to a file. When the
+application is restarted, the token in the file cache will be read and reused if
+still valid. This is useful during development, when your application might
+restarted often and in-memory cache does not work. Not only does this speed
+things up, it also helps stay under your access token usage limits.
 
 #### PKCE flow (for browser applications)
 
 ```typescript
-import { Api } from '@spinque/query-api';
+import { Api } from "@spinque/query-api";
 
 const api = new Api({
-  workspace: 'my-workspace',
-  config: 'default',
-  api: 'movies',
+  workspace: "my-workspace",
+  config: "default",
+  api: "movies",
   authentication: {
-    type: 'pkce',
-    clientId: 'abcdefghijklmnopqrstuvwxyz',
-    callback: 'https://my-domain.com/callback'
-  }
+    type: "pkce",
+    clientId: "abcdefghijklmnopqrstuvwxyz",
+    callback: "https://my-domain.com/callback",
+  },
 });
 
 const query = {
-  endpoint: 'movie',
-  parameters: { id: 'https://imdb.com/data/movie/tt0209144' }
+  endpoint: "movie",
+  parameters: { id: "https://imdb.com/data/movie/tt0209144" },
 };
 
 const response = await api.fetch(queries, { count: 10, offset: 0 });
 ```
 
-Note: the Client ID and Callback URL cannot yet be configured from Spinque Desk. Ask your system administrator to help you out.
-
+Note: the Client ID and Callback URL cannot yet be configured from Spinque Desk.
+Ask your system administrator to help you out.
 
 ### Utility functions
 
-Many utility functions are available for import under `@spinque/query-api/utils`.
+Many utility functions are available for import under
+`@spinque/query-api/utils`.
 
-* `urlFromQueries`, takes an ApiConfig object and an array of Query objects and returns a Spinque Query API request URL.
-* `pathFromQuery`, takes a single Query and returns the path of its Spinque Query API URL.
-* `pathFromQueries`, takes an array of Query objects and returns the path of their Spinque Query API URL.
-* `join`, joints together URL parts into a valid URL.
-* `stringifyQueries`, takes an array of Query objects and returns a string representation that can be used to e.g. store in the address baer.
-* `parseQueries`, takes a string from `stringifyQueries` and tries to parse it into an array of Query objects.
-* `stringToTupleList`, given a string, try to parse it as a tuple list (array of arrays of numbers or strings, and array of scores).
-* `tupleListToString`, given a tuple list, return a string representation.
-* `ensureTupleList`, takes a value (string, number, array of strings or numbers, or array of arrays of strings or numbers) and normalizes it into a tuple list.
+- `urlFromQueries`, takes an ApiConfig object and an array of Query objects and
+  returns a Spinque Query API request URL.
+- `pathFromQuery`, takes a single Query and returns the path of its Spinque
+  Query API URL.
+- `pathFromQueries`, takes an array of Query objects and returns the path of
+  their Spinque Query API URL.
+- `join`, joints together URL parts into a valid URL.
+- `stringifyQueries`, takes an array of Query objects and returns a string
+  representation that can be used to e.g. store in the address baer.
+- `parseQueries`, takes a string from `stringifyQueries` and tries to parse it
+  into an array of Query objects.
+- `stringToTupleList`, given a string, try to parse it as a tuple list (array of
+  arrays of numbers or strings, and array of scores).
+- `tupleListToString`, given a tuple list, return a string representation.
+- `ensureTupleList`, takes a value (string, number, array of strings or numbers,
+  or array of arrays of strings or numbers) and normalizes it into a tuple list.
 
-See the [documentation](https://spinque.github.io/query-api-ts/) for a complete list.
+See the [documentation](https://spinque.github.io/query-api-ts/) for a complete
+list.
 
 ### Faceted search
 
-*Faceted search* is a common pattern found in applications built on Spinque.
-This library provides a FacetedSearch to ease the interaction between queries in a faceted search setup.
+_Faceted search_ is a common pattern found in applications built on Spinque.
+This library provides a FacetedSearch to ease the interaction between queries in
+a faceted search setup.
 
-The following example shows how a search endpoint 'movie_search' can be used in combination with facet endpoints 'genre' and 'director'.
+The following example shows how a search endpoint 'movie_search' can be used in
+combination with facet endpoints 'genre' and 'director'.
 
 ```typescript
-import { Api, FacetedSearch } from '@spinque/query-api';
+import { Api, FacetedSearch } from "@spinque/query-api";
 
 const query: Query = {
-  endpoint: 'movie_search',
-  parameters: { query: 'call me' }
+  endpoint: "movie_search",
+  parameters: { query: "call me" },
 };
 
 const fs = new FacetedSearch(query);
 
-fs.addFacet('genre', 'multiple');
-fs.addFacet('director', 'single');
+fs.addFacet("genre", "multiple");
+fs.addFacet("director", "single");
 
 // Get results and facet options
 let results = await api.fetch(fs.getResultsQuery());
-let genreOptions = await api.fetch(fs.getFacetQuery('genre'));
-let directorOptions = await api.fetch(fs.getFacetQuery('director'));
+let genreOptions = await api.fetch(fs.getFacetQuery("genre"));
+let directorOptions = await api.fetch(fs.getFacetQuery("director"));
 
 // Set the search query parameter (e.g. after the user has typed something)
-fs.setParameter('query', 'dia');
+fs.setParameter("query", "dia");
 
 // Get updated results and options
 results = await api.fetch(fs.getResultsQuery());
-genreOptions = await api.fetch(fs.getFacetQuery('genre'));
-directorOptions = await api.fetch(fs.getFacetQuery('director'));
+genreOptions = await api.fetch(fs.getFacetQuery("genre"));
+directorOptions = await api.fetch(fs.getFacetQuery("director"));
 
 // Select some facet options
-fs.setFacetSelection('genre', ['https://imdb.com/data/Drama', 'https://imdb.com/data/Biography']);
-fs.setFacetSelection('director', 'https://imdb.com/data/PabloLarrain');
+fs.setFacetSelection("genre", [
+  "https://imdb.com/data/Drama",
+  "https://imdb.com/data/Biography",
+]);
+fs.setFacetSelection("director", "https://imdb.com/data/PabloLarrain");
 
 // Get results again, now with facets applied
 results = await api.fetch(fs.getResultsQuery());
@@ -229,52 +256,59 @@ const listQuery: Query = { endpoint: 'movies' };
 const fs = new FacetedSearch(query, listQuery);
 ```
 
-Note that the exact same behavior can also be achieved *without* the FacetedSearch class (though it's more involved). The following two sections produce equal results:
+Note that the exact same behavior can also be achieved _without_ the
+FacetedSearch class (though it's more involved). The following two sections
+produce equal results:
 
 With FacetedSearch:
+
 ```typescript
 const query: Query = {
-  endpoint: 'movie_search',
-  parameters: { query: 'call me' }
+  endpoint: "movie_search",
+  parameters: { query: "call me" },
 };
 
 const fs = new FacetedSearch(query);
 
-fs.addFacet('genre', 'multiple');
-fs.addFacet('director', 'single');
+fs.addFacet("genre", "multiple");
+fs.addFacet("director", "single");
 
 let results = await api.fetch(fs.getResultsQuery());
-let genreOptions = await api.fetch(fs.getFacetQuery('genre'));
-let directorOptions = await api.fetch(fs.getFacetQuery('director'));
+let genreOptions = await api.fetch(fs.getFacetQuery("genre"));
+let directorOptions = await api.fetch(fs.getFacetQuery("director"));
 
-fs.setParameter('query', 'dia');
+fs.setParameter("query", "dia");
 
 results = await api.fetch(fs.getResultsQuery());
-genreOptions = await api.fetch(fs.getFacetQuery('genre'));
-directorOptions = await api.fetch(fs.getFacetQuery('director'));
+genreOptions = await api.fetch(fs.getFacetQuery("genre"));
+directorOptions = await api.fetch(fs.getFacetQuery("director"));
 
-fs.setFacetSelection('genre', ['https://imdb.com/data/Drama', 'https://imdb.com/data/Biography']);
+fs.setFacetSelection("genre", [
+  "https://imdb.com/data/Drama",
+  "https://imdb.com/data/Biography",
+]);
 
 results = await api.fetch(fs.getResultsQuery());
 ```
 
 Without FacetedSearch:
+
 ```typescript
 const query: Query = {
-  endpoint: 'movie_search',
-  parameters: { query: 'call me' }
+  endpoint: "movie_search",
+  parameters: { query: "call me" },
 };
 
-const genreOptionsQuery: Query = { endpoint: 'genre' };
+const genreOptionsQuery: Query = { endpoint: "genre" };
 const genreFilterQuery: Query = {
-  endpoint: 'genre:FILTER',
-  parameters: { value: undefined }
+  endpoint: "genre:FILTER",
+  parameters: { value: undefined },
 };
 
-const directorOptionsQuery: Query = { endpoint: 'director' };
+const directorOptionsQuery: Query = { endpoint: "director" };
 const directorFilterQuery: Query = {
-  endpoint: 'director:FILTER',
-  parameters: { value: undefined }
+  endpoint: "director:FILTER",
+  parameters: { value: undefined },
 };
 
 let resultsQuery = [query];
@@ -289,7 +323,7 @@ let results = await api.fetch(resultsQuery);
 let genreOptions = await api.fetch([...resultsQuery, genreOptionsQuery]);
 let directorOptions = await api.fetch([...resultsQuery, directorOptionsQuery]);
 
-query.parameters.query = 'dia';
+query.parameters.query = "dia";
 
 let resultsQuery = [query];
 if (genreFilterQuery.parameters.value) {
@@ -303,7 +337,10 @@ results = await api.fetch(resultsQuery);
 let genreOptions = await api.fetch([...resultsQuery, genreOptionsQuery]);
 let directorOptions = await api.fetch([...resultsQuery, directorOptionsQuery]);
 
-genreFilterQuery.parameters.value = tupleListToString(['https://imdb.com/data/Drama', 'https://imdb.com/data/Biography']);
+genreFilterQuery.parameters.value = tupleListToString([
+  "https://imdb.com/data/Drama",
+  "https://imdb.com/data/Biography",
+]);
 
 let resultsQuery = [query];
 if (genreFilterQuery.parameters.value) {
@@ -318,82 +355,109 @@ results = await api.fetch(resultsQuery);
 
 ### Clustered search
 
-Another common pattern in application built on Spinque is *clustered search*. A group of results (of a certain class) is positioned in the result list. Think of the group of images that's often found in your Google results.
+Another common pattern in application built on Spinque is _clustered search_. A
+group of results (of a certain class) is positioned in the result list. Think of
+the group of images that's often found in your Google results.
 
-An endpoint with clustered search, will return an item of type "[rdfs:Class](http://www.w3.org/2000/01/rdf-schema#Class)" where a cluster should be placed. This item represents the cluster but it does not contain the clustered items themselves yet. Encountering it means your application has to fetch the clustered items next. The identifier of this representative item will be the class of the cluster, for example "https://schema.org/Photograph". This can be used to fetch the cluster contents. Note: this is an opinionated convention that you could choose to diverge from.
+An endpoint with clustered search, will return an item of type
+"[rdfs:Class](http://www.w3.org/2000/01/rdf-schema#Class)" where a cluster
+should be placed. This item represents the cluster but it does not contain the
+clustered items themselves yet. Encountering it means your application has to
+fetch the clustered items next. The identifier of this representative item will
+be the class of the cluster, for example "https://schema.org/Photograph". This
+can be used to fetch the cluster contents. Note: this is an opinionated
+convention that you could choose to diverge from.
 
 This is what the response of an endpoint with clustered search could look like:
+
 ```json
 {
-  count: 5,
-  offset: 0,
-  type: ['OBJ'],
-  items: [{
-    probability: 1,
-    rank: 1,
-    tuple: [{
-      id: 'http://example.org/1',
-      class: ['https://schema.org/Thing'],
-      attributes: {
-        'http://example.org/attribute': 'value',
-      }
-    }]
-  }, {
-    probability: 0.9,
-    rank: 2,
-    tuple: [{
-      // This is a cluster
-      id: 'https://schema.org/Photograph',
-      class: ['http://www.w3.org/2000/01/rdf-schema#Class']
-    }]
-  }, {
-    probability: 0.8,
-    rank: 3,
-    tuple: [{
-      id: 'http://example.org/2',
-      class: ['https://schema.org/Thing'],
-      attributes: {
-        'http://example.org/attribute': 'value',
-      }
-    }]
-  }, {
-    probability: 0.7,
-    rank: 4,
-    tuple: [{
-      // This is also a cluster
-      id: 'https://schema.org/Person',
-      class: ['http://www.w3.org/2000/01/rdf-schema#Class']
-    }]
-  }, {
-    probability: 0.6,
-    rank: 5,
-    tuple: [{
-      id: 'http://example.org/3',
-      class: ['https://schema.org/Thing'],
-      attributes: {
-        'http://example.org/attribute': 'value',
-      }
-    }]
-  }]
+  "count": 5,
+  "offset": 0,
+  "type": ["OBJ"],
+  "items": [
+    {
+      "probability": 1,
+      "rank": 1,
+      "tuple": [
+        {
+          "id": "http://example.org/1",
+          "class": ["https://schema.org/Thing"],
+          "attributes": { "http://example.org/attribute": "value" }
+        }
+      ]
+    },
+    {
+      "probability": 0.9,
+      "rank": 2,
+      "tuple": [
+        {
+          "id": "https://schema.org/Photograph",
+          "class": ["http://www.w3.org/2000/01/rdf-schema#Class"]
+        }
+      ]
+    },
+    {
+      "probability": 0.8,
+      "rank": 3,
+      "tuple": [
+        {
+          "id": "http://example.org/2",
+          "class": ["https://schema.org/Thing"],
+          "attributes": { "http://example.org/attribute": "value" }
+        }
+      ]
+    },
+    {
+      "probability": 0.7,
+      "rank": 4,
+      "tuple": [
+        {
+          "id": "https://schema.org/Person",
+          "class": ["http://www.w3.org/2000/01/rdf-schema#Class"]
+        }
+      ]
+    },
+    {
+      "probability": 0.6,
+      "rank": 5,
+      "tuple": [
+        {
+          "id": "http://example.org/3",
+          "class": ["https://schema.org/Thing"],
+          "attributes": { "http://example.org/attribute": "value" }
+        }
+      ]
+    }
+  ]
 }
 ```
 
-For the clusters at rank 2 and 4, the application requests the contents from the Spinque API.
+For the clusters at rank 2 and 4, the application requests the contents from the
+Spinque API.
 
 This library provides some tools to help build this pattern:
- * The `[getClusters](https://spinque.github.io/query-api-ts/functions/getClusters.html)` function, that identifies clusters in search results.
- * The `[isCluster](https://spinque.github.io/query-api-ts/functions/isCluster/html)` function, that returns whether an item is a cluster.
+
+- The
+  `[getClusters](https://spinque.github.io/query-api-ts/functions/getClusters.html)`
+  function, that identifies clusters in search results.
+- The
+  `[isCluster](https://spinque.github.io/query-api-ts/functions/isCluster/html)`
+  function, that returns whether an item is a cluster.
 
 An example of a clustered search implementation using these functions:
 
 ```javascript
 const api = new Api({
-  workspace: 'demo',
-  config: 'default',
-  api: 'demo'
+  workspace: "demo",
+  config: "default",
+  api: "demo",
 });
 
-const response = await api.fetch({ endpoint: 'search', parameters: { query: 'utrecht' } });
+const response = await api.fetch({
+  endpoint: "search",
+  parameters: { query: "utrecht" },
+});
 
 // At this stage, the normal results can already be rendered. The clusters are known but their content not yet, so
 // a placeholder or loading indicator should be shown instead.
@@ -411,7 +475,9 @@ for (let item of response.items) {
 const clusters = getClusters(response);
 
 // Map all clusters to a request for their contents using `api.fetch`
-const clusterRequests = clusters.map(cluster => api.fetch<[SpinqueResultObject]>(cluster.query));
+const clusterRequests = clusters.map((cluster) =>
+  api.fetch < [SpinqueResultObject] > (cluster.query)
+);
 
 // Await for the responses to all requests
 // Note: it's possible to postpone fetching cluster results until the cluster is scrolled into view
@@ -432,13 +498,13 @@ This library can also be used without using TypeScript:
 const sqa = require("@spinque/query-api");
 
 const api = new sqa.Api({
-  workspace: 'my-workspace',
-  api: 'movies'
+  workspace: "my-workspace",
+  api: "movies",
 });
 
 const query = {
-  endpoint: 'search',
-  parameters: { term: 'utrecht' }
+  endpoint: "search",
+  parameters: { term: "utrecht" },
 };
 
 try {
