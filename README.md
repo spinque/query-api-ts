@@ -8,6 +8,19 @@ Library to use the Spinque Query API in your JavaScript/TypeScript project.
 
 The Spinque Query API is an HTTP API to retrieve search results for queries. Also check out the [documentation of the Spinque Query API](https://docs.spinque.com/3.0/using-apis/basic.html).
 
+## Table of contents
+
+ * [Installing](https://github.com/spinque/query-api-ts#installing)
+ * [Documentation](https://github.com/spinque/query-api-ts#documentation)
+ * [Usage](https://github.com/spinque/query-api-ts#usage)
+   * [Defining queries](https://github.com/spinque/query-api-ts#defining-queries)
+   * [Fetching results](https://github.com/spinque/query-api-ts#fetching-results)
+   * [Fetching using custom HTTP-library](https://github.com/spinque/query-api-ts#fetching-using-custom-http-library)
+   * [Authentication](https://github.com/spinque/query-api-ts#authentication)
+   * [Utility functions](https://github.com/spinque/query-api-ts#utility-functions)
+   * [Faceted search](https://github.com/spinque/query-api-ts#faceted-search)
+   * [Clustered search](https://github.com/spinque/query-api-ts#clustered-search)
+   * [Vanilla JavaScript](https://github.com/spinque/query-api-ts#vanilla-javascript)
 
 ## Installing
 
@@ -167,7 +180,7 @@ See the [documentation](https://spinque.github.io/query-api-ts/) for a complete 
 
 ### Faceted search
 
-Faceted search is a common use-case for application built on Spinque.
+*Faceted search* is a common pattern found in applications built on Spinque.
 This library provides a FacetedSearch to ease the interaction between queries in a faceted search setup.
 
 The following example shows how a search endpoint 'movie_search' can be used in combination with facet endpoints 'genre' and 'director'.
@@ -301,6 +314,114 @@ if (directorFilterQuery.parameters.value) {
 }
 
 results = await api.fetch(resultsQuery);
+```
+
+### Clustered search
+
+Another common pattern in application built on Spinque is *clustered search*. A group of results (of a certain class) is positioned in the result list. Think of the group of images that's often found in your Google results.
+
+An endpoint with clustered search, will return an item of type "[rdfs:Class](http://www.w3.org/2000/01/rdf-schema#Class)" where a cluster should be placed. This item represents the cluster but it does not contain the clustered items themselves yet. Encountering it means your application has to fetch the clustered items next. The identifier of this representative item will be the class of the cluster, for example "https://schema.org/Photograph". This can be used to fetch the cluster contents. Note: this is an opinionated convention that you could choose to diverge from.
+
+This is what the response of an endpoint with clustered search could look like:
+```json
+{
+  count: 5,
+  offset: 0,
+  type: ['OBJ'],
+  items: [{
+    probability: 1,
+    rank: 1,
+    tuple: [{
+      id: 'http://example.org/1',
+      class: ['https://schema.org/Thing'],
+      attributes: {
+        'http://example.org/attribute': 'value',
+      }
+    }]
+  }, {
+    probability: 0.9,
+    rank: 2,
+    tuple: [{
+      // This is a cluster
+      id: 'https://schema.org/Photograph',
+      class: ['http://www.w3.org/2000/01/rdf-schema#Class']
+    }]
+  }, {
+    probability: 0.8,
+    rank: 3,
+    tuple: [{
+      id: 'http://example.org/2',
+      class: ['https://schema.org/Thing'],
+      attributes: {
+        'http://example.org/attribute': 'value',
+      }
+    }]
+  }, {
+    probability: 0.7,
+    rank: 4,
+    tuple: [{
+      // This is also a cluster
+      id: 'https://schema.org/Person',
+      class: ['http://www.w3.org/2000/01/rdf-schema#Class']
+    }]
+  }, {
+    probability: 0.6,
+    rank: 5,
+    tuple: [{
+      id: 'http://example.org/3',
+      class: ['https://schema.org/Thing'],
+      attributes: {
+        'http://example.org/attribute': 'value',
+      }
+    }]
+  }]
+}
+```
+
+For the clusters at rank 2 and 4, the application requests the contents from the Spinque API.
+
+This library provides some tools to help build this pattern:
+ * The `[getClusters](https://spinque.github.io/query-api-ts/functions/getClusters.html)` function, that identifies clusters in search results.
+ * The `[isCluster](https://spinque.github.io/query-api-ts/functions/isCluster/html)` function, that returns whether an item is a cluster.
+
+An example of a clustered search implementation using these functions:
+
+```javascript
+const api = new Api({
+  workspace: 'demo',
+  config: 'default',
+  api: 'demo'
+});
+
+const response = await api.fetch({ endpoint: 'search', parameters: { query: 'utrecht' } });
+
+// At this stage, the normal results can already be rendered. The clusters are known but their content not yet, so
+// a placeholder or loading indicator should be shown instead.
+
+// Dummy rendering loop:
+for (let item of response.items) {
+  if (isCluster(item)) {
+    // show placeholder for a cluster
+  } else {
+    // show the full item
+  }
+}
+
+// Get the clusters in the response and load their contents
+const clusters = getClusters(response);
+
+// Map all clusters to a request for their contents using `api.fetch`
+const clusterRequests = clusters.map(cluster => api.fetch<[SpinqueResultObject]>(cluster.query));
+
+// Await for the responses to all requests
+// Note: it's possible to postpone fetching cluster results until the cluster is scrolled into view
+const clusterResponses = await Promise.all(clusterRequests);
+
+for (let [index, cluster] of clusterResponses.entries()) {
+  // Replace placeholder with clustered items
+}
+
+// Note: more cluster items could be loaded if the user indicates interest
 ```
 
 ### Vanilla JavaScript

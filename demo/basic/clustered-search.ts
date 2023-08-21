@@ -1,5 +1,5 @@
 import { Api, getClusters, isCluster } from '../../src';
-import { ResultItem, ResultsResponse, SpinqueResultObject } from '../../src/types';
+import { ResultsResponse, SpinqueResultObject } from '../../src/types';
 
 // This is what the results response for clustered search looks like
 // It contains normal items with attributes and 'class' items that represent clusters of

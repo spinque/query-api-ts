@@ -60,7 +60,12 @@ export const getClusters = (results: ResultsResponse, options: GetClustersOption
  * A result is considered a cluster when it's of type rdfs:Class.
  */
 export const isCluster = (item: ResultItem): item is ResultItem<[SpinqueResultObject]> => {
-  if (!item.tuple || item.tuple.length !== 1 || typeof item.tuple[0] === 'string' || typeof item.tuple[0] === 'number') {
+  if (
+    !item.tuple ||
+    item.tuple.length !== 1 ||
+    typeof item.tuple[0] === 'string' ||
+    typeof item.tuple[0] === 'number'
+  ) {
     return false;
   }
   return item.tuple[0].class.includes(RDFS_CLASS);

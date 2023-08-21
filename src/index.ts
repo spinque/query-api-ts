@@ -3,4 +3,4 @@ export * from './authentication';
 export * from './FacetedSearch';
 export * from './types';
 export * from './utils';
-export * from './clustered-search';
+export * from './clusters';
