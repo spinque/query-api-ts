@@ -368,7 +368,7 @@ be the class of the cluster, for example "https://schema.org/Photograph". This
 can be used to fetch the cluster contents. Note: this is an opinionated
 convention that you could choose to diverge from.
 
-This is what the response of an endpoint with clustered search could look like:
+This is what the response of an endpoint with clustered search could look like. Note: results at ranks 2 and 4 represent clusters, the rest do not.
 
 ```json
 {
