@@ -360,11 +360,11 @@ group of results (of a certain class) is positioned in the result list. Think of
 the group of images that's often found in your Google results.
 
 An endpoint with clustered search, will return an item of type
-"[rdfs:Class](http://www.w3.org/2000/01/rdf-schema#Class)" where a cluster
+[`rdfs:Class`](http://www.w3.org/2000/01/rdf-schema#Class) where a cluster
 should be placed. This item represents the cluster but it does not contain the
 clustered items themselves yet. Encountering it means your application has to
 fetch the clustered items next. The identifier of this representative item will
-be the class of the cluster, for example "https://schema.org/Photograph". This
+be the class of the cluster, for example `https://schema.org/Photograph`. This
 can be used to fetch the cluster contents. Note: this is an opinionated
 convention that you could choose to diverge from.
 
@@ -439,10 +439,10 @@ Spinque API.
 This library provides some tools to help build this pattern:
 
 - The
-  `[getClusters](https://spinque.github.io/query-api-ts/functions/getClusters.html)`
+  [`getClusters`](https://spinque.github.io/query-api-ts/functions/getClusters.html)
   function, that identifies clusters in search results.
 - The
-  `[isCluster](https://spinque.github.io/query-api-ts/functions/isCluster/html)`
+  [`isCluster`](https://spinque.github.io/query-api-ts/functions/isCluster/html)
   function, that returns whether an item is a cluster.
 
 An example of a clustered search implementation using these functions:
