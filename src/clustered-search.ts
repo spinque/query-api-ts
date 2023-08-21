@@ -1,4 +1,4 @@
-import { Query, ResultItemTupleTypes, ResultsResponse, SpinqueResultObject } from './types';
+import { Query, ResultItem, ResultItemTupleTypes, ResultsResponse, SpinqueResultObject } from './types';
 import { tupleListToString } from './utils';
 
 export interface Cluster {
@@ -35,7 +35,7 @@ export const getClusters = (results: ResultsResponse, options: GetClustersOption
 
   // Loop through result items and when encountering a cluster, add it to the list
   for (let item of results.items) {
-    if (!isCluster(item.tuple)) {
+    if (!isCluster(item)) {
       continue;
     }
     const cluster = {
@@ -56,13 +56,12 @@ export const getClusters = (results: ResultsResponse, options: GetClustersOption
 };
 
 /**
- * Takes a result tuple and checks if it is a cluster.
+ * Takes a result item and checks if it is a cluster.
  * A result is considered a cluster when it's of type rdfs:Class.
  */
-const isCluster = (tuple: ResultItemTupleTypes[]): tuple is [SpinqueResultObject] => {
-  console.log(tuple);
-  if (!tuple || tuple.length !== 1 || typeof tuple[0] === 'string' || typeof tuple[0] === 'number') {
+export const isCluster = (item: ResultItem): item is ResultItem<[SpinqueResultObject]> => {
+  if (!item.tuple || item.tuple.length !== 1 || typeof item.tuple[0] === 'string' || typeof item.tuple[0] === 'number') {
     return false;
   }
-  return tuple[0].class.includes(RDFS_CLASS);
+  return item.tuple[0].class.includes(RDFS_CLASS);
 };
