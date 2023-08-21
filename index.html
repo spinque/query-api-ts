@@ -113,11 +113,11 @@ produce equal results:</p>
 group of results (of a certain class) is positioned in the result list. Think of
 the group of images that&#39;s often found in your Google results.</p>
 <p>An endpoint with clustered search, will return an item of type
-&quot;<a href="http://www.w3.org/2000/01/rdf-schema#Class">rdfs:Class</a>&quot; where a cluster
+<a href="http://www.w3.org/2000/01/rdf-schema#Class"><code>rdfs:Class</code></a> where a cluster
 should be placed. This item represents the cluster but it does not contain the
 clustered items themselves yet. Encountering it means your application has to
 fetch the clustered items next. The identifier of this representative item will
-be the class of the cluster, for example &quot;<a href="https://schema.org/Photograph">https://schema.org/Photograph</a>&quot;. This
+be the class of the cluster, for example <code>https://schema.org/Photograph</code>. This
 can be used to fetch the cluster contents. Note: this is an opinionated
 convention that you could choose to diverge from.</p>
 <p>This is what the response of an endpoint with clustered search could look like. Note: results at ranks 2 and 4 represent clusters, the rest do not.</p>
@@ -128,10 +128,10 @@ Spinque API.</p>
 <p>This library provides some tools to help build this pattern:</p>
 <ul>
 <li>The
-<code>[getClusters](https://spinque.github.io/query-api-ts/functions/getClusters.html)</code>
+<a href="https://spinque.github.io/query-api-ts/functions/getClusters.html"><code>getClusters</code></a>
 function, that identifies clusters in search results.</li>
 <li>The
-<code>[isCluster](https://spinque.github.io/query-api-ts/functions/isCluster/html)</code>
+<a href="https://spinque.github.io/query-api-ts/functions/isCluster/html"><code>isCluster</code></a>
 function, that returns whether an item is a cluster.</li>
 </ul>
 <p>An example of a clustered search implementation using these functions:</p>
