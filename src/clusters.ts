@@ -1,4 +1,4 @@
-import { Query, ResultItem, ResultItemTupleTypes, ResultsResponse, SpinqueResultObject } from './types';
+import { Query, ResultItem, ResultsResponse, SpinqueResultObject } from './types';
 import { tupleListToString } from './utils';
 
 export interface Cluster {

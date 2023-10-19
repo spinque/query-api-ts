@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "demo": "npx ts-node -r tsconfig-paths/register ./demo/basic/clustered-search.ts",
+    "demo": "npx ts-node -r tsconfig-paths/register ./demo/authentication/server/index.ts",
     "docs": "typedoc src/index.ts",
     "check-format": "prettier --check \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -41,11 +41,10 @@
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^4.6.2",
-    "typedoc": "0.24.8"
+    "typedoc": "0.24.8",
+    "typescript": "^4.6.2"
   },
   "dependencies": {
-    "browser-or-node": "^2.1.1",
-    "cross-fetch": "^3.1.6"
+    "browser-or-node": "^2.1.1"
   }
 }

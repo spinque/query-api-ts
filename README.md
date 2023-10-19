@@ -32,6 +32,8 @@ Using npm:
 $ npm install @spinque/query-api
 ```
 
+Note: when using this library with NodeJS, version >= 18 is expected for `fetch` support.
+
 ## Documentation
 
 Documentation for this library can be found

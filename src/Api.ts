@@ -1,4 +1,3 @@
-import fetch, { Headers } from 'cross-fetch';
 import { ResultsResponse, StatisticsResponse } from '.';
 import { Authenticator, ClientCredentials, PKCE } from './authentication';
 import {
