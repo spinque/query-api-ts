@@ -80,10 +80,16 @@ const query: Query = {
 
 try {
   // Fetch the 10 first results of the query
-  const response = await api.fetch(query, { count: 10 });
+  const results = await api.fetch(query, { count: 10 });
 } catch (error: any) {
   console.error(error);
 }
+```
+
+You can also fetch other type of responses:
+```typescript
+const statistics = await api.fetch(query, { count: 10 }, 'statistics');
+const resultsWithCount = await api.fetch(query, { count: 10 }, 'results,count');
 ```
 
 ### Fetching using custom HTTP-library
