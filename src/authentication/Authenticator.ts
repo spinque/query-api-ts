@@ -83,6 +83,7 @@ export abstract class Authenticator {
     }
     if (!isBrowser && this._tokenCachePath) {
       try {
+        require.resolve('fs');
         const fs = require('fs');
         const json = JSON.stringify({ accessToken, expires });
         fs.writeFileSync(this._tokenCachePath, json);
@@ -125,6 +126,7 @@ export abstract class Authenticator {
 
   private getFromFileStorage(path: string): { accessToken: string; expires: number } | null {
     try {
+      require.resolve('fs');
       const data = require('fs').readFileSync(path, { encoding: 'utf8' });
       const { accessToken, expires } = JSON.parse(data);
       if (typeof accessToken !== 'string' && typeof expires !== 'number') {
