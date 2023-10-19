@@ -133,7 +133,7 @@ export class Api {
     queries: Query | Query[],
     options?: RequestOptions,
     requestType?: R,
-  ): Promise<ResponseType<R, T> | ErrorResponse> {
+  ): Promise<ResponseType<R, T>> {
     // Convert single query to array of queries
     if (!(queries instanceof Array)) {
       queries = [queries];
@@ -162,7 +162,7 @@ export class Api {
    */
   private async handleResponse<R extends RequestType, T = ResultItemTupleTypes[]>(
     response: Response,
-  ): Promise<ErrorResponse | ResponseType<R, T>> {
+  ): Promise<ResponseType<R, T>> {
     const json = await response.json();
 
     if (response.status === 200) {
