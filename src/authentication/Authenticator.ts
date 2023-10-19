@@ -82,9 +82,13 @@ export abstract class Authenticator {
       localStorage.setItem('@spinque/query-api/expires', `${expires}`);
     }
     if (!isBrowser && this._tokenCachePath) {
-      const fs = await import('fs');
-      const json = JSON.stringify({ accessToken, expires });
-      fs.writeFileSync(this._tokenCachePath, json);
+      try {
+        const fs = await import('fs');
+        const json = JSON.stringify({ accessToken, expires });
+        fs.writeFileSync(this._tokenCachePath, json);
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 
