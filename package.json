@@ -1,6 +1,6 @@
 {
   "name": "@spinque/query-api",
-  "version": "0.15.7",
+  "version": "0.15.8",
   "description": "",
   "main": "dist/index.js",
   "browser": "dist/browser.js",
