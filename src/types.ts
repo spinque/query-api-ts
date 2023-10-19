@@ -134,16 +134,18 @@ export interface RequestOptions {
  * Map from RequestType to a Response type
  */
 type ResponseMap<T = ResultItemTupleTypes[]> = {
-  'results': ResultsResponse<T>;
-  'statistics': StatisticsResponse;
-  'count': CountResponse;
+  results: ResultsResponse<T>;
+  statistics: StatisticsResponse;
+  count: CountResponse;
   'results,count': ResultsAndCountResponse<T>;
 };
 
 /**
  * ResponseType based on RequestType
  */
-export type ResponseType<U extends RequestType, T = ResultItemTupleTypes[]> = U extends keyof ResponseMap ? ResponseMap<T>[U] : never;
+export type ResponseType<U extends RequestType, T = ResultItemTupleTypes[]> = U extends keyof ResponseMap
+  ? ResponseMap<T>[U]
+  : never;
 
 /**
  * Data types known by Spinque.

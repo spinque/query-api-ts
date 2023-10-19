@@ -58,5 +58,4 @@ describe('Api', () => {
     const queries: Query[] = [{ endpoint: 'my-endpoint' }];
     await expect(api.fetch(queries)).rejects.toThrow('Workspace missing');
   });
-
 });
