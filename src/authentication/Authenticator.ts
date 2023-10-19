@@ -86,9 +86,7 @@ export abstract class Authenticator {
         const fs = require('fs');
         const json = JSON.stringify({ accessToken, expires });
         fs.writeFileSync(this._tokenCachePath, json);
-      } catch (e) {
-        console.log(e);
-      }
+      } catch (e) {}
     }
   }
 
