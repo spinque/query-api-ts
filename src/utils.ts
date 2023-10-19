@@ -225,3 +225,5 @@ export const stringifyQueries = (queries: Query[]): string => {
   const endpointString = queries.map((q) => (q.parameters ? [q.endpoint, q.parameters] : q.endpoint));
   return JSON.stringify(endpointString);
 };
+
+export const isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
