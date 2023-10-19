@@ -1,6 +1,6 @@
 import { Authenticator, DEFAULT_AUTH_SERVER } from './Authenticator';
 import { join } from '../utils';
-import { isBrowser } from "../utils";
+import { isBrowser } from '../utils';
 
 /**
  * An Authenticator class for the OAuth 2.0 Client Credentials grant.

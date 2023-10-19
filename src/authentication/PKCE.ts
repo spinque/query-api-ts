@@ -1,6 +1,6 @@
 import { Authenticator, DEFAULT_AUDIENCE, DEFAULT_AUTH_SERVER } from './Authenticator';
 import { join } from '../utils';
-import { isBrowser } from "../utils";
+import { isBrowser } from '../utils';
 
 /**
  * An Authenticator class for the OAuth 2.0 Authorization Code with PKCE grant.

@@ -1,4 +1,4 @@
-import { isBrowser } from "../utils";
+import { isBrowser } from '../utils';
 
 export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 export const DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
