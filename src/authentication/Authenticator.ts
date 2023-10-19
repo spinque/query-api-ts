@@ -1,5 +1,4 @@
 import { isBrowser } from 'browser-or-node';
-import * as fs from 'fs';
 
 export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 export const DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
@@ -14,16 +13,16 @@ export abstract class Authenticator {
 
   constructor(private _tokenCachePath?: string) {
     // First thing to do: check if there's an access token in localStorage
-    const res = this.getFromStorage();
-
-    if (res) {
-      // Set it as class property
-      this._accessToken = res.accessToken;
-      this._expires = res.expires;
-      this._authInProgress = false;
-    } else {
-      this._authInProgress = false;
-    }
+    const res = this.getFromStorage().then((res) => {
+      if (res) {
+        // Set it as class property
+        this._accessToken = res.accessToken;
+        this._expires = res.expires;
+        this._authInProgress = false;
+      } else {
+        this._authInProgress = false;
+      }
+    });
   }
 
   /**
@@ -73,17 +72,17 @@ export abstract class Authenticator {
   public setAccessToken(accessToken: string, expiresIn: number) {
     this._accessToken = accessToken;
     this._expires = Date.now() + expiresIn * 1000;
-    this.putInStorage(this._accessToken, this._expires);
-    this._authInProgress = false;
+    this.putInStorage(this._accessToken, this._expires).then(() => (this._authInProgress = false));
   }
 
-  private putInStorage(accessToken: string, expires: number) {
+  private async putInStorage(accessToken: string, expires: number) {
     if (isBrowser && !!localStorage) {
       // TODO: configure keys
       localStorage.setItem('@spinque/query-api/access-token', accessToken);
       localStorage.setItem('@spinque/query-api/expires', `${expires}`);
     }
     if (!isBrowser && this._tokenCachePath) {
+      const fs = await import('fs');
       const json = JSON.stringify({ accessToken, expires });
       fs.writeFileSync(this._tokenCachePath, json);
     }
@@ -92,13 +91,13 @@ export abstract class Authenticator {
   /**
    * Get an access token from storage (if available)
    */
-  private getFromStorage() {
+  private async getFromStorage() {
     // Localstorage is only available for browser applications
     if (isBrowser) {
       return this.getFromBrowserLocalStorage();
     }
     if (!isBrowser && this._tokenCachePath) {
-      return this.getFromFileStorage(this._tokenCachePath);
+      return await this.getFromFileStorage(this._tokenCachePath);
     }
     return null;
   }
@@ -122,9 +121,9 @@ export abstract class Authenticator {
     }
   }
 
-  private getFromFileStorage(path: string): { accessToken: string; expires: number } | null {
+  private async getFromFileStorage(path: string): Promise<{ accessToken: string; expires: number } | null> {
     try {
-      const data = fs.readFileSync(path, { encoding: 'utf8' });
+      const data = (await import('fs')).readFileSync(path, { encoding: 'utf8' });
       const { accessToken, expires } = JSON.parse(data);
       if (typeof accessToken !== 'string' && typeof expires !== 'number') {
         // TODO: delete file
