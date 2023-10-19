@@ -12,6 +12,7 @@ import {
   ServerError,
   ResultItemTupleTypes,
   UnauthorizedError,
+  CountResponse,
 } from './types';
 import { urlFromQueries } from './utils';
 
@@ -128,21 +129,11 @@ export class Api {
   /**
    * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
    */
-  async fetch<T = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>>(
+  async fetch<T extends ResultItemTupleTypes[] = ResultItemTupleTypes[], R extends RequestType = 'results'>(
     queries: Query | Query[],
     options?: RequestOptions,
-    requestType?: RequestType,
-  ): Promise<ResultsResponse<T> | ErrorResponse>;
-  async fetch(
-    queries: Query | Query[],
-    options: RequestOptions,
-    requestType: 'statistics',
-  ): Promise<StatisticsResponse | ErrorResponse>;
-  async fetch<T = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>>(
-    queries: Query | Query[],
-    options?: RequestOptions,
-    requestType: RequestType = 'results',
-  ): Promise<ResponseType<RequestType, T> | ErrorResponse> {
+    requestType?: R,
+  ): Promise<ResponseType<R, T> | ErrorResponse> {
     // Convert single query to array of queries
     if (!(queries instanceof Array)) {
       queries = [queries];
@@ -163,19 +154,19 @@ export class Api {
     }
 
     // Make the request
-    return fetch(url, requestInit).then((res) => this.handleResponse<RequestType, T>(res));
+    return fetch(url, requestInit).then((res) => this.handleResponse<R, T>(res));
   }
 
   /**
    * Handle the response of a fetch to Spinque Query API.
    */
-  private async handleResponse<T extends RequestType, U = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>>(
+  private async handleResponse<R extends RequestType, T = ResultItemTupleTypes[]>(
     response: Response,
-  ): Promise<ErrorResponse | ResponseType<T, U>> {
+  ): Promise<ErrorResponse | ResponseType<R, T>> {
     const json = await response.json();
 
     if (response.status === 200) {
-      return json as ResponseType<T, U>;
+      return json as ResponseType<R, T>;
     }
 
     if (response.status === 401) {

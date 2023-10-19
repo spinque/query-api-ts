@@ -111,7 +111,7 @@ export interface Query {
  * 'results' will return actual result items.
  * 'statistics' will return the probability distribution for the query.
  */
-export type RequestType = 'results' | 'statistics';
+export type RequestType = 'results' | 'statistics' | 'count' | 'results,count';
 
 export interface RequestOptions {
   // Number of items returned. Default value is 10. Should be between 1 and 100.
@@ -131,12 +131,19 @@ export interface RequestOptions {
 }
 
 /**
+ * Map from RequestType to a Response type
+ */
+type ResponseMap<T = ResultItemTupleTypes[]> = {
+  'results': ResultsResponse<T>;
+  'statistics': StatisticsResponse;
+  'count': CountResponse;
+  'results,count': ResultsAndCountResponse<T>;
+};
+
+/**
  * ResponseType based on RequestType
  */
-export type ResponseType<
-  T extends RequestType,
-  U = ResultsResponse | ResultsResponse<ResultItemTupleTypes[]>,
-> = T extends 'results' ? ResultsResponse<U> : StatisticsResponse;
+export type ResponseType<U extends RequestType, T = ResultItemTupleTypes[]> = U extends keyof ResponseMap ? ResponseMap<T>[U] : never;
 
 /**
  * Data types known by Spinque.
@@ -216,6 +223,17 @@ export interface StatisticsResponse {
     numResults: number;
   }[];
 }
+
+/**
+ * Response to a Query that contains the count
+ */
+export interface CountResponse {
+  // The total number of results for this query
+  total: number;
+}
+
+// TODO: this is unexpected behaviour of the backend (CountResponse is expected). It will be resolved at some point but impacts the public API
+export type ResultsAndCountResponse<T = ResultItemTupleTypes[]> = [ResultsResponse<T>, StatisticsResponse];
 
 /**
  * Generic error response class. Is implemented by more specific error type classes.
