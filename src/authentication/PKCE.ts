@@ -1,4 +1,4 @@
-import { Authenticator, DEFAULT_AUDIENCE, DEFAULT_AUTH_SERVER } from './Authenticator';
+import { Authenticator, DEFAULT_AUDIENCE, DEFAULT_AUTH_SERVER } from './';
 import { join } from '../utils';
 import { isBrowser } from '../utils';
 

@@ -1,7 +1,4 @@
-import { isBrowser } from '../utils';
-
-export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
-export const DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
+import { getFromStorage, putInStorage } from '..';
 
 /**
  * Abstract class with utitily functions for working with access tokens such as storage
@@ -11,9 +8,9 @@ export abstract class Authenticator {
   _accessToken?: string;
   _expires?: number;
 
-  constructor(private _tokenCachePath?: string) {
+  constructor(public _tokenCachePath?: string) {
     // First thing to do: check if there's an access token in localStorage
-    const res = this.getFromStorage();
+    const res = getFromStorage(this._tokenCachePath);
     if (res) {
       // Set it as class property
       this._accessToken = res.accessToken;
@@ -71,72 +68,8 @@ export abstract class Authenticator {
   public setAccessToken(accessToken: string, expiresIn: number) {
     this._accessToken = accessToken;
     this._expires = Date.now() + expiresIn * 1000;
-    this.putInStorage(this._accessToken, this._expires);
+    putInStorage(this._tokenCachePath, this._accessToken, this._expires);
     this._authInProgress = false;
-  }
-
-  private putInStorage(accessToken: string, expires: number) {
-    if (isBrowser && !!localStorage) {
-      // TODO: configure keys
-      localStorage.setItem('@spinque/query-api/access-token', accessToken);
-      localStorage.setItem('@spinque/query-api/expires', `${expires}`);
-    }
-    if (!isBrowser && this._tokenCachePath) {
-      try {
-        require.resolve('fs');
-        const fs = require('fs');
-        const json = JSON.stringify({ accessToken, expires });
-        fs.writeFileSync(this._tokenCachePath, json);
-      } catch (e) {}
-    }
-  }
-
-  /**
-   * Get an access token from storage (if available)
-   */
-  private getFromStorage() {
-    // Localstorage is only available for browser applications
-    if (isBrowser) {
-      return this.getFromBrowserLocalStorage();
-    }
-    if (!isBrowser && this._tokenCachePath) {
-      return this.getFromFileStorage(this._tokenCachePath);
-    }
-    return null;
-  }
-
-  private getFromBrowserLocalStorage(): { accessToken: string; expires: number } | null {
-    if (!localStorage) {
-      return null;
-    }
-    try {
-      const accessToken = localStorage.getItem('@spinque/query-api/access-token');
-      const expires = parseInt(localStorage.getItem('@spinque/query-api/expires') || '', 10);
-      if (accessToken && expires && expires > Date.now() + 1000) {
-        return { accessToken, expires };
-      } else {
-        localStorage.removeItem('@spinque/query-api/access-token');
-        localStorage.removeItem('@spinque/query-api/expires');
-        return null;
-      }
-    } catch (error) {
-      return null;
-    }
-  }
-
-  private getFromFileStorage(path: string): { accessToken: string; expires: number } | null {
-    try {
-      require.resolve('fs');
-      const data = require('fs').readFileSync(path, { encoding: 'utf8' });
-      const { accessToken, expires } = JSON.parse(data);
-      if (typeof accessToken !== 'string' && typeof expires !== 'number') {
-        // TODO: delete file
-        return null;
-      }
-      return { accessToken, expires };
-    } catch (error) {
-      return null;
-    }
   }
 
   /**
