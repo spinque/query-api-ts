@@ -127,7 +127,7 @@ export class FacetedSearch {
   /**
    * Get the Query objects to retrieve search results. This includes the facet Query, if applicable.
    */
-  getResultsQuery(): Query[] {
+  getResultsQuery(excludeModifier = false): Query[] {
     const q = [
       this.getBaseQuery(),
       ...this._facets
@@ -137,7 +137,7 @@ export class FacetedSearch {
           parameters: { [f.filterParameterName]: f.filterParameterValue as string },
         })),
     ];
-    if (this._activeModifier !== undefined && this._activeModifier !== null) {
+    if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
       q.push(this._activeModifier);
     }
     return q;
