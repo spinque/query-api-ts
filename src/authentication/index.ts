@@ -1,9 +1,8 @@
-import { putInStorage, getFromStorage } from './TokenCacheServer';
 import { Authenticator } from './Authenticator';
 import { ClientCredentials } from './ClientCredentials';
 import { PKCE } from './PKCE';
+import { TokenCache, localStorageTokenCache } from './TokenCache';
 
 export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
-export const DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
 
-export { Authenticator, ClientCredentials, PKCE, putInStorage, getFromStorage };
+export { Authenticator, TokenCache, ClientCredentials, PKCE, localStorageTokenCache };

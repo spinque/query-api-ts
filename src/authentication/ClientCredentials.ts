@@ -1,6 +1,8 @@
 import { Authenticator, DEFAULT_AUTH_SERVER } from './index';
 import { join } from '../utils';
 import { isBrowser } from '../utils';
+import { TokenCache } from './TokenCache';
+import { DEFAULT_BASE_URL } from '..';
 
 /**
  * An Authenticator class for the OAuth 2.0 Client Credentials grant.
@@ -11,17 +13,23 @@ export class ClientCredentials extends Authenticator {
     private clientId: string,
     // Client Secret from Spinque Desk > Settings > Team Members > System-to-System account
     private clientSecret: string,
-    // URL to the Spinque Authorization server, default is https://login.spinque.com/
-    private authServer?: string,
     // Optional path to store the authentication token and make it persistent through server restarts
-    private tokenCachePath?: string,
+    tokenCache?: TokenCache,
+    // URL to the Spinque Authorization server, default is https://login.spinque.com/
+    private authServer: string = DEFAULT_AUTH_SERVER,
     // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
-    private baseUrl?: string,
+    private baseUrl: string = DEFAULT_BASE_URL,
   ) {
-    super(tokenCachePath);
     if (isBrowser) {
       throw new Error('The Client Credentials Flow is only allowed for server applications.');
     }
+    if (!tokenCache) {
+      console.warn(
+        `Please supply a TokenCache instance to cache the access token. See the README of @spinque/query-api for more details.`,
+      );
+      tokenCache = { get: () => null, set: () => {} };
+    }
+    super(tokenCache);
   }
 
   /**

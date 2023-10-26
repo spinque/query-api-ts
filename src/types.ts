@@ -1,3 +1,5 @@
+import { TokenCache } from './authentication';
+
 /**
  * Configuration of an API to send queries to. Used to instantiate the Api class.
  */
@@ -66,10 +68,10 @@ export type ApiAuthenticationConfig =
       clientSecret: string;
 
       /**
-       * Path to a file that will store a cached token.
-       * This is useful during development, when in-memory caching doesn't work due to frequent server restarts.
+       * Implementation of a TokenCache. Defines a get and set method that put the token in some sort of storage.
+       * This is especially useful during development, when in-memory caching doesn't work due to frequent server restarts.
        */
-      tokenCachePath?: string;
+      tokenCache?: TokenCache;
     }
   | {
       /**
@@ -87,6 +89,12 @@ export type ApiAuthenticationConfig =
       authServer?: string;
       clientId: string;
       callback: string;
+
+      /**
+       * Implementation of a TokenCache. Defines a get and set method that put the token in some sort of storage.
+       * This is especially useful during development, when in-memory caching doesn't work due to frequent server restarts.
+       */
+      tokenCache?: TokenCache;
     };
 
 /**

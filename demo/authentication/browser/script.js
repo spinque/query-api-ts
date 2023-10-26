@@ -10,7 +10,7 @@
  *  - python -m http.server 4200
  */
 
-const sqa = require("../../../dist");
+const sqa = require("@spinque/query-api");
 
 async function main() {
   const apiWithAuth = new sqa.Api({
@@ -20,7 +20,8 @@ async function main() {
       type: 'pkce',
       clientId: '9xa3MpWBCeG72XCohLIYAVigdiL00OvO',
       callback: 'http://localhost:4200'
-    }
+    },
+    tokenCache: sqa.localStorageTokenCache
   });
 
   const queries = [{

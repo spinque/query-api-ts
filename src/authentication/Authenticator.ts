@@ -1,4 +1,8 @@
-import { getFromStorage, putInStorage } from '..';
+import { isBrowser } from '../utils';
+import { TokenCache, localStorageTokenCache } from './TokenCache';
+
+export const DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
+export const DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
 
 /**
  * Abstract class with utitily functions for working with access tokens such as storage
@@ -8,13 +12,14 @@ export abstract class Authenticator {
   _accessToken?: string;
   _expires?: number;
 
-  constructor(public _tokenCachePath?: string) {
+  constructor(private _tokenCache: TokenCache) {
     // First thing to do: check if there's an access token in localStorage
-    const res = getFromStorage(this._tokenCachePath);
-    if (res) {
+    const cachedToken = this._tokenCache.get();
+
+    if (cachedToken) {
       // Set it as class property
-      this._accessToken = res.accessToken;
-      this._expires = res.expires;
+      this._accessToken = cachedToken.accessToken;
+      this._expires = cachedToken.expires;
       this._authInProgress = false;
     } else {
       this._authInProgress = false;
@@ -68,7 +73,7 @@ export abstract class Authenticator {
   public setAccessToken(accessToken: string, expiresIn: number) {
     this._accessToken = accessToken;
     this._expires = Date.now() + expiresIn * 1000;
-    putInStorage(this._tokenCachePath, this._accessToken, this._expires);
+    this._tokenCache.set(this._accessToken, this._expires);
     this._authInProgress = false;
   }
 

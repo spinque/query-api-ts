@@ -17,7 +17,7 @@ import {
 import { urlFromQueries } from './utils';
 
 // This is the default base URL to the Spinque Query API.
-const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
+export const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
 
 /**
  * Send queries to the Spinque Query API using fetch.
@@ -83,9 +83,9 @@ export class Api {
         this._authenticator = new ClientCredentials(
           apiConfig.authentication.clientId,
           apiConfig.authentication.clientSecret,
+          apiConfig.authentication.tokenCache,
           apiConfig.authentication.authServer,
-          apiConfig.authentication.tokenCachePath,
-          apiConfig.baseUrl || DEFAULT_BASE_URL,
+          apiConfig.baseUrl,
         );
       }
 
@@ -95,7 +95,8 @@ export class Api {
           apiConfig.authentication.clientId,
           apiConfig.authentication.callback,
           apiConfig.authentication.authServer,
-          apiConfig.baseUrl || DEFAULT_BASE_URL,
+          apiConfig.authentication.tokenCache,
+          apiConfig.baseUrl,
         );
       }
     }

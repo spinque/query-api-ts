@@ -1,5 +1,17 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const sqa = require("../../../dist");
+/**
+ * To test this demo, you need to build the library, browserify this demo and run a webserver.
+ * You also need to have access to a Client ID that accepts the PKCE flow. If you're interested in this,
+ * please contact the system administrator at Spinque.
+ * 
+ * For example:
+ *  - npm run build
+ *  - cd demo/authentication/browser
+ *  - ./browserify.sh
+ *  - python -m http.server 4200
+ */
+
+const sqa = require("@spinque/query-api");
 
 async function main() {
   const apiWithAuth = new sqa.Api({
@@ -9,7 +21,8 @@ async function main() {
       type: 'pkce',
       clientId: '9xa3MpWBCeG72XCohLIYAVigdiL00OvO',
       callback: 'http://localhost:4200'
-    }
+    },
+    tokenCache: sqa.localStorageTokenCache
   });
 
   const queries = [{
@@ -25,7 +38,7 @@ async function main() {
 }
 
 main();
-},{"../../../dist":7}],2:[function(require,module,exports){
+},{"@spinque/query-api":9}],2:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -69,31 +82,52 @@ var cross_fetch_1 = require("cross-fetch");
 var authentication_1 = require("./authentication");
 var types_1 = require("./types");
 var utils_1 = require("./utils");
+// This is the default base URL to the Spinque Query API.
 var DEFAULT_BASE_URL = 'https://rest.spinque.com/';
+/**
+ * Send queries to the Spinque Query API using fetch.
+ */
 var Api = /** @class */ (function () {
     function Api(apiConfig) {
-        this._baseUrl = DEFAULT_BASE_URL;
-        this._version = '4';
-        this._config = 'default';
+        /**
+         * URL to the Spinque Query API deployment.
+         *
+         * @default https://rest.spinque.com/
+         */
+        this.baseUrl = DEFAULT_BASE_URL;
+        /**
+         * Version of the Spinque Query API deployment.
+         *
+         * @default 4
+         */
+        this.version = '4';
+        /**
+         * Name of the configuration of the Spinque workspace that should be used.
+         * Usually, this is something like 'production', 'development' or 'default'.
+         * The Spinque Desk administrator working on your project knowns this value.
+         *
+         * @default default
+         */
+        this.config = 'default';
         if (apiConfig && apiConfig.baseUrl) {
-            this._baseUrl = apiConfig.baseUrl;
+            this.baseUrl = apiConfig.baseUrl;
         }
         if (apiConfig && apiConfig.version) {
-            this._version = apiConfig.version;
+            this.version = apiConfig.version;
         }
         if (apiConfig && apiConfig.workspace) {
-            this._workspace = apiConfig.workspace;
+            this.workspace = apiConfig.workspace;
         }
         if (apiConfig && apiConfig.api) {
-            this._api = apiConfig.api;
+            this.api = apiConfig.api;
         }
         if (apiConfig && apiConfig.config) {
-            this._config = apiConfig.config;
+            this.config = apiConfig.config;
         }
         if (apiConfig && apiConfig.authentication) {
             if (apiConfig.authentication.type === 'client-credentials') {
                 this._authentication = apiConfig.authentication;
-                this._authenticator = new authentication_1.ClientCredentials(apiConfig.authentication.clientId, apiConfig.authentication.clientSecret, apiConfig.authentication.authServer, apiConfig.baseUrl || DEFAULT_BASE_URL);
+                this._authenticator = new authentication_1.ClientCredentials(apiConfig.authentication.clientId, apiConfig.authentication.clientSecret, apiConfig.authentication.authServer, apiConfig.authentication.tokenCachePath, apiConfig.baseUrl || DEFAULT_BASE_URL);
             }
             if (apiConfig.authentication.type === 'pkce') {
                 this._authentication = apiConfig.authentication;
@@ -101,57 +135,18 @@ var Api = /** @class */ (function () {
             }
         }
     }
-    Object.defineProperty(Api.prototype, "baseUrl", {
+    Object.defineProperty(Api.prototype, "accessToken", {
         get: function () {
-            return this._baseUrl;
-        },
-        set: function (value) {
-            this._baseUrl = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Api.prototype, "version", {
-        get: function () {
-            return this._version;
-        },
-        set: function (value) {
-            this._version = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Api.prototype, "workspace", {
-        get: function () {
-            return this._workspace;
-        },
-        set: function (value) {
-            this._workspace = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Api.prototype, "api", {
-        get: function () {
-            return this._api;
-        },
-        set: function (value) {
-            this._api = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Api.prototype, "config", {
-        get: function () {
-            return this._config;
-        },
-        set: function (value) {
-            this._config = value;
+            var _a;
+            return (_a = this._authenticator) === null || _a === void 0 ? void 0 : _a._accessToken;
         },
         enumerable: false,
         configurable: true
     });
     Object.defineProperty(Api.prototype, "authentication", {
+        /**
+         * Getter for authentication configuration
+         */
         get: function () {
             return this._authentication;
         },
@@ -159,6 +154,9 @@ var Api = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Api.prototype, "apiConfig", {
+        /**
+         * Getter for authentication configuration
+         */
         get: function () {
             return {
                 workspace: this.workspace,
@@ -180,6 +178,7 @@ var Api = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        // Convert single query to array of queries
                         if (!(queries instanceof Array)) {
                             queries = [queries];
                         }
@@ -196,12 +195,15 @@ var Api = /** @class */ (function () {
                         _a.label = 2;
                     case 2: 
                     // Make the request
-                    return [2 /*return*/, (0, cross_fetch_1.default)(url, requestInit).then(function (res) { return _this.handleErrors(res); })];
+                    return [2 /*return*/, (0, cross_fetch_1.default)(url, requestInit).then(function (res) { return _this.handleResponse(res); })];
                 }
             });
         });
     };
-    Api.prototype.handleErrors = function (response) {
+    /**
+     * Handle the response of a fetch to Spinque Query API.
+     */
+    Api.prototype.handleResponse = function (response) {
         return __awaiter(this, void 0, void 0, function () {
             var json;
             return __generator(this, function (_a) {
@@ -230,28 +232,286 @@ var Api = /** @class */ (function () {
 }());
 exports.Api = Api;
 
-},{"./authentication":6,"./types":8,"./utils":9,"cross-fetch":11}],3:[function(require,module,exports){
+},{"./authentication":7,"./types":10,"./utils":11,"cross-fetch":14}],3:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FacetedSearch = exports.FacetType = void 0;
+var utils_1 = require("./utils");
+var FacetType;
+(function (FacetType) {
+    FacetType["single"] = "single";
+    FacetType["multiple"] = "multiple";
+})(FacetType = exports.FacetType || (exports.FacetType = {}));
+/**
+ * Associate Query objects with each other in a faceted search setup.
+ */
+var FacetedSearch = /** @class */ (function () {
+    function FacetedSearch(
+    // Query object for the search results that will serve as the base for this facet.
+    // The searchQuery is used to fetch the options of the facet and will be filtered once
+    // one or more facet options are selected.
+    // The searchQuery must have at least one parameter.
+    searchQuery, 
+    // emptyParameterQuery is used instead of searchQuery when the searchQuery parameters are all empty.
+    // If no emptyParameterQuery is passed, searchQuery is fetched with empty parameters.
+    emptyParameterQuery, modifiers) {
+        this.searchQuery = searchQuery;
+        this.emptyParameterQuery = emptyParameterQuery;
+        this.modifiers = modifiers;
+        // Internal list of Facet objects
+        this._facets = [];
+        // Throw an error if the searchQuery does not have parameters
+        if (!searchQuery.parameters || Object.keys(searchQuery.parameters).length === 0) {
+            throw new Error('searchQuery has no parameters. Please initialize with an empty parameter');
+        }
+        if (modifiers) {
+            this._modifiers = modifiers;
+        }
+    }
+    /**
+     * Add a facet to the FacetedSearch object.
+     */
+    FacetedSearch.prototype.addFacet = function (endpoint, type, resetOnQueryChange, filterEndpointPostfix, filterEndpointParameterName) {
+        if (type === void 0) { type = FacetType.single; }
+        if (resetOnQueryChange === void 0) { resetOnQueryChange = true; }
+        if (filterEndpointPostfix === void 0) { filterEndpointPostfix = ':FILTER'; }
+        if (filterEndpointParameterName === void 0) { filterEndpointParameterName = 'value'; }
+        this._facets.push({
+            optionsEndpoint: endpoint,
+            filterEndpoint: "".concat(endpoint).concat(filterEndpointPostfix),
+            filterParameterName: filterEndpointParameterName,
+            filterParameterValue: undefined,
+            resetOnQueryChange: resetOnQueryChange,
+            type: type,
+        });
+    };
+    Object.defineProperty(FacetedSearch.prototype, "facets", {
+        get: function () {
+            return this._facets;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    /**
+     * Set a query as modifier. Only modifiers in the list passed to constructor are allowed.
+     */
+    FacetedSearch.prototype.setModifier = function (modifier) {
+        if (modifier === undefined) {
+            this._activeModifier = undefined;
+        }
+        else if (this._modifiers) {
+            var allowed = this._modifiers.find(function (m) { return m.endpoint === (modifier === null || modifier === void 0 ? void 0 : modifier.endpoint); });
+            if (!allowed) {
+                return;
+            }
+            this._activeModifier = modifier;
+        }
+    };
+    /**
+     * Get the currently active modifier query.
+     */
+    FacetedSearch.prototype.getModifier = function () {
+        return this._activeModifier;
+    };
+    /**
+     * Get the Query to get the search results.
+     * Will return searchQuery as passed to the constructor unless a emptyParameterQuery was
+     * also passed and all parameters for searchQuery are empty.
+     */
+    FacetedSearch.prototype.getBaseQuery = function () {
+        if (this.emptyParameterQuery &&
+            (!this.searchQuery.parameters ||
+                Object.keys(this.searchQuery.parameters).length === 0 ||
+                Object.values(this.searchQuery.parameters).every(function (p) { return !p || p === ''; }))) {
+            return this.emptyParameterQuery;
+        }
+        else {
+            return this.searchQuery;
+        }
+    };
+    /**
+     * Get the Query objects to retrieve search results. This includes the facet Query, if applicable.
+     */
+    FacetedSearch.prototype.getResultsQuery = function () {
+        var q = __spreadArray([
+            this.getBaseQuery()
+        ], __read(this._facets
+            .filter(function (f) { return f.filterParameterValue !== undefined && f.filterParameterValue !== ''; })
+            .map(function (f) {
+            var _a;
+            return ({
+                endpoint: f.filterEndpoint,
+                parameters: (_a = {}, _a[f.filterParameterName] = f.filterParameterValue, _a),
+            });
+        })), false);
+        if (this._activeModifier !== undefined && this._activeModifier !== null) {
+            q.push(this._activeModifier);
+        }
+        return q;
+    };
+    /**
+     * Get the Query objects to retrieve the facet options. When using multiple facets, the facetEndpoint
+     * parameter is required.
+     */
+    FacetedSearch.prototype.getFacetQuery = function (facetEndpoint) {
+        var facet = this._facets.find(function (f) { return f.optionsEndpoint === facetEndpoint; });
+        if (!facet) {
+            throw new Error('Facet not found in FacetedSearch');
+        }
+        return __spreadArray(__spreadArray([
+            this.getBaseQuery()
+        ], __read(this._facets
+            .filter(function (f) {
+            return f.filterParameterValue !== undefined &&
+                f.filterParameterValue !== '' &&
+                f.optionsEndpoint !== facetEndpoint;
+        })
+            .map(function (f) {
+            var _a;
+            return ({
+                endpoint: f.filterEndpoint,
+                parameters: (_a = {}, _a[f.filterParameterName] = f.filterParameterValue, _a),
+            });
+        })), false), [
+            { endpoint: facet.optionsEndpoint },
+        ], false);
+    };
+    /**
+     * Set a parameter value for the searchQuery
+     */
+    FacetedSearch.prototype.setParameter = function (name, value) {
+        var _a;
+        this.searchQuery = __assign(__assign({}, this.searchQuery), { parameters: __assign(__assign({}, this.searchQuery.parameters), (_a = {}, _a[name] = value, _a)) });
+        this._facets.forEach(function (f) {
+            if (f.resetOnQueryChange) {
+                f.filterParameterValue = undefined;
+            }
+        });
+    };
+    /**
+     * Clear all searchQuery parameters
+     */
+    FacetedSearch.prototype.clearParameters = function () {
+        this.searchQuery = __assign(__assign({}, this.searchQuery), { parameters: Object.keys(this.searchQuery.parameters || {}).reduce(function (acc, cur) {
+                var _a;
+                return (__assign(__assign({}, acc), (_a = {}, _a[cur] = '', _a)));
+            }, {}) });
+    };
+    /**
+     * Set the selected options for a given facet.
+     */
+    FacetedSearch.prototype.setFacetSelection = function (facetEndpoint, selection) {
+        if (!(selection instanceof Array)) {
+            selection = [selection];
+        }
+        var facet = this._facets.find(function (f) { return f.optionsEndpoint === facetEndpoint; });
+        if (!facet) {
+            throw new Error("FacetedSearch does not contain facet ".concat(facetEndpoint));
+        }
+        if (selection.length === 0) {
+            facet.filterParameterValue = undefined;
+        }
+        else if (facet.type === 'single') {
+            if (selection.length > 1) {
+                throw new Error("Facet ".concat(facetEndpoint, " is a single selection facet but more than one selected option was given."));
+            }
+            facet.filterParameterValue = selection[0];
+        }
+        else {
+            facet.filterParameterValue = (0, utils_1.tupleListToString)(selection);
+        }
+    };
+    /**
+     * Clear the selection for a given facet.
+     */
+    FacetedSearch.prototype.clearFacetSelection = function (facetEndpoint) {
+        if (facetEndpoint) {
+            var facet = this._facets.find(function (f) { return f.optionsEndpoint === facetEndpoint; });
+            if (!facet) {
+                throw new Error("FacetedSearch does not contain facet ".concat(facetEndpoint));
+            }
+            facet.filterParameterValue = '';
+        }
+        else {
+            this._facets.forEach(function (f) {
+                f.filterParameterValue = '';
+            });
+        }
+    };
+    FacetedSearch.prototype.setSearchQuery = function (query) {
+        this.searchQuery = query;
+    };
+    return FacetedSearch;
+}());
+exports.FacetedSearch = FacetedSearch;
+
+},{"./utils":11}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Authenticator = exports.DEFAULT_AUTH_SERVER = void 0;
+exports.Authenticator = exports.DEFAULT_AUDIENCE = exports.DEFAULT_AUTH_SERVER = void 0;
 var browser_or_node_1 = require("browser-or-node");
+var fs = require("fs");
 exports.DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
+exports.DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
+/**
+ * Abstract class with utitily functions for working with access tokens such as storage
+ */
 var Authenticator = /** @class */ (function () {
-    function Authenticator() {
+    function Authenticator(_tokenCachePath) {
         var _this = this;
+        this._tokenCachePath = _tokenCachePath;
         this._authInProgress = true;
+        /**
+         * A Promise that delays any operation until an access token is set (with intervals of 50ms)
+         * This is used to delay incoming request from our app when an access token is already
+         * being requested but has not yet been received.
+         */
         this._waitForAccessToken = new Promise(function (resolve) {
             var wait = function () {
-                setTimeout(function () { return (!_this._authInProgress && _this._accessToken ? resolve(_this._accessToken) : wait()); }, 100);
+                setTimeout(function () { return (!_this._authInProgress && _this._accessToken ? resolve(_this._accessToken) : wait()); }, 50);
             };
             wait();
         });
+        // First thing to do: check if there's an access token in localStorage
         var res = this.getFromStorage();
-        // tslint:disable-next-line: no-console
-        console.log(res);
         if (res) {
-            // tslint:disable-next-line: no-console
-            console.log('Found AT in storage');
+            // Set it as class property
             this._accessToken = res.accessToken;
             this._expires = res.expires;
             this._authInProgress = false;
@@ -261,20 +521,20 @@ var Authenticator = /** @class */ (function () {
         }
     }
     Object.defineProperty(Authenticator.prototype, "accessToken", {
+        /**
+         * Promise that will resolve with an access token if available or undefined otherwise.
+         * This will try to fetch a new access token if:
+         *  - the class implements the fetchAccessToken method
+         *  - no unexpired access token is stored in this class
+         */
         get: function () {
             var _this = this;
-            // tslint:disable-next-line: no-console
-            console.log('Someone requests access token');
             // If the class already stores an access token, return it
-            if (this._accessToken && this._expires && this._expires > (Date.now() + 1000)) {
-                // tslint:disable-next-line: no-console
-                console.log('Return AT from class');
+            if (this._accessToken && this._expires && this._expires > Date.now() + 1000) {
                 return Promise.resolve(this._accessToken);
             }
             // If the class is already authenticating, wait for it
             if (this._authInProgress) {
-                // tslint:disable-next-line: no-console
-                console.log('but he/she shall have to wait');
                 return this._waitForAccessToken;
             }
             this._authInProgress = true;
@@ -292,43 +552,70 @@ var Authenticator = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    /**
+     * Puts an access token and the expiration time in storage for usage when calling Spinque Query API
+     */
     Authenticator.prototype.setAccessToken = function (accessToken, expiresIn) {
         this._accessToken = accessToken;
-        this._expires = Date.now() + expiresIn;
+        this._expires = Date.now() + expiresIn * 1000;
         this.putInStorage(this._accessToken, this._expires);
         this._authInProgress = false;
     };
     Authenticator.prototype.putInStorage = function (accessToken, expires) {
-        if (!browser_or_node_1.isBrowser || !localStorage) {
-            return;
+        if (browser_or_node_1.isBrowser && !!localStorage) {
+            // TODO: configure keys
+            localStorage.setItem('@spinque/query-api/access-token', accessToken);
+            localStorage.setItem('@spinque/query-api/expires', "".concat(expires));
         }
-        // TODO: configure keys
-        localStorage.setItem('@spinque/query-api/access-token', accessToken);
-        localStorage.setItem('@spinque/query-api/expires', "".concat(expires));
+        if (!browser_or_node_1.isBrowser && this._tokenCachePath) {
+            var json = JSON.stringify({ accessToken: accessToken, expires: expires });
+            fs.writeFileSync(this._tokenCachePath, json);
+        }
     };
+    /**
+     * Get an access token from storage (if available)
+     */
     Authenticator.prototype.getFromStorage = function () {
-        if (!browser_or_node_1.isBrowser || !localStorage) {
-            // tslint:disable-next-line: no-console
-            console.log(browser_or_node_1.isBrowser, localStorage);
+        // Localstorage is only available for browser applications
+        if (browser_or_node_1.isBrowser) {
+            return this.getFromBrowserLocalStorage();
+        }
+        if (!browser_or_node_1.isBrowser && this._tokenCachePath) {
+            return this.getFromFileStorage(this._tokenCachePath);
+        }
+        return null;
+    };
+    Authenticator.prototype.getFromBrowserLocalStorage = function () {
+        if (!localStorage) {
             return null;
         }
         try {
             var accessToken = localStorage.getItem('@spinque/query-api/access-token');
             var expires = parseInt(localStorage.getItem('@spinque/query-api/expires') || '', 10);
-            if (accessToken && expires && expires > (Date.now() + 1000)) {
+            if (accessToken && expires && expires > Date.now() + 1000) {
                 return { accessToken: accessToken, expires: expires };
             }
             else {
-                // tslint:disable-next-line: no-console
-                console.log('EXPIRED!', accessToken, expires, (Date.now() + 1000), expires > (Date.now() + 1000));
                 localStorage.removeItem('@spinque/query-api/access-token');
                 localStorage.removeItem('@spinque/query-api/expires');
                 return null;
             }
         }
         catch (error) {
-            // tslint:disable-next-line: no-console
-            console.log(error);
+            return null;
+        }
+    };
+    Authenticator.prototype.getFromFileStorage = function (path) {
+        try {
+            var data = fs.readFileSync(path, { encoding: 'utf8' });
+            var _a = JSON.parse(data), accessToken = _a.accessToken, expires = _a.expires;
+            if (typeof accessToken !== 'string' && typeof expires !== 'number') {
+                // TODO: delete file
+                return null;
+            }
+            return { accessToken: accessToken, expires: expires };
+        }
+        catch (error) {
             return null;
         }
     };
@@ -336,7 +623,7 @@ var Authenticator = /** @class */ (function () {
 }());
 exports.Authenticator = Authenticator;
 
-},{"browser-or-node":10}],4:[function(require,module,exports){
+},{"browser-or-node":12,"fs":13}],5:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -389,25 +676,58 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClientCredentials = void 0;
 var Authenticator_1 = require("./Authenticator");
-var path_1 = require("path");
+var utils_1 = require("../utils");
 var browser_or_node_1 = require("browser-or-node");
 var cross_fetch_1 = require("cross-fetch");
+/**
+ * An Authenticator class for the OAuth 2.0 Client Credentials grant.
+ */
 var ClientCredentials = /** @class */ (function (_super) {
     __extends(ClientCredentials, _super);
-    function ClientCredentials(clientId, clientSecret, authServer, baseUrl) {
-        var _this = _super.call(this) || this;
+    function ClientCredentials(
+    // Client ID from Spinque Desk > Settings > Team Members > System-to-System account
+    clientId, 
+    // Client Secret from Spinque Desk > Settings > Team Members > System-to-System account
+    clientSecret, 
+    // URL to the Spinque Authorization server, default is https://login.spinque.com/
+    authServer, 
+    // Optional path to store the authentication token and make it persistent through server restarts
+    tokenCachePath, 
+    // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
+    baseUrl) {
+        var _this = _super.call(this, tokenCachePath) || this;
         _this.clientId = clientId;
         _this.clientSecret = clientSecret;
         _this.authServer = authServer;
+        _this.tokenCachePath = tokenCachePath;
         _this.baseUrl = baseUrl;
         if (browser_or_node_1.isBrowser) {
             throw new Error('The Client Credentials Flow is only allowed for server applications.');
         }
         return _this;
     }
+    /**
+     * This method fetches an access token using the OAuth 2.0 Client Credentials grant and returns it
+     */
     ClientCredentials.prototype.fetchAccessToken = function () {
         return __awaiter(this, void 0, void 0, function () {
             var authServer, body, response, json;
@@ -421,12 +741,13 @@ var ClientCredentials = /** @class */ (function (_super) {
                             client_secret: this.clientSecret,
                             audience: this.baseUrl,
                         };
-                        return [4 /*yield*/, (0, cross_fetch_1.default)((0, path_1.join)(authServer, 'oauth', 'token'), {
+                        return [4 /*yield*/, (0, cross_fetch_1.default)((0, utils_1.join)(authServer, 'oauth', 'token'), {
                                 method: 'POST',
                                 headers: new cross_fetch_1.Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                                // URL Encode the body
                                 body: Object.entries(body)
                                     .map(function (_a) {
-                                    var key = _a[0], value = _a[1];
+                                    var _b = __read(_a, 2), key = _b[0], value = _b[1];
                                     return "".concat(key, "=").concat(value);
                                 })
                                     .join('&'),
@@ -441,18 +762,17 @@ var ClientCredentials = /** @class */ (function (_super) {
                         }
                         return [2 /*return*/, {
                                 accessToken: json.access_token,
-                                expiresIn: json.expires_in
+                                expiresIn: json.expires_in,
                             }];
                 }
             });
         });
     };
-    ;
     return ClientCredentials;
 }(Authenticator_1.Authenticator));
 exports.ClientCredentials = ClientCredentials;
 
-},{"./Authenticator":3,"browser-or-node":10,"cross-fetch":11,"path":12}],5:[function(require,module,exports){
+},{"../utils":11,"./Authenticator":4,"browser-or-node":12,"cross-fetch":14}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -505,15 +825,51 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bufferToBase64UrlEncoded = exports.sha256 = exports.createRandomString = exports.getCryptoSubtle = exports.getCrypto = exports.PKCE = void 0;
 var Authenticator_1 = require("./Authenticator");
-var path_1 = require("path");
+var utils_1 = require("../utils");
 var browser_or_node_1 = require("browser-or-node");
 var cross_fetch_1 = require("cross-fetch");
+/**
+ * An Authenticator class for the OAuth 2.0 Authorization Code with PKCE grant.
+ */
 var PKCE = /** @class */ (function (_super) {
     __extends(PKCE, _super);
-    function PKCE(clientId, callback, authServer, baseUrl) {
+    function PKCE(
+    // Client ID for your application, can be generated by an Spinque system administrator upon request.
+    clientId, 
+    // The callback URL to your application, this must be known by the Spinque Authorization server, contact system administrator if this changes.
+    callback, 
+    // URL to the Spinque Authorization server, default is https://login.spinque.com/
+    authServer, 
+    // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
+    baseUrl) {
         var _this = _super.call(this) || this;
         _this.clientId = clientId;
         _this.callback = callback;
@@ -522,18 +878,23 @@ var PKCE = /** @class */ (function (_super) {
         if (!browser_or_node_1.isBrowser) {
             throw new Error('PKCE is only available for browser applications');
         }
+        // Immediately check whether we're on the callback page
         _this.checkForCallback();
         return _this;
     }
     PKCE.prototype.checkForCallback = function () {
         var _this = this;
+        if (!window || !window.location) {
+            throw new Error('Cannot retrieve current location to check authentication callback');
+        }
+        // TODO: should check if domain and path match callback URL, not just get query params
         // Get query parameters from URL
-        var params = Object.fromEntries((new URLSearchParams(window.location.search)).entries());
-        if (!params.code || !params.state) {
+        var params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+        if (!params['code'] || !params['state']) {
             return;
         }
         this._authInProgress = true;
-        this.tradeCodeForToken(params.code, params.state).catch(function () { return _this.authorize(); });
+        this.tradeCodeForToken(params['code'], params['state']).catch(function () { return _this.authorize(); });
     };
     PKCE.prototype.fetchAccessToken = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -544,11 +905,12 @@ var PKCE = /** @class */ (function (_super) {
     };
     PKCE.prototype.authorize = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var authServer, verifier, challenge, _a, state, params, authorizationUrl;
+            var authServer, audience, verifier, challenge, _a, state, params, authorizationUrl;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         authServer = this.authServer || Authenticator_1.DEFAULT_AUTH_SERVER;
+                        audience = this.baseUrl || Authenticator_1.DEFAULT_AUDIENCE;
                         verifier = (0, exports.createRandomString)();
                         _a = exports.bufferToBase64UrlEncoded;
                         return [4 /*yield*/, (0, exports.sha256)(verifier)];
@@ -564,17 +926,18 @@ var PKCE = /** @class */ (function (_super) {
                             code_challenge_method: 'S256',
                             client_id: this.clientId,
                             redirect_uri: this.callback,
-                            audience: this.baseUrl,
+                            audience: audience,
                             scope: '',
-                            state: state
+                            state: state,
                         };
-                        authorizationUrl = (0, path_1.join)(authServer, 'authorize');
-                        authorizationUrl += "?".concat(Object.entries(params).map(function (_a) {
-                            var key = _a[0], value = _a[1];
+                        authorizationUrl = (0, utils_1.join)(authServer, 'authorize');
+                        authorizationUrl += "?".concat(Object.entries(params)
+                            .map(function (_a) {
+                            var _b = __read(_a, 2), key = _b[0], value = _b[1];
                             return "".concat(key, "=").concat(value);
-                        }).join('&'));
+                        })
+                            .join('&'));
                         window.location.href = authorizationUrl;
-                        // tslint:disable-next-line: no-empty
                         return [2 /*return*/, new Promise(function () { })];
                 }
             });
@@ -587,8 +950,6 @@ var PKCE = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         if (this._accessToken) {
-                            // tslint:disable-next-line: no-console
-                            console.log('Already has access token so going to ignore callback');
                             return [2 /*return*/];
                         }
                         storedState = localStorage.getItem('@spinque/query-api/pkce-state');
@@ -605,14 +966,14 @@ var PKCE = /** @class */ (function (_super) {
                             client_id: this.clientId,
                             code_verifier: verifier,
                             redirect_uri: this.callback,
-                            code: code
+                            code: code,
                         };
-                        return [4 /*yield*/, (0, cross_fetch_1.default)((0, path_1.join)(authServer, 'oauth', 'token'), {
+                        return [4 /*yield*/, (0, cross_fetch_1.default)((0, utils_1.join)(authServer, 'oauth', 'token'), {
                                 method: 'POST',
                                 headers: new cross_fetch_1.Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
                                 body: Object.entries(body)
                                     .map(function (_a) {
-                                    var key = _a[0], value = _a[1];
+                                    var _b = __read(_a, 2), key = _b[0], value = _b[1];
                                     return "".concat(key, "=").concat(value);
                                 })
                                     .join('&'),
@@ -632,8 +993,6 @@ var PKCE = /** @class */ (function (_super) {
                             throw new Error(json.error_description || json.error || response.status);
                         }
                         this.setAccessToken(json.access_token, json.expires_in);
-                        // tslint:disable-next-line: no-console
-                        console.log('access token received!');
                         return [2 /*return*/];
                 }
             });
@@ -690,7 +1049,7 @@ var sha256 = function (s) { return __awaiter(void 0, void 0, void 0, function ()
 exports.sha256 = sha256;
 var bufferToBase64UrlEncoded = function (input) {
     var ie11SafeInput = new Uint8Array(input);
-    return urlEncodeB64(window.btoa(String.fromCharCode.apply(String, Array.from(ie11SafeInput))));
+    return urlEncodeB64(window.btoa(String.fromCharCode.apply(String, __spreadArray([], __read(Array.from(ie11SafeInput)), false))));
 };
 exports.bufferToBase64UrlEncoded = bufferToBase64UrlEncoded;
 var urlEncodeB64 = function (input) {
@@ -698,7 +1057,7 @@ var urlEncodeB64 = function (input) {
     return input.replace(/[+/=]/g, function (m) { return b64Chars[m]; });
 };
 
-},{"./Authenticator":3,"browser-or-node":10,"cross-fetch":11,"path":12}],6:[function(require,module,exports){
+},{"../utils":11,"./Authenticator":4,"browser-or-node":12,"cross-fetch":14}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PKCE = exports.ClientCredentials = exports.Authenticator = void 0;
@@ -709,21 +1068,116 @@ Object.defineProperty(exports, "ClientCredentials", { enumerable: true, get: fun
 var PKCE_1 = require("./PKCE");
 Object.defineProperty(exports, "PKCE", { enumerable: true, get: function () { return PKCE_1.PKCE; } });
 
-},{"./Authenticator":3,"./ClientCredentials":4,"./PKCE":5}],7:[function(require,module,exports){
+},{"./Authenticator":4,"./ClientCredentials":5,"./PKCE":6}],8:[function(require,module,exports){
 "use strict";
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServerError = exports.UnauthorizedError = exports.ErrorResponse = exports.Api = void 0;
-var Api_1 = require("./Api");
-Object.defineProperty(exports, "Api", { enumerable: true, get: function () { return Api_1.Api; } });
-var types_1 = require("./types");
-Object.defineProperty(exports, "ErrorResponse", { enumerable: true, get: function () { return types_1.ErrorResponse; } });
-Object.defineProperty(exports, "UnauthorizedError", { enumerable: true, get: function () { return types_1.UnauthorizedError; } });
-Object.defineProperty(exports, "ServerError", { enumerable: true, get: function () { return types_1.ServerError; } });
+exports.isCluster = exports.getClusters = void 0;
+var utils_1 = require("./utils");
+var DEFAULT_CLUSTER_ENDPOINT = 'type:FILTER';
+var DEFAULT_CLUSTER_PARAMETER_NAME = 'value';
+var DEFAULT_CLUSTER_PARAMETER_TYPE = 'TUPLE_LIST';
+var RDFS_CLASS = 'http://www.w3.org/2000/01/rdf-schema#Class';
+/**
+ * Taskes a ResultsResponse, finds clusters in the results and returns a list of Cluster objects.
+ * These Cluster objects contain a Query that can be used to fetch the contents of the clusters
+ * by stacking the Query on top of the results Query[].
+ */
+var getClusters = function (results, options) {
+    var e_1, _a, _b;
+    var _c, _d, _e;
+    if (options === void 0) { options = {}; }
+    var endpoint = (_c = options.clusterEndpoint) !== null && _c !== void 0 ? _c : DEFAULT_CLUSTER_ENDPOINT;
+    var parameterName = (_d = options.clusterParameterName) !== null && _d !== void 0 ? _d : DEFAULT_CLUSTER_PARAMETER_NAME;
+    var parameterType = (_e = options.clusterParameterType) !== null && _e !== void 0 ? _e : DEFAULT_CLUSTER_PARAMETER_TYPE;
+    var clusters = [];
+    try {
+        // Loop through result items and when encountering a cluster, add it to the list
+        for (var _f = __values(results.items), _g = _f.next(); !_g.done; _g = _f.next()) {
+            var item = _g.value;
+            if (!(0, exports.isCluster)(item)) {
+                continue;
+            }
+            var cluster = {
+                probability: item.probability,
+                rank: item.rank,
+                class: item.tuple[0].class,
+                query: {
+                    endpoint: endpoint,
+                    parameters: (_b = {},
+                        _b[parameterName] = parameterType === 'TUPLE_LIST' ? (0, utils_1.tupleListToString)([item.tuple[0].id]) : item.tuple[0].id,
+                        _b),
+                },
+            };
+            clusters.push(cluster);
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (_g && !_g.done && (_a = _f.return)) _a.call(_f);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    return clusters;
+};
+exports.getClusters = getClusters;
+/**
+ * Takes a result item and checks if it is a cluster.
+ * A result is considered a cluster when it's of type rdfs:Class.
+ */
+var isCluster = function (item) {
+    if (!item.tuple ||
+        item.tuple.length !== 1 ||
+        typeof item.tuple[0] === 'string' ||
+        typeof item.tuple[0] === 'number') {
+        return false;
+    }
+    return item.tuple[0].class.includes(RDFS_CLASS);
+};
+exports.isCluster = isCluster;
 
-},{"./Api":2,"./types":8}],8:[function(require,module,exports){
+},{"./utils":11}],9:[function(require,module,exports){
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+__exportStar(require("./Api"), exports);
+__exportStar(require("./authentication"), exports);
+__exportStar(require("./FacetedSearch"), exports);
+__exportStar(require("./types"), exports);
+__exportStar(require("./utils"), exports);
+__exportStar(require("./clusters"), exports);
+
+},{"./Api":2,"./FacetedSearch":3,"./authentication":7,"./clusters":8,"./types":10,"./utils":11}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServerError = exports.UnauthorizedError = exports.EndpointNotFoundError = exports.ErrorResponse = void 0;
+/**
+ * Generic error response class. Is implemented by more specific error type classes.
+ */
 var ErrorResponse = /** @class */ (function () {
     function ErrorResponse(message, status) {
         this.message = message;
@@ -732,7 +1186,10 @@ var ErrorResponse = /** @class */ (function () {
     return ErrorResponse;
 }());
 exports.ErrorResponse = ErrorResponse;
-// tslint:disable-next-line: max-classes-per-file
+/**
+ * Error class used when Spinque cannot find the endpoint you requested.
+ * The endpoint might be misspelled or removed.
+ */
 var EndpointNotFoundError = /** @class */ (function () {
     function EndpointNotFoundError(message, status) {
         this.message = message;
@@ -741,7 +1198,10 @@ var EndpointNotFoundError = /** @class */ (function () {
     return EndpointNotFoundError;
 }());
 exports.EndpointNotFoundError = EndpointNotFoundError;
-// tslint:disable-next-line: max-classes-per-file
+/**
+ * Error class used when you are not authorized to request results for
+ * this workspace, API or endpoint.
+ */
 var UnauthorizedError = /** @class */ (function () {
     function UnauthorizedError(message, status) {
         this.message = message;
@@ -750,7 +1210,10 @@ var UnauthorizedError = /** @class */ (function () {
     return UnauthorizedError;
 }());
 exports.UnauthorizedError = UnauthorizedError;
-// tslint:disable-next-line: max-classes-per-file
+/**
+ * Error class when something fails on the side of Spinque. Please contact
+ * your system administrator when this happens.
+ */
 var ServerError = /** @class */ (function () {
     function ServerError(message, status) {
         this.message = message;
@@ -760,16 +1223,51 @@ var ServerError = /** @class */ (function () {
 }());
 exports.ServerError = ServerError;
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tupleListToString = exports.urlFromQueries = exports.pathFromQuery = exports.pathFromQueries = void 0;
-var path_1 = require("path");
+exports.stringifyQueries = exports.parseQueries = exports.join = exports.tupleListToString = exports.stringToTupleList = exports.urlFromQueries = exports.pathFromQuery = exports.pathFromQueries = void 0;
 /**
  * Takes an array of Query objects and returns the path they would represent in a Query API request URL.
  */
 var pathFromQueries = function (queries) {
-    return path_1.join.apply(void 0, queries.map(exports.pathFromQuery));
+    return exports.join.apply(void 0, __spreadArray([], __read(queries.map(exports.pathFromQuery)), false));
 };
 exports.pathFromQueries = pathFromQueries;
 /**
@@ -779,11 +1277,11 @@ var pathFromQuery = function (query) {
     var parts = ['e', encodeURIComponent(query.endpoint)];
     if (query.parameters) {
         Object.entries(query.parameters).forEach(function (_a) {
-            var name = _a[0], value = _a[1];
-            parts.push('p', name, encodeURIComponent(value));
+            var _b = __read(_a, 2), name = _b[0], value = _b[1];
+            parts.push('p', encodeURIComponent(name), encodeURIComponent(value));
         });
     }
-    return path_1.join.apply(void 0, parts);
+    return exports.join.apply(void 0, __spreadArray([], __read(parts), false));
 };
 exports.pathFromQuery = pathFromQuery;
 /**
@@ -806,17 +1304,21 @@ var urlFromQueries = function (config, queries, options, requestType) {
     if (!config.api) {
         throw new Error('API name missing');
     }
+    var url = config.baseUrl;
+    if (!url.endsWith('/')) {
+        url += '/';
+    }
     // Construct base URL containing Spinque version and workspace
-    var url = (0, path_1.join)(config.baseUrl, config.version, config.workspace, 'api', config.api);
+    url += (0, exports.join)(config.version, config.workspace, 'api', config.api);
     // Add the path represented by the Query objects and request type
-    url = (0, path_1.join)(url, (0, exports.pathFromQueries)(queries), requestType);
+    url += '/' + (0, exports.join)((0, exports.pathFromQueries)(queries), requestType);
     // Add config if provided
     if (config.config) {
         url += "?config=".concat(config.config);
     }
     if (options && Object.keys(options).length > 0) {
         Object.entries(options).forEach(function (_a, index) {
-            var option = _a[0], value = _a[1];
+            var _b = __read(_a, 2), option = _b[0], value = _b[1];
             if (index === 0 && !config.config) {
                 url += '?';
             }
@@ -829,7 +1331,31 @@ var urlFromQueries = function (config, queries, options, requestType) {
     return url;
 };
 exports.urlFromQueries = urlFromQueries;
-var tupleListToString = function (tuples, scores) {
+/**
+ * Given a tuple list (and optionally scores), return a string representation.
+ */
+var stringToTupleList = function (value) {
+    try {
+        return value.split('|').reduce(function (acc, cur) {
+            var score = parseFloat(cur.split('(')[0]);
+            var tuples = cur.split('(')[1].split(')')[0].split(',');
+            acc.scores.push(score);
+            acc.tuples.push(tuples);
+            return acc;
+        }, { scores: [], tuples: [] });
+    }
+    catch (error) {
+        return null;
+    }
+};
+exports.stringToTupleList = stringToTupleList;
+/**
+ * Given a string, try to parse as tuple list.
+ */
+var tupleListToString = function (
+// tuples can be either a string, a number, an array of strings or numbers,
+// or an array of arrays of strings or numbers
+tuples, scores) {
     var _tuples = ensureTupleList(tuples);
     if (scores && scores.length !== _tuples.length) {
         throw new Error('Scores does not contain as many items as tuples');
@@ -844,7 +1370,11 @@ var tupleListToString = function (tuples, scores) {
         .join('|');
 };
 exports.tupleListToString = tupleListToString;
+/**
+ * Takes a value that should be a tuple list and ensures it has a normalized form.
+ */
 var ensureTupleList = function (value) {
+    var e_1, _a;
     // Convert string or number to nested array
     if (typeof value === 'string' || typeof value === 'number') {
         return [[value]];
@@ -857,17 +1387,26 @@ var ensureTupleList = function (value) {
     }
     var someAreArrays = false;
     var allAreArrays = true;
-    for (var _i = 0, value_1 = value; _i < value_1.length; _i++) {
-        var t = value_1[_i];
-        if (t instanceof Array) {
-            someAreArrays = true;
-            if (value[0] instanceof Array && t.length !== value[0].length) {
-                throw new Error('Tuple list has unequally sized rows (some have more columns)');
+    try {
+        for (var value_1 = __values(value), value_1_1 = value_1.next(); !value_1_1.done; value_1_1 = value_1.next()) {
+            var t = value_1_1.value;
+            if (t instanceof Array) {
+                someAreArrays = true;
+                if (value[0] instanceof Array && t.length !== value[0].length) {
+                    throw new Error('Tuple list has unequally sized rows (some have more columns)');
+                }
+            }
+            else {
+                allAreArrays = false;
             }
         }
-        else {
-            allAreArrays = false;
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (value_1_1 && !value_1_1.done && (_a = value_1.return)) _a.call(value_1);
         }
+        finally { if (e_1) throw e_1.error; }
     }
     if (someAreArrays && !allAreArrays) {
         throw new Error('Tuple list has unequally sized rows (some are a single value, some arrays)');
@@ -877,8 +1416,87 @@ var ensureTupleList = function (value) {
     }
     return value;
 };
+/**
+ * Joins together URL parts into an URL
+ */
+var join = function () {
+    var e_2, _a;
+    var segments = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        segments[_i] = arguments[_i];
+    }
+    var parts = segments.reduce(function (_parts, segment) {
+        // Remove leading slashes from non-first part.
+        if (_parts.length > 0) {
+            segment = segment.replace(/^\//, '');
+        }
+        // Remove trailing slashes.
+        segment = segment.replace(/\/$/, '');
+        return _parts.concat(segment.split('/'));
+    }, []);
+    var resultParts = [];
+    try {
+        for (var parts_1 = __values(parts), parts_1_1 = parts_1.next(); !parts_1_1.done; parts_1_1 = parts_1.next()) {
+            var part = parts_1_1.value;
+            if (part === '.') {
+                continue;
+            }
+            if (part === '..') {
+                resultParts.pop();
+                continue;
+            }
+            resultParts.push(part);
+        }
+    }
+    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+    finally {
+        try {
+            if (parts_1_1 && !parts_1_1.done && (_a = parts_1.return)) _a.call(parts_1);
+        }
+        finally { if (e_2) throw e_2.error; }
+    }
+    return resultParts.join('/');
+};
+exports.join = join;
+/**
+ * Expects a string generated by stringifyQueries and returns an array of Query's
+ */
+var parseQueries = function (stringified) {
+    if (!stringified) {
+        return [];
+    }
+    try {
+        var endpoints = JSON.parse(stringified);
+        return endpoints.map(function (e) {
+            if (typeof e === 'string') {
+                return {
+                    endpoint: e,
+                    parameters: undefined,
+                };
+            }
+            else {
+                return {
+                    endpoint: e[0],
+                    parameters: e[1],
+                };
+            }
+        });
+    }
+    catch (error) {
+        return [];
+    }
+};
+exports.parseQueries = parseQueries;
+/**
+ * Expects an array of Query's and turns them into a string
+ */
+var stringifyQueries = function (queries) {
+    var endpointString = queries.map(function (q) { return (q.parameters ? [q.endpoint, q.parameters] : q.endpoint); });
+    return JSON.stringify(endpointString);
+};
+exports.stringifyQueries = stringifyQueries;
 
-},{"path":12}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (process){(function (){
 "use strict";
 
@@ -900,7 +1518,7 @@ var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) ==
  */
 var isJsDom = typeof window !== "undefined" && window.name === "nodejs" || typeof navigator !== "undefined" && (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"));
 
-var isDeno = typeof Deno !== "undefined" && typeof Deno.core !== "undefined";
+var isDeno = typeof Deno !== "undefined" && typeof Deno.version !== "undefined" && typeof Deno.version.deno !== "undefined";
 
 exports.isBrowser = isBrowser;
 exports.isWebWorker = isWebWorker;
@@ -908,7 +1526,9 @@ exports.isNode = isNode;
 exports.isJsDom = isJsDom;
 exports.isDeno = isDeno;
 }).call(this)}).call(this,require('_process'))
-},{"_process":13}],11:[function(require,module,exports){
+},{"_process":15}],13:[function(require,module,exports){
+
+},{}],14:[function(require,module,exports){
 var global = typeof self !== 'undefined' ? self : this;
 var __self__ = (function () {
 function F() {
@@ -1464,540 +2084,7 @@ exports.Request = ctx.Request
 exports.Response = ctx.Response
 module.exports = exports
 
-},{}],12:[function(require,module,exports){
-(function (process){(function (){
-// 'path' module extracted from Node.js v8.11.1 (only the posix part)
-// transplited with Babel
-
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-'use strict';
-
-function assertPath(path) {
-  if (typeof path !== 'string') {
-    throw new TypeError('Path must be a string. Received ' + JSON.stringify(path));
-  }
-}
-
-// Resolves . and .. elements in a path with directory names
-function normalizeStringPosix(path, allowAboveRoot) {
-  var res = '';
-  var lastSegmentLength = 0;
-  var lastSlash = -1;
-  var dots = 0;
-  var code;
-  for (var i = 0; i <= path.length; ++i) {
-    if (i < path.length)
-      code = path.charCodeAt(i);
-    else if (code === 47 /*/*/)
-      break;
-    else
-      code = 47 /*/*/;
-    if (code === 47 /*/*/) {
-      if (lastSlash === i - 1 || dots === 1) {
-        // NOOP
-      } else if (lastSlash !== i - 1 && dots === 2) {
-        if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 /*.*/ || res.charCodeAt(res.length - 2) !== 46 /*.*/) {
-          if (res.length > 2) {
-            var lastSlashIndex = res.lastIndexOf('/');
-            if (lastSlashIndex !== res.length - 1) {
-              if (lastSlashIndex === -1) {
-                res = '';
-                lastSegmentLength = 0;
-              } else {
-                res = res.slice(0, lastSlashIndex);
-                lastSegmentLength = res.length - 1 - res.lastIndexOf('/');
-              }
-              lastSlash = i;
-              dots = 0;
-              continue;
-            }
-          } else if (res.length === 2 || res.length === 1) {
-            res = '';
-            lastSegmentLength = 0;
-            lastSlash = i;
-            dots = 0;
-            continue;
-          }
-        }
-        if (allowAboveRoot) {
-          if (res.length > 0)
-            res += '/..';
-          else
-            res = '..';
-          lastSegmentLength = 2;
-        }
-      } else {
-        if (res.length > 0)
-          res += '/' + path.slice(lastSlash + 1, i);
-        else
-          res = path.slice(lastSlash + 1, i);
-        lastSegmentLength = i - lastSlash - 1;
-      }
-      lastSlash = i;
-      dots = 0;
-    } else if (code === 46 /*.*/ && dots !== -1) {
-      ++dots;
-    } else {
-      dots = -1;
-    }
-  }
-  return res;
-}
-
-function _format(sep, pathObject) {
-  var dir = pathObject.dir || pathObject.root;
-  var base = pathObject.base || (pathObject.name || '') + (pathObject.ext || '');
-  if (!dir) {
-    return base;
-  }
-  if (dir === pathObject.root) {
-    return dir + base;
-  }
-  return dir + sep + base;
-}
-
-var posix = {
-  // path.resolve([from ...], to)
-  resolve: function resolve() {
-    var resolvedPath = '';
-    var resolvedAbsolute = false;
-    var cwd;
-
-    for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-      var path;
-      if (i >= 0)
-        path = arguments[i];
-      else {
-        if (cwd === undefined)
-          cwd = process.cwd();
-        path = cwd;
-      }
-
-      assertPath(path);
-
-      // Skip empty entries
-      if (path.length === 0) {
-        continue;
-      }
-
-      resolvedPath = path + '/' + resolvedPath;
-      resolvedAbsolute = path.charCodeAt(0) === 47 /*/*/;
-    }
-
-    // At this point the path should be resolved to a full absolute path, but
-    // handle relative paths to be safe (might happen when process.cwd() fails)
-
-    // Normalize the path
-    resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
-
-    if (resolvedAbsolute) {
-      if (resolvedPath.length > 0)
-        return '/' + resolvedPath;
-      else
-        return '/';
-    } else if (resolvedPath.length > 0) {
-      return resolvedPath;
-    } else {
-      return '.';
-    }
-  },
-
-  normalize: function normalize(path) {
-    assertPath(path);
-
-    if (path.length === 0) return '.';
-
-    var isAbsolute = path.charCodeAt(0) === 47 /*/*/;
-    var trailingSeparator = path.charCodeAt(path.length - 1) === 47 /*/*/;
-
-    // Normalize the path
-    path = normalizeStringPosix(path, !isAbsolute);
-
-    if (path.length === 0 && !isAbsolute) path = '.';
-    if (path.length > 0 && trailingSeparator) path += '/';
-
-    if (isAbsolute) return '/' + path;
-    return path;
-  },
-
-  isAbsolute: function isAbsolute(path) {
-    assertPath(path);
-    return path.length > 0 && path.charCodeAt(0) === 47 /*/*/;
-  },
-
-  join: function join() {
-    if (arguments.length === 0)
-      return '.';
-    var joined;
-    for (var i = 0; i < arguments.length; ++i) {
-      var arg = arguments[i];
-      assertPath(arg);
-      if (arg.length > 0) {
-        if (joined === undefined)
-          joined = arg;
-        else
-          joined += '/' + arg;
-      }
-    }
-    if (joined === undefined)
-      return '.';
-    return posix.normalize(joined);
-  },
-
-  relative: function relative(from, to) {
-    assertPath(from);
-    assertPath(to);
-
-    if (from === to) return '';
-
-    from = posix.resolve(from);
-    to = posix.resolve(to);
-
-    if (from === to) return '';
-
-    // Trim any leading backslashes
-    var fromStart = 1;
-    for (; fromStart < from.length; ++fromStart) {
-      if (from.charCodeAt(fromStart) !== 47 /*/*/)
-        break;
-    }
-    var fromEnd = from.length;
-    var fromLen = fromEnd - fromStart;
-
-    // Trim any leading backslashes
-    var toStart = 1;
-    for (; toStart < to.length; ++toStart) {
-      if (to.charCodeAt(toStart) !== 47 /*/*/)
-        break;
-    }
-    var toEnd = to.length;
-    var toLen = toEnd - toStart;
-
-    // Compare paths to find the longest common path from root
-    var length = fromLen < toLen ? fromLen : toLen;
-    var lastCommonSep = -1;
-    var i = 0;
-    for (; i <= length; ++i) {
-      if (i === length) {
-        if (toLen > length) {
-          if (to.charCodeAt(toStart + i) === 47 /*/*/) {
-            // We get here if `from` is the exact base path for `to`.
-            // For example: from='/foo/bar'; to='/foo/bar/baz'
-            return to.slice(toStart + i + 1);
-          } else if (i === 0) {
-            // We get here if `from` is the root
-            // For example: from='/'; to='/foo'
-            return to.slice(toStart + i);
-          }
-        } else if (fromLen > length) {
-          if (from.charCodeAt(fromStart + i) === 47 /*/*/) {
-            // We get here if `to` is the exact base path for `from`.
-            // For example: from='/foo/bar/baz'; to='/foo/bar'
-            lastCommonSep = i;
-          } else if (i === 0) {
-            // We get here if `to` is the root.
-            // For example: from='/foo'; to='/'
-            lastCommonSep = 0;
-          }
-        }
-        break;
-      }
-      var fromCode = from.charCodeAt(fromStart + i);
-      var toCode = to.charCodeAt(toStart + i);
-      if (fromCode !== toCode)
-        break;
-      else if (fromCode === 47 /*/*/)
-        lastCommonSep = i;
-    }
-
-    var out = '';
-    // Generate the relative path based on the path difference between `to`
-    // and `from`
-    for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
-      if (i === fromEnd || from.charCodeAt(i) === 47 /*/*/) {
-        if (out.length === 0)
-          out += '..';
-        else
-          out += '/..';
-      }
-    }
-
-    // Lastly, append the rest of the destination (`to`) path that comes after
-    // the common path parts
-    if (out.length > 0)
-      return out + to.slice(toStart + lastCommonSep);
-    else {
-      toStart += lastCommonSep;
-      if (to.charCodeAt(toStart) === 47 /*/*/)
-        ++toStart;
-      return to.slice(toStart);
-    }
-  },
-
-  _makeLong: function _makeLong(path) {
-    return path;
-  },
-
-  dirname: function dirname(path) {
-    assertPath(path);
-    if (path.length === 0) return '.';
-    var code = path.charCodeAt(0);
-    var hasRoot = code === 47 /*/*/;
-    var end = -1;
-    var matchedSlash = true;
-    for (var i = path.length - 1; i >= 1; --i) {
-      code = path.charCodeAt(i);
-      if (code === 47 /*/*/) {
-          if (!matchedSlash) {
-            end = i;
-            break;
-          }
-        } else {
-        // We saw the first non-path separator
-        matchedSlash = false;
-      }
-    }
-
-    if (end === -1) return hasRoot ? '/' : '.';
-    if (hasRoot && end === 1) return '//';
-    return path.slice(0, end);
-  },
-
-  basename: function basename(path, ext) {
-    if (ext !== undefined && typeof ext !== 'string') throw new TypeError('"ext" argument must be a string');
-    assertPath(path);
-
-    var start = 0;
-    var end = -1;
-    var matchedSlash = true;
-    var i;
-
-    if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
-      if (ext.length === path.length && ext === path) return '';
-      var extIdx = ext.length - 1;
-      var firstNonSlashEnd = -1;
-      for (i = path.length - 1; i >= 0; --i) {
-        var code = path.charCodeAt(i);
-        if (code === 47 /*/*/) {
-            // If we reached a path separator that was not part of a set of path
-            // separators at the end of the string, stop now
-            if (!matchedSlash) {
-              start = i + 1;
-              break;
-            }
-          } else {
-          if (firstNonSlashEnd === -1) {
-            // We saw the first non-path separator, remember this index in case
-            // we need it if the extension ends up not matching
-            matchedSlash = false;
-            firstNonSlashEnd = i + 1;
-          }
-          if (extIdx >= 0) {
-            // Try to match the explicit extension
-            if (code === ext.charCodeAt(extIdx)) {
-              if (--extIdx === -1) {
-                // We matched the extension, so mark this as the end of our path
-                // component
-                end = i;
-              }
-            } else {
-              // Extension does not match, so our result is the entire path
-              // component
-              extIdx = -1;
-              end = firstNonSlashEnd;
-            }
-          }
-        }
-      }
-
-      if (start === end) end = firstNonSlashEnd;else if (end === -1) end = path.length;
-      return path.slice(start, end);
-    } else {
-      for (i = path.length - 1; i >= 0; --i) {
-        if (path.charCodeAt(i) === 47 /*/*/) {
-            // If we reached a path separator that was not part of a set of path
-            // separators at the end of the string, stop now
-            if (!matchedSlash) {
-              start = i + 1;
-              break;
-            }
-          } else if (end === -1) {
-          // We saw the first non-path separator, mark this as the end of our
-          // path component
-          matchedSlash = false;
-          end = i + 1;
-        }
-      }
-
-      if (end === -1) return '';
-      return path.slice(start, end);
-    }
-  },
-
-  extname: function extname(path) {
-    assertPath(path);
-    var startDot = -1;
-    var startPart = 0;
-    var end = -1;
-    var matchedSlash = true;
-    // Track the state of characters (if any) we see before our first dot and
-    // after any path separator we find
-    var preDotState = 0;
-    for (var i = path.length - 1; i >= 0; --i) {
-      var code = path.charCodeAt(i);
-      if (code === 47 /*/*/) {
-          // If we reached a path separator that was not part of a set of path
-          // separators at the end of the string, stop now
-          if (!matchedSlash) {
-            startPart = i + 1;
-            break;
-          }
-          continue;
-        }
-      if (end === -1) {
-        // We saw the first non-path separator, mark this as the end of our
-        // extension
-        matchedSlash = false;
-        end = i + 1;
-      }
-      if (code === 46 /*.*/) {
-          // If this is our first dot, mark it as the start of our extension
-          if (startDot === -1)
-            startDot = i;
-          else if (preDotState !== 1)
-            preDotState = 1;
-      } else if (startDot !== -1) {
-        // We saw a non-dot and non-path separator before our dot, so we should
-        // have a good chance at having a non-empty extension
-        preDotState = -1;
-      }
-    }
-
-    if (startDot === -1 || end === -1 ||
-        // We saw a non-dot character immediately before the dot
-        preDotState === 0 ||
-        // The (right-most) trimmed path component is exactly '..'
-        preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-      return '';
-    }
-    return path.slice(startDot, end);
-  },
-
-  format: function format(pathObject) {
-    if (pathObject === null || typeof pathObject !== 'object') {
-      throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
-    }
-    return _format('/', pathObject);
-  },
-
-  parse: function parse(path) {
-    assertPath(path);
-
-    var ret = { root: '', dir: '', base: '', ext: '', name: '' };
-    if (path.length === 0) return ret;
-    var code = path.charCodeAt(0);
-    var isAbsolute = code === 47 /*/*/;
-    var start;
-    if (isAbsolute) {
-      ret.root = '/';
-      start = 1;
-    } else {
-      start = 0;
-    }
-    var startDot = -1;
-    var startPart = 0;
-    var end = -1;
-    var matchedSlash = true;
-    var i = path.length - 1;
-
-    // Track the state of characters (if any) we see before our first dot and
-    // after any path separator we find
-    var preDotState = 0;
-
-    // Get non-dir info
-    for (; i >= start; --i) {
-      code = path.charCodeAt(i);
-      if (code === 47 /*/*/) {
-          // If we reached a path separator that was not part of a set of path
-          // separators at the end of the string, stop now
-          if (!matchedSlash) {
-            startPart = i + 1;
-            break;
-          }
-          continue;
-        }
-      if (end === -1) {
-        // We saw the first non-path separator, mark this as the end of our
-        // extension
-        matchedSlash = false;
-        end = i + 1;
-      }
-      if (code === 46 /*.*/) {
-          // If this is our first dot, mark it as the start of our extension
-          if (startDot === -1) startDot = i;else if (preDotState !== 1) preDotState = 1;
-        } else if (startDot !== -1) {
-        // We saw a non-dot and non-path separator before our dot, so we should
-        // have a good chance at having a non-empty extension
-        preDotState = -1;
-      }
-    }
-
-    if (startDot === -1 || end === -1 ||
-    // We saw a non-dot character immediately before the dot
-    preDotState === 0 ||
-    // The (right-most) trimmed path component is exactly '..'
-    preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-      if (end !== -1) {
-        if (startPart === 0 && isAbsolute) ret.base = ret.name = path.slice(1, end);else ret.base = ret.name = path.slice(startPart, end);
-      }
-    } else {
-      if (startPart === 0 && isAbsolute) {
-        ret.name = path.slice(1, startDot);
-        ret.base = path.slice(1, end);
-      } else {
-        ret.name = path.slice(startPart, startDot);
-        ret.base = path.slice(startPart, end);
-      }
-      ret.ext = path.slice(startDot, end);
-    }
-
-    if (startPart > 0) ret.dir = path.slice(0, startPart - 1);else if (isAbsolute) ret.dir = '/';
-
-    return ret;
-  },
-
-  sep: '/',
-  delimiter: ':',
-  win32: null,
-  posix: null
-};
-
-posix.posix = posix;
-
-module.exports = posix;
-
-}).call(this)}).call(this,require('_process'))
-},{"_process":13}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 

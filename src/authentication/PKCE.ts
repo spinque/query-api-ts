@@ -1,6 +1,8 @@
-import { Authenticator, DEFAULT_AUDIENCE, DEFAULT_AUTH_SERVER } from './';
+import { Authenticator, DEFAULT_AUTH_SERVER, TokenCache } from './';
 import { join } from '../utils';
 import { isBrowser } from '../utils';
+import { localStorageTokenCache } from './TokenCache';
+import { DEFAULT_BASE_URL } from '..';
 
 /**
  * An Authenticator class for the OAuth 2.0 Authorization Code with PKCE grant.
@@ -13,10 +15,12 @@ export class PKCE extends Authenticator {
     private callback: string,
     // URL to the Spinque Authorization server, default is https://login.spinque.com/
     private authServer?: string,
+    // Optional path to store the authentication token and make it persistent through server/page reloads
+    tokenCache: TokenCache = localStorageTokenCache,
     // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
-    private baseUrl?: string,
+    private baseUrl: string = DEFAULT_BASE_URL,
   ) {
-    super();
+    super(tokenCache);
 
     if (!isBrowser) {
       throw new Error('PKCE is only available for browser applications');
@@ -48,7 +52,7 @@ export class PKCE extends Authenticator {
 
   private async authorize() {
     const authServer = this.authServer || DEFAULT_AUTH_SERVER;
-    const audience = this.baseUrl || DEFAULT_AUDIENCE;
+    const audience = this.baseUrl || DEFAULT_BASE_URL;
 
     // Create code verifier and challenge
     const verifier = createRandomString();
