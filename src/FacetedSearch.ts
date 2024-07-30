@@ -165,7 +165,7 @@ export class FacetedSearch {
         .map((f) => ({
           endpoint: f.filterEndpoint,
           parameters: { [f.filterParameterName]: f.filterParameterValue as string },
-        }))
+        })),
     ];
     if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
       q.push(this._activeModifier);
