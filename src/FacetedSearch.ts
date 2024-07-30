@@ -147,13 +147,13 @@ export class FacetedSearch {
    * Get the Query objects to retrieve the facet options. When using multiple facets, the facetEndpoint
    * parameter is required.
    */
-  getFacetQuery(facetEndpoint: string): Query[] {
+  getFacetQuery(facetEndpoint: string, excludeModifier = false): Query[] {
     const facet = this._facets.find((f) => f.optionsEndpoint === facetEndpoint);
     if (!facet) {
       throw new Error('Facet not found in FacetedSearch');
     }
 
-    return [
+    const q = [
       this.getBaseQuery(),
       ...this._facets
         .filter(
@@ -165,9 +165,13 @@ export class FacetedSearch {
         .map((f) => ({
           endpoint: f.filterEndpoint,
           parameters: { [f.filterParameterName]: f.filterParameterValue as string },
-        })),
-      { endpoint: facet.optionsEndpoint },
+        }))
     ];
+    if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
+      q.push(this._activeModifier);
+    }
+    q.push({ endpoint: facet.optionsEndpoint });
+    return q;
   }
 
   /**
