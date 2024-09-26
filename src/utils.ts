@@ -50,7 +50,7 @@ export const apiUrl = (config: ApiConfig): string => {
   }
 
   return url;
-}
+};
 
 /**
  * Takes an ApiConfig object and array of Query objects and returns a Query API request URL.
