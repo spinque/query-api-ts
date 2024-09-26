@@ -21,6 +21,37 @@ export const pathFromQuery = (query: Query): string => {
   return join(...parts);
 };
 
+export const apiUrl = (config: ApiConfig): string => {
+  if (!config.baseUrl) {
+    throw new Error('Base URL missing');
+  }
+  if (!config.version) {
+    throw new Error('Version missing');
+  }
+  if (!config.workspace) {
+    throw new Error('Workspace missing');
+  }
+  if (!config.api) {
+    throw new Error('API name missing');
+  }
+
+  let url = config.baseUrl;
+
+  if (!url.endsWith('/')) {
+    url += '/';
+  }
+
+  // Construct base URL containing Spinque version and workspace
+  url += join(config.version, config.workspace, 'api', config.api);
+
+  // Add config if provided
+  if (config.config) {
+    url += `?config=${config.config}`;
+  }
+
+  return url;
+}
+
 /**
  * Takes an ApiConfig object and array of Query objects and returns a Query API request URL.
  */
