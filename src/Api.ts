@@ -13,6 +13,8 @@ import {
   ResultItemTupleTypes,
   UnauthorizedError,
   CountResponse,
+  ApiNotFoundError,
+  WorkspaceConfigNotFoundError,
 } from './types';
 import { urlFromQueries } from './utils';
 
@@ -180,6 +182,14 @@ export class Api {
 
     if (response.status === 500) {
       throw new ServerError(json.message, 401);
+    }
+
+    if (response.status === 404 && json.message.contains('No such api')) {
+      throw new ApiNotFoundError(json.message, 404);
+    }
+
+    if (response.status === 404 && json.message.contains('No such workspace configuration')) {
+      throw new WorkspaceConfigNotFoundError(json.message, 404);
     }
 
     throw new ErrorResponse('Unknown error: ' + (json.message || ''), response.status);

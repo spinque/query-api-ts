@@ -253,6 +253,22 @@ export class ErrorResponse {
 }
 
 /**
+ * Error class used when Spinque cannot find the workspace configuration you requested.
+ * The workspace or configuration might be misspelled or removed.
+ */
+export class WorkspaceConfigNotFoundError implements ErrorResponse {
+  constructor(public message: string, public status: number) {}
+}
+
+/**
+ * Error class used when Spinque cannot find the API you requested.
+ * The API might be misspelled or removed.
+ */
+export class ApiNotFoundError implements ErrorResponse {
+  constructor(public message: string, public status: number) {}
+}
+
+/**
  * Error class used when Spinque cannot find the endpoint you requested.
  * The endpoint might be misspelled or removed.
  */
