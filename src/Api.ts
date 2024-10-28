@@ -176,7 +176,7 @@ export class Api {
       throw new UnauthorizedError(json.message, 401);
     }
 
-    if (response.status === 400 && json.message.startsWith('no endpoint')) {
+    if (response.status === 400 && json.message.includes('no endpoint')) {
       throw new EndpointNotFoundError(json.message, 400);
     }
 
@@ -184,11 +184,11 @@ export class Api {
       throw new ServerError(json.message, 401);
     }
 
-    if (response.status === 404 && json.message.contains('No such api')) {
+    if (response.status === 404 && json.message.includes('No such api')) {
       throw new ApiNotFoundError(json.message, 404);
     }
 
-    if (response.status === 404 && json.message.contains('No such workspace configuration')) {
+    if (response.status === 404 && json.message.includes('No such workspace configuration')) {
       throw new WorkspaceConfigNotFoundError(json.message, 404);
     }
 
