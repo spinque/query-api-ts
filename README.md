@@ -92,6 +92,14 @@ const statistics = await api.fetch(query, { count: 10 }, 'statistics');
 const resultsWithCount = await api.fetch(query, { count: 10 }, 'results,count');
 ```
 
+You can bring your own [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit) for `fetch`:
+```typescript
+const requestInit: RequestInit = {
+  cache: 'no-cache'
+};
+const results = await api.fetch(query, { count: 10 }, 'results', requestInit);
+```
+
 ### Fetching using custom HTTP-library
 
 Getting the URL for a request to fetch it using your own HTTP-library of
