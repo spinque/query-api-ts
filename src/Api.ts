@@ -137,7 +137,7 @@ export class Api {
     queries: Query | Query[],
     options?: RequestOptions,
     requestType?: R,
-    requestInit: RequestInit = {}
+    requestInit: RequestInit = {},
   ): Promise<ResponseType<R, T>> {
     // Convert single query to array of queries
     if (!(queries instanceof Array)) {
