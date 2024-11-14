@@ -131,11 +131,13 @@ export class Api {
 
   /**
    * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
+   * Optionally the `fetch` RequestInit can be passed.
    */
   async fetch<T extends ResultItemTupleTypes[] = ResultItemTupleTypes[], R extends RequestType = 'results'>(
     queries: Query | Query[],
     options?: RequestOptions,
     requestType?: R,
+    requestInit: RequestInit = {}
   ): Promise<ResponseType<R, T>> {
     // Convert single query to array of queries
     if (!(queries instanceof Array)) {
@@ -148,12 +150,10 @@ export class Api {
     // Construct the URL to request from config and passed queries and options
     const url = urlFromQueries(this.apiConfig, queries, options, requestType);
 
-    let requestInit: RequestInit = {};
-
     // Possibly set authentication details
     if (this.authentication && this._authenticator) {
       const token = await this._authenticator.accessToken;
-      requestInit = { headers: new Headers({ Authorization: `Bearer ${token}` }) };
+      requestInit = { headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }) };
     }
 
     // Make the request
