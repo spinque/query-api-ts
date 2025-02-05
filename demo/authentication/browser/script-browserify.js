@@ -11,7 +11,7 @@
  *  - python -m http.server 4200
  */
 
-const sqa = require("@spinque/query-api");
+const sqa = require("../../../dist");
 
 async function main() {
   const apiWithAuth = new sqa.Api({
@@ -31,15 +31,26 @@ async function main() {
   }];
 
   // Fetch response (or get URL and use your own HTTP library)
-  const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
+  // const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
 
-  console.log(response);
-  alert('Check the console for the results');
+  // console.log(response);
+  // alert('Check the console for the results');
 }
 
 main();
-},{"@spinque/query-api":9}],2:[function(require,module,exports){
+},{"../../../dist":10}],2:[function(require,module,exports){
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -77,24 +88,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Api = void 0;
-var cross_fetch_1 = require("cross-fetch");
+exports.Api = exports.DEFAULT_BASE_URL = void 0;
 var authentication_1 = require("./authentication");
 var types_1 = require("./types");
 var utils_1 = require("./utils");
 // This is the default base URL to the Spinque Query API.
-var DEFAULT_BASE_URL = 'https://rest.spinque.com/';
+exports.DEFAULT_BASE_URL = 'https://rest.spinque.com/';
 /**
  * Send queries to the Spinque Query API using fetch.
  */
 var Api = /** @class */ (function () {
     function Api(apiConfig) {
+        var _this = this;
         /**
          * URL to the Spinque Query API deployment.
          *
          * @default https://rest.spinque.com/
          */
-        this.baseUrl = DEFAULT_BASE_URL;
+        this.baseUrl = exports.DEFAULT_BASE_URL;
         /**
          * Version of the Spinque Query API deployment.
          *
@@ -127,11 +138,23 @@ var Api = /** @class */ (function () {
         if (apiConfig && apiConfig.authentication) {
             if (apiConfig.authentication.type === 'client-credentials') {
                 this._authentication = apiConfig.authentication;
-                this._authenticator = new authentication_1.ClientCredentials(apiConfig.authentication.clientId, apiConfig.authentication.clientSecret, apiConfig.authentication.authServer, apiConfig.authentication.tokenCachePath, apiConfig.baseUrl || DEFAULT_BASE_URL);
+                this._authenticator = new authentication_1.ClientCredentials(apiConfig.authentication.clientId, apiConfig.authentication.clientSecret, apiConfig.authentication.tokenCache, apiConfig.authentication.authServer, apiConfig.baseUrl);
             }
             if (apiConfig.authentication.type === 'pkce') {
                 this._authentication = apiConfig.authentication;
-                this._authenticator = new authentication_1.PKCE(apiConfig.authentication.clientId, apiConfig.authentication.callback, apiConfig.authentication.authServer, apiConfig.baseUrl || DEFAULT_BASE_URL);
+                this._authenticator = new authentication_1.PKCE(apiConfig.authentication.clientId, apiConfig.authentication.callback, apiConfig.authentication.authServer, apiConfig.authentication.tokenCache, apiConfig.baseUrl);
+            }
+            if (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get()) {
+                var url = (0, utils_1.apiInfoUrl)(this.apiConfig);
+                fetch(url).then(function (res) {
+                    var _a;
+                    if (res.status === 200) {
+                        _this._authentication = undefined;
+                    }
+                    else if (res.status === 401) {
+                        (_a = _this._authenticator) === null || _a === void 0 ? void 0 : _a.accessToken.then(function () { });
+                    }
+                });
             }
         }
     }
@@ -170,10 +193,14 @@ var Api = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
-    Api.prototype.fetch = function (queries, options, requestType) {
-        if (requestType === void 0) { requestType = 'results'; }
+    /**
+     * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
+     * Optionally the `fetch` RequestInit can be passed.
+     */
+    Api.prototype.fetch = function (queries, options, requestType, requestInit) {
+        if (requestInit === void 0) { requestInit = {}; }
         return __awaiter(this, void 0, void 0, function () {
-            var url, requestInit, token;
+            var url, token;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -186,16 +213,15 @@ var Api = /** @class */ (function () {
                             throw new Error('Queries array is empty');
                         }
                         url = (0, utils_1.urlFromQueries)(this.apiConfig, queries, options, requestType);
-                        requestInit = {};
                         if (!(this.authentication && this._authenticator)) return [3 /*break*/, 2];
                         return [4 /*yield*/, this._authenticator.accessToken];
                     case 1:
                         token = _a.sent();
-                        requestInit = { headers: new cross_fetch_1.Headers({ Authorization: "Bearer ".concat(token) }) };
+                        requestInit = { headers: new Headers(__assign(__assign({}, requestInit.headers), { Authorization: "Bearer ".concat(token) })) };
                         _a.label = 2;
                     case 2: 
                     // Make the request
-                    return [2 /*return*/, (0, cross_fetch_1.default)(url, requestInit).then(function (res) { return _this.handleResponse(res); })];
+                    return [2 /*return*/, fetch(url, requestInit).then(function (res) { return _this.handleResponse(res); })];
                 }
             });
         });
@@ -217,11 +243,17 @@ var Api = /** @class */ (function () {
                         if (response.status === 401) {
                             throw new types_1.UnauthorizedError(json.message, 401);
                         }
-                        if (response.status === 400 && json.message.startsWith('no endpoint')) {
+                        if (response.status === 400 && json.message.includes('no endpoint')) {
                             throw new types_1.EndpointNotFoundError(json.message, 400);
                         }
                         if (response.status === 500) {
                             throw new types_1.ServerError(json.message, 401);
+                        }
+                        if (response.status === 404 && json.message.includes('No such api')) {
+                            throw new types_1.ApiNotFoundError(json.message, 404);
+                        }
+                        if (response.status === 404 && json.message.includes('No such workspace configuration')) {
+                            throw new types_1.WorkspaceConfigNotFoundError(json.message, 404);
                         }
                         throw new types_1.ErrorResponse('Unknown error: ' + (json.message || ''), response.status);
                 }
@@ -232,7 +264,7 @@ var Api = /** @class */ (function () {
 }());
 exports.Api = Api;
 
-},{"./authentication":7,"./types":10,"./utils":11,"cross-fetch":14}],3:[function(require,module,exports){
+},{"./authentication":8,"./types":11,"./utils":12}],3:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -368,7 +400,8 @@ var FacetedSearch = /** @class */ (function () {
     /**
      * Get the Query objects to retrieve search results. This includes the facet Query, if applicable.
      */
-    FacetedSearch.prototype.getResultsQuery = function () {
+    FacetedSearch.prototype.getResultsQuery = function (excludeModifier) {
+        if (excludeModifier === void 0) { excludeModifier = false; }
         var q = __spreadArray([
             this.getBaseQuery()
         ], __read(this._facets
@@ -380,7 +413,7 @@ var FacetedSearch = /** @class */ (function () {
                 parameters: (_a = {}, _a[f.filterParameterName] = f.filterParameterValue, _a),
             });
         })), false);
-        if (this._activeModifier !== undefined && this._activeModifier !== null) {
+        if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
             q.push(this._activeModifier);
         }
         return q;
@@ -389,12 +422,13 @@ var FacetedSearch = /** @class */ (function () {
      * Get the Query objects to retrieve the facet options. When using multiple facets, the facetEndpoint
      * parameter is required.
      */
-    FacetedSearch.prototype.getFacetQuery = function (facetEndpoint) {
+    FacetedSearch.prototype.getFacetQuery = function (facetEndpoint, excludeModifier) {
+        if (excludeModifier === void 0) { excludeModifier = false; }
         var facet = this._facets.find(function (f) { return f.optionsEndpoint === facetEndpoint; });
         if (!facet) {
             throw new Error('Facet not found in FacetedSearch');
         }
-        return __spreadArray(__spreadArray([
+        var q = __spreadArray([
             this.getBaseQuery()
         ], __read(this._facets
             .filter(function (f) {
@@ -408,9 +442,12 @@ var FacetedSearch = /** @class */ (function () {
                 endpoint: f.filterEndpoint,
                 parameters: (_a = {}, _a[f.filterParameterName] = f.filterParameterValue, _a),
             });
-        })), false), [
-            { endpoint: facet.optionsEndpoint },
-        ], false);
+        })), false);
+        if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
+            q.push(this._activeModifier);
+        }
+        q.push({ endpoint: facet.optionsEndpoint });
+        return q;
     };
     /**
      * Set a parameter value for the searchQuery
@@ -481,21 +518,19 @@ var FacetedSearch = /** @class */ (function () {
 }());
 exports.FacetedSearch = FacetedSearch;
 
-},{"./utils":11}],4:[function(require,module,exports){
+},{"./utils":12}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Authenticator = exports.DEFAULT_AUDIENCE = exports.DEFAULT_AUTH_SERVER = void 0;
-var browser_or_node_1 = require("browser-or-node");
-var fs = require("fs");
 exports.DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 exports.DEFAULT_AUDIENCE = 'https://rest.spinque.com/';
 /**
  * Abstract class with utitily functions for working with access tokens such as storage
  */
 var Authenticator = /** @class */ (function () {
-    function Authenticator(_tokenCachePath) {
+    function Authenticator(_tokenCache) {
         var _this = this;
-        this._tokenCachePath = _tokenCachePath;
+        this._tokenCache = _tokenCache;
         this._authInProgress = true;
         /**
          * A Promise that delays any operation until an access token is set (with intervals of 50ms)
@@ -509,11 +544,11 @@ var Authenticator = /** @class */ (function () {
             wait();
         });
         // First thing to do: check if there's an access token in localStorage
-        var res = this.getFromStorage();
-        if (res) {
+        var cachedToken = this._tokenCache.get();
+        if (cachedToken) {
             // Set it as class property
-            this._accessToken = res.accessToken;
-            this._expires = res.expires;
+            this._accessToken = cachedToken.accessToken;
+            this._expires = cachedToken.expires;
             this._authInProgress = false;
         }
         else {
@@ -558,72 +593,14 @@ var Authenticator = /** @class */ (function () {
     Authenticator.prototype.setAccessToken = function (accessToken, expiresIn) {
         this._accessToken = accessToken;
         this._expires = Date.now() + expiresIn * 1000;
-        this.putInStorage(this._accessToken, this._expires);
+        this._tokenCache.set(this._accessToken, this._expires);
         this._authInProgress = false;
-    };
-    Authenticator.prototype.putInStorage = function (accessToken, expires) {
-        if (browser_or_node_1.isBrowser && !!localStorage) {
-            // TODO: configure keys
-            localStorage.setItem('@spinque/query-api/access-token', accessToken);
-            localStorage.setItem('@spinque/query-api/expires', "".concat(expires));
-        }
-        if (!browser_or_node_1.isBrowser && this._tokenCachePath) {
-            var json = JSON.stringify({ accessToken: accessToken, expires: expires });
-            fs.writeFileSync(this._tokenCachePath, json);
-        }
-    };
-    /**
-     * Get an access token from storage (if available)
-     */
-    Authenticator.prototype.getFromStorage = function () {
-        // Localstorage is only available for browser applications
-        if (browser_or_node_1.isBrowser) {
-            return this.getFromBrowserLocalStorage();
-        }
-        if (!browser_or_node_1.isBrowser && this._tokenCachePath) {
-            return this.getFromFileStorage(this._tokenCachePath);
-        }
-        return null;
-    };
-    Authenticator.prototype.getFromBrowserLocalStorage = function () {
-        if (!localStorage) {
-            return null;
-        }
-        try {
-            var accessToken = localStorage.getItem('@spinque/query-api/access-token');
-            var expires = parseInt(localStorage.getItem('@spinque/query-api/expires') || '', 10);
-            if (accessToken && expires && expires > Date.now() + 1000) {
-                return { accessToken: accessToken, expires: expires };
-            }
-            else {
-                localStorage.removeItem('@spinque/query-api/access-token');
-                localStorage.removeItem('@spinque/query-api/expires');
-                return null;
-            }
-        }
-        catch (error) {
-            return null;
-        }
-    };
-    Authenticator.prototype.getFromFileStorage = function (path) {
-        try {
-            var data = fs.readFileSync(path, { encoding: 'utf8' });
-            var _a = JSON.parse(data), accessToken = _a.accessToken, expires = _a.expires;
-            if (typeof accessToken !== 'string' && typeof expires !== 'number') {
-                // TODO: delete file
-                return null;
-            }
-            return { accessToken: accessToken, expires: expires };
-        }
-        catch (error) {
-            return null;
-        }
     };
     return Authenticator;
 }());
 exports.Authenticator = Authenticator;
 
-},{"browser-or-node":12,"fs":13}],5:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -694,10 +671,10 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClientCredentials = void 0;
-var Authenticator_1 = require("./Authenticator");
+var index_1 = require("./index");
 var utils_1 = require("../utils");
-var browser_or_node_1 = require("browser-or-node");
-var cross_fetch_1 = require("cross-fetch");
+var utils_2 = require("../utils");
+var __1 = require("..");
 /**
  * An Authenticator class for the OAuth 2.0 Client Credentials grant.
  */
@@ -708,21 +685,27 @@ var ClientCredentials = /** @class */ (function (_super) {
     clientId, 
     // Client Secret from Spinque Desk > Settings > Team Members > System-to-System account
     clientSecret, 
+    // Optional path to store the authentication token and make it persistent through server restarts
+    tokenCache, 
     // URL to the Spinque Authorization server, default is https://login.spinque.com/
     authServer, 
-    // Optional path to store the authentication token and make it persistent through server restarts
-    tokenCachePath, 
     // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
     baseUrl) {
-        var _this = _super.call(this, tokenCachePath) || this;
+        if (authServer === void 0) { authServer = index_1.DEFAULT_AUTH_SERVER; }
+        if (baseUrl === void 0) { baseUrl = __1.DEFAULT_BASE_URL; }
+        var _this = this;
+        if (utils_2.isBrowser) {
+            throw new Error('The Client Credentials Flow is only allowed for server applications.');
+        }
+        if (!tokenCache) {
+            console.warn("Please supply a TokenCache instance to cache the access token. See the README of @spinque/query-api for more details.");
+            tokenCache = { get: function () { return null; }, set: function () { } };
+        }
+        _this = _super.call(this, tokenCache) || this;
         _this.clientId = clientId;
         _this.clientSecret = clientSecret;
         _this.authServer = authServer;
-        _this.tokenCachePath = tokenCachePath;
         _this.baseUrl = baseUrl;
-        if (browser_or_node_1.isBrowser) {
-            throw new Error('The Client Credentials Flow is only allowed for server applications.');
-        }
         return _this;
     }
     /**
@@ -734,16 +717,16 @@ var ClientCredentials = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        authServer = this.authServer || Authenticator_1.DEFAULT_AUTH_SERVER;
+                        authServer = this.authServer || index_1.DEFAULT_AUTH_SERVER;
                         body = {
                             grant_type: 'client_credentials',
                             client_id: this.clientId,
                             client_secret: this.clientSecret,
                             audience: this.baseUrl,
                         };
-                        return [4 /*yield*/, (0, cross_fetch_1.default)((0, utils_1.join)(authServer, 'oauth', 'token'), {
+                        return [4 /*yield*/, fetch((0, utils_1.join)(authServer, 'oauth', 'token'), {
                                 method: 'POST',
-                                headers: new cross_fetch_1.Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                                headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
                                 // URL Encode the body
                                 body: Object.entries(body)
                                     .map(function (_a) {
@@ -769,10 +752,10 @@ var ClientCredentials = /** @class */ (function (_super) {
         });
     };
     return ClientCredentials;
-}(Authenticator_1.Authenticator));
+}(index_1.Authenticator));
 exports.ClientCredentials = ClientCredentials;
 
-},{"../utils":11,"./Authenticator":4,"browser-or-node":12,"cross-fetch":14}],6:[function(require,module,exports){
+},{"..":10,"../utils":12,"./index":8}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -852,10 +835,11 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bufferToBase64UrlEncoded = exports.sha256 = exports.createRandomString = exports.getCryptoSubtle = exports.getCrypto = exports.PKCE = void 0;
-var Authenticator_1 = require("./Authenticator");
+var _1 = require("./");
 var utils_1 = require("../utils");
-var browser_or_node_1 = require("browser-or-node");
-var cross_fetch_1 = require("cross-fetch");
+var utils_2 = require("../utils");
+var TokenCache_1 = require("./TokenCache");
+var __1 = require("..");
 /**
  * An Authenticator class for the OAuth 2.0 Authorization Code with PKCE grant.
  */
@@ -868,14 +852,18 @@ var PKCE = /** @class */ (function (_super) {
     callback, 
     // URL to the Spinque Authorization server, default is https://login.spinque.com/
     authServer, 
+    // Optional path to store the authentication token and make it persistent through server/page reloads
+    tokenCache, 
     // URL to the Spinque Query API, used as OAuth 2.0 scope, default is https://rest.spinque.com/
     baseUrl) {
-        var _this = _super.call(this) || this;
+        if (tokenCache === void 0) { tokenCache = TokenCache_1.localStorageTokenCache; }
+        if (baseUrl === void 0) { baseUrl = __1.DEFAULT_BASE_URL; }
+        var _this = _super.call(this, tokenCache) || this;
         _this.clientId = clientId;
         _this.callback = callback;
         _this.authServer = authServer;
         _this.baseUrl = baseUrl;
-        if (!browser_or_node_1.isBrowser) {
+        if (!utils_2.isBrowser) {
             throw new Error('PKCE is only available for browser applications');
         }
         // Immediately check whether we're on the callback page
@@ -909,8 +897,8 @@ var PKCE = /** @class */ (function (_super) {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        authServer = this.authServer || Authenticator_1.DEFAULT_AUTH_SERVER;
-                        audience = this.baseUrl || Authenticator_1.DEFAULT_AUDIENCE;
+                        authServer = this.authServer || _1.DEFAULT_AUTH_SERVER;
+                        audience = this.baseUrl || __1.DEFAULT_BASE_URL;
                         verifier = (0, exports.createRandomString)();
                         _a = exports.bufferToBase64UrlEncoded;
                         return [4 /*yield*/, (0, exports.sha256)(verifier)];
@@ -960,7 +948,7 @@ var PKCE = /** @class */ (function (_super) {
                         if (!verifier) {
                             throw new Error('Unable to find code verifier in local storage.');
                         }
-                        authServer = this.authServer || Authenticator_1.DEFAULT_AUTH_SERVER;
+                        authServer = this.authServer || _1.DEFAULT_AUTH_SERVER;
                         body = {
                             grant_type: 'authorization_code',
                             client_id: this.clientId,
@@ -968,9 +956,9 @@ var PKCE = /** @class */ (function (_super) {
                             redirect_uri: this.callback,
                             code: code,
                         };
-                        return [4 /*yield*/, (0, cross_fetch_1.default)((0, utils_1.join)(authServer, 'oauth', 'token'), {
+                        return [4 /*yield*/, fetch((0, utils_1.join)(authServer, 'oauth', 'token'), {
                                 method: 'POST',
-                                headers: new cross_fetch_1.Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                                headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
                                 body: Object.entries(body)
                                     .map(function (_a) {
                                     var _b = __read(_a, 2), key = _b[0], value = _b[1];
@@ -999,7 +987,7 @@ var PKCE = /** @class */ (function (_super) {
         });
     };
     return PKCE;
-}(Authenticator_1.Authenticator));
+}(_1.Authenticator));
 exports.PKCE = PKCE;
 /**
  * Crypto stuff for PKCE
@@ -1057,18 +1045,58 @@ var urlEncodeB64 = function (input) {
     return input.replace(/[+/=]/g, function (m) { return b64Chars[m]; });
 };
 
-},{"../utils":11,"./Authenticator":4,"browser-or-node":12,"cross-fetch":14}],7:[function(require,module,exports){
+},{"..":10,"../utils":12,"./":8,"./TokenCache":7}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PKCE = exports.ClientCredentials = exports.Authenticator = void 0;
+exports.localStorageTokenCache = void 0;
+/**
+ * Implementation of TokenCache that uses localStorage to cache tokens.
+ */
+exports.localStorageTokenCache = {
+    get: function () {
+        if (typeof window === 'undefined') {
+            return null;
+        }
+        try {
+            var accessToken = localStorage.getItem('@spinque/query-api/access-token');
+            var expires = parseInt(localStorage.getItem('@spinque/query-api/expires') || '', 10);
+            if (accessToken && expires && expires > Date.now() + 1000) {
+                return { accessToken: accessToken, expires: expires };
+            }
+            else {
+                localStorage.removeItem('@spinque/query-api/access-token');
+                localStorage.removeItem('@spinque/query-api/expires');
+                return null;
+            }
+        }
+        catch (error) {
+            return null;
+        }
+    },
+    set: function (token, expires) {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        localStorage.setItem("@spinque/query-api/access-token", token);
+        localStorage.setItem("@spinque/query-api/expires", "".concat(expires));
+    },
+};
+
+},{}],8:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.localStorageTokenCache = exports.PKCE = exports.ClientCredentials = exports.Authenticator = exports.DEFAULT_AUTH_SERVER = void 0;
 var Authenticator_1 = require("./Authenticator");
 Object.defineProperty(exports, "Authenticator", { enumerable: true, get: function () { return Authenticator_1.Authenticator; } });
 var ClientCredentials_1 = require("./ClientCredentials");
 Object.defineProperty(exports, "ClientCredentials", { enumerable: true, get: function () { return ClientCredentials_1.ClientCredentials; } });
 var PKCE_1 = require("./PKCE");
 Object.defineProperty(exports, "PKCE", { enumerable: true, get: function () { return PKCE_1.PKCE; } });
+var TokenCache_1 = require("./TokenCache");
+Object.defineProperty(exports, "localStorageTokenCache", { enumerable: true, get: function () { return TokenCache_1.localStorageTokenCache; } });
+exports.DEFAULT_AUTH_SERVER = 'https://login.spinque.com/';
 
-},{"./Authenticator":4,"./ClientCredentials":5,"./PKCE":6}],8:[function(require,module,exports){
+},{"./Authenticator":4,"./ClientCredentials":5,"./PKCE":6,"./TokenCache":7}],9:[function(require,module,exports){
 "use strict";
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
@@ -1147,7 +1175,7 @@ var isCluster = function (item) {
 };
 exports.isCluster = isCluster;
 
-},{"./utils":11}],9:[function(require,module,exports){
+},{"./utils":12}],10:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -1171,10 +1199,10 @@ __exportStar(require("./types"), exports);
 __exportStar(require("./utils"), exports);
 __exportStar(require("./clusters"), exports);
 
-},{"./Api":2,"./FacetedSearch":3,"./authentication":7,"./clusters":8,"./types":10,"./utils":11}],10:[function(require,module,exports){
+},{"./Api":2,"./FacetedSearch":3,"./authentication":8,"./clusters":9,"./types":11,"./utils":12}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServerError = exports.UnauthorizedError = exports.EndpointNotFoundError = exports.ErrorResponse = void 0;
+exports.ServerError = exports.UnauthorizedError = exports.EndpointNotFoundError = exports.ApiNotFoundError = exports.WorkspaceConfigNotFoundError = exports.ErrorResponse = void 0;
 /**
  * Generic error response class. Is implemented by more specific error type classes.
  */
@@ -1186,6 +1214,30 @@ var ErrorResponse = /** @class */ (function () {
     return ErrorResponse;
 }());
 exports.ErrorResponse = ErrorResponse;
+/**
+ * Error class used when Spinque cannot find the workspace configuration you requested.
+ * The workspace or configuration might be misspelled or removed.
+ */
+var WorkspaceConfigNotFoundError = /** @class */ (function () {
+    function WorkspaceConfigNotFoundError(message, status) {
+        this.message = message;
+        this.status = status;
+    }
+    return WorkspaceConfigNotFoundError;
+}());
+exports.WorkspaceConfigNotFoundError = WorkspaceConfigNotFoundError;
+/**
+ * Error class used when Spinque cannot find the API you requested.
+ * The API might be misspelled or removed.
+ */
+var ApiNotFoundError = /** @class */ (function () {
+    function ApiNotFoundError(message, status) {
+        this.message = message;
+        this.status = status;
+    }
+    return ApiNotFoundError;
+}());
+exports.ApiNotFoundError = ApiNotFoundError;
 /**
  * Error class used when Spinque cannot find the endpoint you requested.
  * The endpoint might be misspelled or removed.
@@ -1223,7 +1275,7 @@ var ServerError = /** @class */ (function () {
 }());
 exports.ServerError = ServerError;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -1262,7 +1314,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stringifyQueries = exports.parseQueries = exports.join = exports.tupleListToString = exports.stringToTupleList = exports.urlFromQueries = exports.pathFromQuery = exports.pathFromQueries = void 0;
+exports.isBrowser = exports.stringifyQueries = exports.parseQueries = exports.join = exports.tupleListToString = exports.stringToTupleList = exports.urlFromQueries = exports.apiInfoUrl = exports.apiUrl = exports.pathFromQuery = exports.pathFromQueries = void 0;
 /**
  * Takes an array of Query objects and returns the path they would represent in a Query API request URL.
  */
@@ -1284,6 +1336,61 @@ var pathFromQuery = function (query) {
     return exports.join.apply(void 0, __spreadArray([], __read(parts), false));
 };
 exports.pathFromQuery = pathFromQuery;
+var apiUrl = function (config) {
+    if (!config.baseUrl) {
+        throw new Error('Base URL missing');
+    }
+    if (!config.version) {
+        throw new Error('Version missing');
+    }
+    if (!config.workspace) {
+        throw new Error('Workspace missing');
+    }
+    if (!config.api) {
+        throw new Error('API name missing');
+    }
+    var url = config.baseUrl;
+    if (!url.endsWith('/')) {
+        url += '/';
+    }
+    // Construct base URL containing Spinque version and workspace
+    url += (0, exports.join)(config.version, config.workspace, 'api', config.api);
+    // Add config if provided
+    if (config.config) {
+        url += "?config=".concat(config.config);
+    }
+    return url;
+};
+exports.apiUrl = apiUrl;
+/**
+ * Takes an ApiConfig object and returns the URL to fetch API details
+ */
+var apiInfoUrl = function (config) {
+    if (!config.baseUrl) {
+        throw new Error('Base URL missing');
+    }
+    if (!config.version) {
+        throw new Error('Version missing');
+    }
+    if (!config.workspace) {
+        throw new Error('Workspace missing');
+    }
+    if (!config.api) {
+        throw new Error('API name missing');
+    }
+    var url = config.baseUrl;
+    if (!url.endsWith('/')) {
+        url += '/';
+    }
+    // Construct base URL containing Spinque version and workspace
+    url += (0, exports.join)(config.version, config.workspace, 'api', config.api);
+    // Add config if provided
+    if (config.config) {
+        url += "?config=".concat(config.config);
+    }
+    return url;
+};
+exports.apiInfoUrl = apiInfoUrl;
 /**
  * Takes an ApiConfig object and array of Query objects and returns a Query API request URL.
  */
@@ -1495,779 +1602,6 @@ var stringifyQueries = function (queries) {
     return JSON.stringify(endpointString);
 };
 exports.stringifyQueries = stringifyQueries;
-
-},{}],12:[function(require,module,exports){
-(function (process){(function (){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
-
-var isNode = typeof process !== "undefined" && process.versions != null && process.versions.node != null;
-
-var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
-
-/**
- * @see https://github.com/jsdom/jsdom/releases/tag/12.0.0
- * @see https://github.com/jsdom/jsdom/issues/1537
- */
-var isJsDom = typeof window !== "undefined" && window.name === "nodejs" || typeof navigator !== "undefined" && (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"));
-
-var isDeno = typeof Deno !== "undefined" && typeof Deno.version !== "undefined" && typeof Deno.version.deno !== "undefined";
-
-exports.isBrowser = isBrowser;
-exports.isWebWorker = isWebWorker;
-exports.isNode = isNode;
-exports.isJsDom = isJsDom;
-exports.isDeno = isDeno;
-}).call(this)}).call(this,require('_process'))
-},{"_process":15}],13:[function(require,module,exports){
-
-},{}],14:[function(require,module,exports){
-var global = typeof self !== 'undefined' ? self : this;
-var __self__ = (function () {
-function F() {
-this.fetch = false;
-this.DOMException = global.DOMException
-}
-F.prototype = global;
-return new F();
-})();
-(function(self) {
-
-var irrelevant = (function (exports) {
-
-  var support = {
-    searchParams: 'URLSearchParams' in self,
-    iterable: 'Symbol' in self && 'iterator' in Symbol,
-    blob:
-      'FileReader' in self &&
-      'Blob' in self &&
-      (function() {
-        try {
-          new Blob();
-          return true
-        } catch (e) {
-          return false
-        }
-      })(),
-    formData: 'FormData' in self,
-    arrayBuffer: 'ArrayBuffer' in self
-  };
-
-  function isDataView(obj) {
-    return obj && DataView.prototype.isPrototypeOf(obj)
-  }
-
-  if (support.arrayBuffer) {
-    var viewClasses = [
-      '[object Int8Array]',
-      '[object Uint8Array]',
-      '[object Uint8ClampedArray]',
-      '[object Int16Array]',
-      '[object Uint16Array]',
-      '[object Int32Array]',
-      '[object Uint32Array]',
-      '[object Float32Array]',
-      '[object Float64Array]'
-    ];
-
-    var isArrayBufferView =
-      ArrayBuffer.isView ||
-      function(obj) {
-        return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
-      };
-  }
-
-  function normalizeName(name) {
-    if (typeof name !== 'string') {
-      name = String(name);
-    }
-    if (/[^a-z0-9\-#$%&'*+.^_`|~]/i.test(name)) {
-      throw new TypeError('Invalid character in header field name')
-    }
-    return name.toLowerCase()
-  }
-
-  function normalizeValue(value) {
-    if (typeof value !== 'string') {
-      value = String(value);
-    }
-    return value
-  }
-
-  // Build a destructive iterator for the value list
-  function iteratorFor(items) {
-    var iterator = {
-      next: function() {
-        var value = items.shift();
-        return {done: value === undefined, value: value}
-      }
-    };
-
-    if (support.iterable) {
-      iterator[Symbol.iterator] = function() {
-        return iterator
-      };
-    }
-
-    return iterator
-  }
-
-  function Headers(headers) {
-    this.map = {};
-
-    if (headers instanceof Headers) {
-      headers.forEach(function(value, name) {
-        this.append(name, value);
-      }, this);
-    } else if (Array.isArray(headers)) {
-      headers.forEach(function(header) {
-        this.append(header[0], header[1]);
-      }, this);
-    } else if (headers) {
-      Object.getOwnPropertyNames(headers).forEach(function(name) {
-        this.append(name, headers[name]);
-      }, this);
-    }
-  }
-
-  Headers.prototype.append = function(name, value) {
-    name = normalizeName(name);
-    value = normalizeValue(value);
-    var oldValue = this.map[name];
-    this.map[name] = oldValue ? oldValue + ', ' + value : value;
-  };
-
-  Headers.prototype['delete'] = function(name) {
-    delete this.map[normalizeName(name)];
-  };
-
-  Headers.prototype.get = function(name) {
-    name = normalizeName(name);
-    return this.has(name) ? this.map[name] : null
-  };
-
-  Headers.prototype.has = function(name) {
-    return this.map.hasOwnProperty(normalizeName(name))
-  };
-
-  Headers.prototype.set = function(name, value) {
-    this.map[normalizeName(name)] = normalizeValue(value);
-  };
-
-  Headers.prototype.forEach = function(callback, thisArg) {
-    for (var name in this.map) {
-      if (this.map.hasOwnProperty(name)) {
-        callback.call(thisArg, this.map[name], name, this);
-      }
-    }
-  };
-
-  Headers.prototype.keys = function() {
-    var items = [];
-    this.forEach(function(value, name) {
-      items.push(name);
-    });
-    return iteratorFor(items)
-  };
-
-  Headers.prototype.values = function() {
-    var items = [];
-    this.forEach(function(value) {
-      items.push(value);
-    });
-    return iteratorFor(items)
-  };
-
-  Headers.prototype.entries = function() {
-    var items = [];
-    this.forEach(function(value, name) {
-      items.push([name, value]);
-    });
-    return iteratorFor(items)
-  };
-
-  if (support.iterable) {
-    Headers.prototype[Symbol.iterator] = Headers.prototype.entries;
-  }
-
-  function consumed(body) {
-    if (body.bodyUsed) {
-      return Promise.reject(new TypeError('Already read'))
-    }
-    body.bodyUsed = true;
-  }
-
-  function fileReaderReady(reader) {
-    return new Promise(function(resolve, reject) {
-      reader.onload = function() {
-        resolve(reader.result);
-      };
-      reader.onerror = function() {
-        reject(reader.error);
-      };
-    })
-  }
-
-  function readBlobAsArrayBuffer(blob) {
-    var reader = new FileReader();
-    var promise = fileReaderReady(reader);
-    reader.readAsArrayBuffer(blob);
-    return promise
-  }
-
-  function readBlobAsText(blob) {
-    var reader = new FileReader();
-    var promise = fileReaderReady(reader);
-    reader.readAsText(blob);
-    return promise
-  }
-
-  function readArrayBufferAsText(buf) {
-    var view = new Uint8Array(buf);
-    var chars = new Array(view.length);
-
-    for (var i = 0; i < view.length; i++) {
-      chars[i] = String.fromCharCode(view[i]);
-    }
-    return chars.join('')
-  }
-
-  function bufferClone(buf) {
-    if (buf.slice) {
-      return buf.slice(0)
-    } else {
-      var view = new Uint8Array(buf.byteLength);
-      view.set(new Uint8Array(buf));
-      return view.buffer
-    }
-  }
-
-  function Body() {
-    this.bodyUsed = false;
-
-    this._initBody = function(body) {
-      this._bodyInit = body;
-      if (!body) {
-        this._bodyText = '';
-      } else if (typeof body === 'string') {
-        this._bodyText = body;
-      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
-        this._bodyBlob = body;
-      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
-        this._bodyFormData = body;
-      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-        this._bodyText = body.toString();
-      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
-        this._bodyArrayBuffer = bufferClone(body.buffer);
-        // IE 10-11 can't handle a DataView body.
-        this._bodyInit = new Blob([this._bodyArrayBuffer]);
-      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
-        this._bodyArrayBuffer = bufferClone(body);
-      } else {
-        this._bodyText = body = Object.prototype.toString.call(body);
-      }
-
-      if (!this.headers.get('content-type')) {
-        if (typeof body === 'string') {
-          this.headers.set('content-type', 'text/plain;charset=UTF-8');
-        } else if (this._bodyBlob && this._bodyBlob.type) {
-          this.headers.set('content-type', this._bodyBlob.type);
-        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
-        }
-      }
-    };
-
-    if (support.blob) {
-      this.blob = function() {
-        var rejected = consumed(this);
-        if (rejected) {
-          return rejected
-        }
-
-        if (this._bodyBlob) {
-          return Promise.resolve(this._bodyBlob)
-        } else if (this._bodyArrayBuffer) {
-          return Promise.resolve(new Blob([this._bodyArrayBuffer]))
-        } else if (this._bodyFormData) {
-          throw new Error('could not read FormData body as blob')
-        } else {
-          return Promise.resolve(new Blob([this._bodyText]))
-        }
-      };
-
-      this.arrayBuffer = function() {
-        if (this._bodyArrayBuffer) {
-          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
-        } else {
-          return this.blob().then(readBlobAsArrayBuffer)
-        }
-      };
-    }
-
-    this.text = function() {
-      var rejected = consumed(this);
-      if (rejected) {
-        return rejected
-      }
-
-      if (this._bodyBlob) {
-        return readBlobAsText(this._bodyBlob)
-      } else if (this._bodyArrayBuffer) {
-        return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
-      } else if (this._bodyFormData) {
-        throw new Error('could not read FormData body as text')
-      } else {
-        return Promise.resolve(this._bodyText)
-      }
-    };
-
-    if (support.formData) {
-      this.formData = function() {
-        return this.text().then(decode)
-      };
-    }
-
-    this.json = function() {
-      return this.text().then(JSON.parse)
-    };
-
-    return this
-  }
-
-  // HTTP methods whose capitalization should be normalized
-  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
-
-  function normalizeMethod(method) {
-    var upcased = method.toUpperCase();
-    return methods.indexOf(upcased) > -1 ? upcased : method
-  }
-
-  function Request(input, options) {
-    options = options || {};
-    var body = options.body;
-
-    if (input instanceof Request) {
-      if (input.bodyUsed) {
-        throw new TypeError('Already read')
-      }
-      this.url = input.url;
-      this.credentials = input.credentials;
-      if (!options.headers) {
-        this.headers = new Headers(input.headers);
-      }
-      this.method = input.method;
-      this.mode = input.mode;
-      this.signal = input.signal;
-      if (!body && input._bodyInit != null) {
-        body = input._bodyInit;
-        input.bodyUsed = true;
-      }
-    } else {
-      this.url = String(input);
-    }
-
-    this.credentials = options.credentials || this.credentials || 'same-origin';
-    if (options.headers || !this.headers) {
-      this.headers = new Headers(options.headers);
-    }
-    this.method = normalizeMethod(options.method || this.method || 'GET');
-    this.mode = options.mode || this.mode || null;
-    this.signal = options.signal || this.signal;
-    this.referrer = null;
-
-    if ((this.method === 'GET' || this.method === 'HEAD') && body) {
-      throw new TypeError('Body not allowed for GET or HEAD requests')
-    }
-    this._initBody(body);
-  }
-
-  Request.prototype.clone = function() {
-    return new Request(this, {body: this._bodyInit})
-  };
-
-  function decode(body) {
-    var form = new FormData();
-    body
-      .trim()
-      .split('&')
-      .forEach(function(bytes) {
-        if (bytes) {
-          var split = bytes.split('=');
-          var name = split.shift().replace(/\+/g, ' ');
-          var value = split.join('=').replace(/\+/g, ' ');
-          form.append(decodeURIComponent(name), decodeURIComponent(value));
-        }
-      });
-    return form
-  }
-
-  function parseHeaders(rawHeaders) {
-    var headers = new Headers();
-    // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
-    // https://tools.ietf.org/html/rfc7230#section-3.2
-    var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
-    preProcessedHeaders.split(/\r?\n/).forEach(function(line) {
-      var parts = line.split(':');
-      var key = parts.shift().trim();
-      if (key) {
-        var value = parts.join(':').trim();
-        headers.append(key, value);
-      }
-    });
-    return headers
-  }
-
-  Body.call(Request.prototype);
-
-  function Response(bodyInit, options) {
-    if (!options) {
-      options = {};
-    }
-
-    this.type = 'default';
-    this.status = options.status === undefined ? 200 : options.status;
-    this.ok = this.status >= 200 && this.status < 300;
-    this.statusText = 'statusText' in options ? options.statusText : 'OK';
-    this.headers = new Headers(options.headers);
-    this.url = options.url || '';
-    this._initBody(bodyInit);
-  }
-
-  Body.call(Response.prototype);
-
-  Response.prototype.clone = function() {
-    return new Response(this._bodyInit, {
-      status: this.status,
-      statusText: this.statusText,
-      headers: new Headers(this.headers),
-      url: this.url
-    })
-  };
-
-  Response.error = function() {
-    var response = new Response(null, {status: 0, statusText: ''});
-    response.type = 'error';
-    return response
-  };
-
-  var redirectStatuses = [301, 302, 303, 307, 308];
-
-  Response.redirect = function(url, status) {
-    if (redirectStatuses.indexOf(status) === -1) {
-      throw new RangeError('Invalid status code')
-    }
-
-    return new Response(null, {status: status, headers: {location: url}})
-  };
-
-  exports.DOMException = self.DOMException;
-  try {
-    new exports.DOMException();
-  } catch (err) {
-    exports.DOMException = function(message, name) {
-      this.message = message;
-      this.name = name;
-      var error = Error(message);
-      this.stack = error.stack;
-    };
-    exports.DOMException.prototype = Object.create(Error.prototype);
-    exports.DOMException.prototype.constructor = exports.DOMException;
-  }
-
-  function fetch(input, init) {
-    return new Promise(function(resolve, reject) {
-      var request = new Request(input, init);
-
-      if (request.signal && request.signal.aborted) {
-        return reject(new exports.DOMException('Aborted', 'AbortError'))
-      }
-
-      var xhr = new XMLHttpRequest();
-
-      function abortXhr() {
-        xhr.abort();
-      }
-
-      xhr.onload = function() {
-        var options = {
-          status: xhr.status,
-          statusText: xhr.statusText,
-          headers: parseHeaders(xhr.getAllResponseHeaders() || '')
-        };
-        options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
-        var body = 'response' in xhr ? xhr.response : xhr.responseText;
-        resolve(new Response(body, options));
-      };
-
-      xhr.onerror = function() {
-        reject(new TypeError('Network request failed'));
-      };
-
-      xhr.ontimeout = function() {
-        reject(new TypeError('Network request failed'));
-      };
-
-      xhr.onabort = function() {
-        reject(new exports.DOMException('Aborted', 'AbortError'));
-      };
-
-      xhr.open(request.method, request.url, true);
-
-      if (request.credentials === 'include') {
-        xhr.withCredentials = true;
-      } else if (request.credentials === 'omit') {
-        xhr.withCredentials = false;
-      }
-
-      if ('responseType' in xhr && support.blob) {
-        xhr.responseType = 'blob';
-      }
-
-      request.headers.forEach(function(value, name) {
-        xhr.setRequestHeader(name, value);
-      });
-
-      if (request.signal) {
-        request.signal.addEventListener('abort', abortXhr);
-
-        xhr.onreadystatechange = function() {
-          // DONE (success or failure)
-          if (xhr.readyState === 4) {
-            request.signal.removeEventListener('abort', abortXhr);
-          }
-        };
-      }
-
-      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
-    })
-  }
-
-  fetch.polyfill = true;
-
-  if (!self.fetch) {
-    self.fetch = fetch;
-    self.Headers = Headers;
-    self.Request = Request;
-    self.Response = Response;
-  }
-
-  exports.Headers = Headers;
-  exports.Request = Request;
-  exports.Response = Response;
-  exports.fetch = fetch;
-
-  Object.defineProperty(exports, '__esModule', { value: true });
-
-  return exports;
-
-})({});
-})(__self__);
-__self__.fetch.ponyfill = true;
-// Remove "polyfill" property added by whatwg-fetch
-delete __self__.fetch.polyfill;
-// Choose between native implementation (global) or custom implementation (__self__)
-// var ctx = global.fetch ? global : __self__;
-var ctx = __self__; // this line disable service worker support temporarily
-exports = ctx.fetch // To enable: import fetch from 'cross-fetch'
-exports.default = ctx.fetch // For TypeScript consumers without esModuleInterop.
-exports.fetch = ctx.fetch // To enable: import {fetch} from 'cross-fetch'
-exports.Headers = ctx.Headers
-exports.Request = ctx.Request
-exports.Response = ctx.Response
-module.exports = exports
-
-},{}],15:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
+exports.isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
 
 },{}]},{},[1]);

@@ -55,9 +55,7 @@ export const apiUrl = (config: ApiConfig): string => {
 /**
  * Takes an ApiConfig object and returns the URL to fetch API details
  */
-export const apiInfoUrl = (
-  config: ApiConfig,
-): string => {
+export const apiInfoUrl = (config: ApiConfig): string => {
   if (!config.baseUrl) {
     throw new Error('Base URL missing');
   }

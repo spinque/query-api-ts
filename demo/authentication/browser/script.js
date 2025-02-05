@@ -10,7 +10,7 @@
  *  - python -m http.server 4200
  */
 
-const sqa = require("@spinque/query-api");
+const sqa = require("../../../dist");
 
 async function main() {
   const apiWithAuth = new sqa.Api({
@@ -30,10 +30,10 @@ async function main() {
   }];
 
   // Fetch response (or get URL and use your own HTTP library)
-  const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
+  // const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
 
-  console.log(response);
-  alert('Check the console for the results');
+  // console.log(response);
+  // alert('Check the console for the results');
 }
 
 main();
