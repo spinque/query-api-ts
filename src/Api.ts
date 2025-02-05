@@ -16,7 +16,7 @@ import {
   ApiNotFoundError,
   WorkspaceConfigNotFoundError,
 } from './types';
-import { urlFromQueries } from './utils';
+import { apiInfoUrl, urlFromQueries } from './utils';
 
 // This is the default base URL to the Spinque Query API.
 export const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
@@ -100,6 +100,21 @@ export class Api {
           apiConfig.authentication.tokenCache,
           apiConfig.baseUrl,
         );
+      }
+
+      // Skip if there is already an access token in the cache
+      if (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get()) {
+        // Request the API information
+        const url = apiInfoUrl(this.apiConfig);
+        fetch(url).then((res) => {
+          if (res.status === 200) {
+            // If this is allowed without authentication, we can forget about it
+            this._authentication = undefined;
+          } else {
+            // If this is not allowed, request an access token
+            this._authenticator?.accessToken.then(() => {});
+          }
+        });
       }
     }
   }
