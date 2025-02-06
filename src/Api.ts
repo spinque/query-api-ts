@@ -14,7 +14,7 @@ import {
   UnauthorizedError,
   WorkspaceConfigNotFoundError,
 } from './types';
-import { apiStatusUrl, urlFromQueries } from './utils';
+import { apiUrl, urlFromQueries } from './utils';
 
 // This is the default base URL to the Spinque Query API.
 export const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
@@ -103,7 +103,7 @@ export class Api {
       // Skip if there is already an access token in the cache
       if (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get()) {
         // Request the API information
-        const url = apiStatusUrl(this.apiConfig);
+        const url = apiUrl(this.apiConfig);
         fetch(url).then((res) => {
           if (res.status === 200) {
             // If this is allowed without authentication, we can forget about it

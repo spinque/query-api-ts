@@ -144,14 +144,18 @@ var Api = /** @class */ (function () {
                 this._authentication = apiConfig.authentication;
                 this._authenticator = new authentication_1.PKCE(apiConfig.authentication.clientId, apiConfig.authentication.callback, apiConfig.authentication.authServer, apiConfig.authentication.tokenCache, apiConfig.baseUrl);
             }
+            // Skip if there is already an access token in the cache
             if (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get()) {
-                var url = (0, utils_1.apiInfoUrl)(this.apiConfig);
+                // Request the API information
+                var url = (0, utils_1.apiStatusUrl)(this.apiConfig);
                 fetch(url).then(function (res) {
                     var _a;
                     if (res.status === 200) {
+                        // If this is allowed without authentication, we can forget about it
                         _this._authentication = undefined;
                     }
-                    else if (res.status === 401) {
+                    else {
+                        // If this is not allowed, request an access token
                         (_a = _this._authenticator) === null || _a === void 0 ? void 0 : _a.accessToken.then(function () { });
                     }
                 });
@@ -1314,7 +1318,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isBrowser = exports.stringifyQueries = exports.parseQueries = exports.join = exports.tupleListToString = exports.stringToTupleList = exports.urlFromQueries = exports.apiInfoUrl = exports.apiUrl = exports.pathFromQuery = exports.pathFromQueries = void 0;
+exports.isBrowser = exports.stringifyQueries = exports.parseQueries = exports.join = exports.tupleListToString = exports.stringToTupleList = exports.urlFromQueries = exports.apiStatusUrl = exports.apiUrl = exports.pathFromQuery = exports.pathFromQueries = void 0;
 /**
  * Takes an array of Query objects and returns the path they would represent in a Query API request URL.
  */
@@ -1336,6 +1340,9 @@ var pathFromQuery = function (query) {
     return exports.join.apply(void 0, __spreadArray([], __read(parts), false));
 };
 exports.pathFromQuery = pathFromQuery;
+/**
+ * Takes an ApiConfig object and returns the URL to fetch API details
+ */
 var apiUrl = function (config) {
     if (!config.baseUrl) {
         throw new Error('Base URL missing');
@@ -1355,6 +1362,10 @@ var apiUrl = function (config) {
     }
     // Construct base URL containing Spinque version and workspace
     url += (0, exports.join)(config.version, config.workspace, 'api', config.api);
+    // For loadbalancer reasons, the API URL should end with a slash
+    if (!url.endsWith('/')) {
+        url += '/';
+    }
     // Add config if provided
     if (config.config) {
         url += "?config=".concat(config.config);
@@ -1363,9 +1374,9 @@ var apiUrl = function (config) {
 };
 exports.apiUrl = apiUrl;
 /**
- * Takes an ApiConfig object and returns the URL to fetch API details
+ * Takes an ApiConfig object and returns the URL to fetch API status
  */
-var apiInfoUrl = function (config) {
+var apiStatusUrl = function (config) {
     if (!config.baseUrl) {
         throw new Error('Base URL missing');
     }
@@ -1383,14 +1394,14 @@ var apiInfoUrl = function (config) {
         url += '/';
     }
     // Construct base URL containing Spinque version and workspace
-    url += (0, exports.join)(config.version, config.workspace, 'api', config.api);
+    url += (0, exports.join)(config.version, config.workspace, 'api', config.api, 'status');
     // Add config if provided
     if (config.config) {
         url += "?config=".concat(config.config);
     }
     return url;
 };
-exports.apiInfoUrl = apiInfoUrl;
+exports.apiStatusUrl = apiStatusUrl;
 /**
  * Takes an ApiConfig object and array of Query objects and returns a Query API request URL.
  */
