@@ -19,9 +19,9 @@ async function main() {
     authentication: {
       type: 'pkce',
       clientId: '9xa3MpWBCeG72XCohLIYAVigdiL00OvO',
-      callback: 'http://localhost:4200'
-    },
-    tokenCache: sqa.localStorageTokenCache
+      callback: 'http://localhost:4200',
+      tokenCache: sqa.localStorageTokenCache
+    }
   });
 
   const queries = [{
@@ -30,9 +30,9 @@ async function main() {
   }];
 
   // Fetch response (or get URL and use your own HTTP library)
-  // const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
+  const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
 
-  // console.log(response);
+  console.log(response);
   // alert('Check the console for the results');
 }
 

@@ -20,9 +20,9 @@ async function main() {
     authentication: {
       type: 'pkce',
       clientId: '9xa3MpWBCeG72XCohLIYAVigdiL00OvO',
-      callback: 'http://localhost:4200'
-    },
-    tokenCache: sqa.localStorageTokenCache
+      callback: 'http://localhost:4200',
+      tokenCache: sqa.localStorageTokenCache
+    }
   });
 
   const queries = [{
@@ -31,9 +31,9 @@ async function main() {
   }];
 
   // Fetch response (or get URL and use your own HTTP library)
-  // const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
+  const response = await apiWithAuth.fetch(queries, { count: 10, offset: 0 });
 
-  // console.log(response);
+  console.log(response);
   // alert('Check the console for the results');
 }
 
@@ -144,22 +144,28 @@ var Api = /** @class */ (function () {
                 this._authentication = apiConfig.authentication;
                 this._authenticator = new authentication_1.PKCE(apiConfig.authentication.clientId, apiConfig.authentication.callback, apiConfig.authentication.authServer, apiConfig.authentication.tokenCache, apiConfig.baseUrl);
             }
-            // Skip if there is already an access token in the cache
-            if (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get()) {
-                // Request the API information
-                var url = (0, utils_1.apiStatusUrl)(this.apiConfig);
-                fetch(url).then(function (res) {
-                    var _a;
-                    if (res.status === 200) {
-                        // If this is allowed without authentication, we can forget about it
-                        _this._authentication = undefined;
-                    }
-                    else {
-                        // If this is not allowed, request an access token
-                        (_a = _this._authenticator) === null || _a === void 0 ? void 0 : _a.accessToken.then(function () { });
-                    }
-                });
-            }
+        }
+        // If auth is configured but there is not token yet..
+        if ((apiConfig === null || apiConfig === void 0 ? void 0 : apiConfig.authentication) && (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get())) {
+            console.log(apiConfig.authentication.tokenCache);
+            // Request the API information to see if auth is actually needed
+            var url = (0, utils_1.apiUrl)(this.apiConfig);
+            // Save the status in _isInitialized to delay incoming fetch requests until we know if auth is needed
+            this._isInitialized = fetch(url).then(function (res) {
+                var _a;
+                if (res.status === 200 || !_this._authenticator) {
+                    // If this is allowed without authentication, we can forget about the auth confug
+                    _this._authentication = undefined;
+                    return new Promise(function (resolve) { return resolve(true); });
+                }
+                else {
+                    // If this is not allowed, request an access token
+                    return (_a = _this._authenticator) === null || _a === void 0 ? void 0 : _a.accessToken.then(function () { return true; });
+                }
+            });
+        }
+        else {
+            this._isInitialized = new Promise(function (resolve) { return resolve(true); });
         }
     }
     Object.defineProperty(Api.prototype, "accessToken", {
@@ -208,7 +214,9 @@ var Api = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
+                    case 0: return [4 /*yield*/, this._isInitialized];
+                    case 1:
+                        _a.sent();
                         // Convert single query to array of queries
                         if (!(queries instanceof Array)) {
                             queries = [queries];
@@ -217,13 +225,13 @@ var Api = /** @class */ (function () {
                             throw new Error('Queries array is empty');
                         }
                         url = (0, utils_1.urlFromQueries)(this.apiConfig, queries, options, requestType);
-                        if (!(this.authentication && this._authenticator)) return [3 /*break*/, 2];
+                        if (!(this.authentication && this._authenticator)) return [3 /*break*/, 3];
                         return [4 /*yield*/, this._authenticator.accessToken];
-                    case 1:
+                    case 2:
                         token = _a.sent();
                         requestInit = { headers: new Headers(__assign(__assign({}, requestInit.headers), { Authorization: "Bearer ".concat(token) })) };
-                        _a.label = 2;
-                    case 2: 
+                        _a.label = 3;
+                    case 3: 
                     // Make the request
                     return [2 /*return*/, fetch(url, requestInit).then(function (res) { return _this.handleResponse(res); })];
                 }

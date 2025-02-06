@@ -61,6 +61,8 @@ export class Api {
   private _authentication?: ApiAuthenticationConfig;
   private _authenticator?: Authenticator;
 
+  private _isInitialized: Promise<boolean>;
+
   constructor(apiConfig?: ApiConfig) {
     if (apiConfig && apiConfig.baseUrl) {
       this.baseUrl = apiConfig.baseUrl;
@@ -99,21 +101,28 @@ export class Api {
           apiConfig.baseUrl,
         );
       }
+    }
 
-      // Skip if there is already an access token in the cache
-      if (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get()) {
-        // Request the API information
-        const url = apiUrl(this.apiConfig);
-        fetch(url).then((res) => {
-          if (res.status === 200) {
-            // If this is allowed without authentication, we can forget about it
-            this._authentication = undefined;
-          } else {
-            // If this is not allowed, request an access token
-            this._authenticator?.accessToken.then(() => {});
-          }
-        });
-      }
+    // If auth is configured but there is not token yet..
+    if (
+      apiConfig?.authentication &&
+      (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get())
+    ) {
+      // Request the API information to see if auth is actually needed
+      const url = apiUrl(this.apiConfig);
+      // Save the status in _isInitialized to delay incoming fetch requests until we know if auth is needed
+      this._isInitialized = fetch(url).then((res) => {
+        if (res.status === 200 || !this._authenticator) {
+          // If this is allowed without authentication, we can forget about the auth confug
+          this._authentication = undefined;
+          return new Promise((resolve) => resolve(true));
+        } else {
+          // If this is not allowed, request an access token
+          return this._authenticator?.accessToken.then(() => true);
+        }
+      });
+    } else {
+      this._isInitialized = new Promise((resolve) => resolve(true));
     }
   }
 
@@ -152,6 +161,8 @@ export class Api {
     requestType?: R,
     requestInit: RequestInit = {},
   ): Promise<ResponseType<R, T>> {
+    await this._isInitialized;
+
     // Convert single query to array of queries
     if (!(queries instanceof Array)) {
       queries = [queries];
