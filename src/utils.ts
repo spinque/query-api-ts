@@ -21,6 +21,9 @@ export const pathFromQuery = (query: Query): string => {
   return join(...parts);
 };
 
+/**
+ * Takes an ApiConfig object and returns the URL to fetch API details
+ */
 export const apiUrl = (config: ApiConfig): string => {
   if (!config.baseUrl) {
     throw new Error('Base URL missing');
@@ -44,6 +47,11 @@ export const apiUrl = (config: ApiConfig): string => {
   // Construct base URL containing Spinque version and workspace
   url += join(config.version, config.workspace, 'api', config.api);
 
+  // For loadbalancer reasons, the API URL should end with a slash
+  if (!url.endsWith('/')) {
+    url += '/';
+  }
+
   // Add config if provided
   if (config.config) {
     url += `?config=${config.config}`;
@@ -53,9 +61,9 @@ export const apiUrl = (config: ApiConfig): string => {
 };
 
 /**
- * Takes an ApiConfig object and returns the URL to fetch API details
+ * Takes an ApiConfig object and returns the URL to fetch API status
  */
-export const apiInfoUrl = (config: ApiConfig): string => {
+export const apiStatusUrl = (config: ApiConfig): string => {
   if (!config.baseUrl) {
     throw new Error('Base URL missing');
   }
@@ -76,7 +84,7 @@ export const apiInfoUrl = (config: ApiConfig): string => {
   }
 
   // Construct base URL containing Spinque version and workspace
-  url += join(config.version, config.workspace, 'api', config.api);
+  url += join(config.version, config.workspace, 'api', config.api, 'status');
 
   // Add config if provided
   if (config.config) {

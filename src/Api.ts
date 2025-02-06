@@ -1,22 +1,20 @@
-import { ResultsResponse, StatisticsResponse } from '.';
 import { Authenticator, ClientCredentials, PKCE } from './authentication';
 import {
   ApiAuthenticationConfig,
   ApiConfig,
+  ApiNotFoundError,
   EndpointNotFoundError,
   ErrorResponse,
   Query,
   RequestOptions,
   RequestType,
   ResponseType,
-  ServerError,
   ResultItemTupleTypes,
+  ServerError,
   UnauthorizedError,
-  CountResponse,
-  ApiNotFoundError,
   WorkspaceConfigNotFoundError,
 } from './types';
-import { apiInfoUrl, urlFromQueries } from './utils';
+import { apiStatusUrl, urlFromQueries } from './utils';
 
 // This is the default base URL to the Spinque Query API.
 export const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
@@ -105,7 +103,7 @@ export class Api {
       // Skip if there is already an access token in the cache
       if (!apiConfig.authentication.tokenCache || !apiConfig.authentication.tokenCache.get()) {
         // Request the API information
-        const url = apiInfoUrl(this.apiConfig);
+        const url = apiStatusUrl(this.apiConfig);
         fetch(url).then((res) => {
           if (res.status === 200) {
             // If this is allowed without authentication, we can forget about it
