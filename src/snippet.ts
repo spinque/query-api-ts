@@ -2,6 +2,8 @@ import * as snowball from './snowball/snowball';
 import { stopwords as dutch } from './snowball/stopwords/dutch';
 import { stopwords as english } from './snowball/stopwords/english';
 
+export type Language = 'english' | 'dutch';
+
 export interface SnippetOptions {
   /**
    * Maximum number of characters the snippet may be.
@@ -16,12 +18,12 @@ export interface SnippetOptions {
   /**
    * Lists of stopwords to ignore while finding the best snippet.
    */
-  stopwords?: 'dutch' | 'english';
+  stopwords?: Language;
 
   /**
    * Stemmer to use when comparing query terms with text terms.
    */
-  stemmer?: snowball.StemmerAlgorithm;
+  stemmer?: Language;
 }
 
 const DEFAULT_SIZE = 512;
@@ -166,10 +168,10 @@ const STOPWORDS_PER_LANG = { dutch, english };
  * Cache the stemmer in memory to prevent calling `newStemmer` often.
  */
 const cachedStemmers: {
-  [stemmer in snowball.StemmerAlgorithm]?: snowball.Stemmer;
+  [key: string]: snowball.Stemmer;
 } = {};
 
-const getStemmer = (stemmer: snowball.StemmerAlgorithm): snowball.Stemmer => {
+const getStemmer = (stemmer: string): snowball.Stemmer => {
   if (!cachedStemmers[stemmer]) {
     cachedStemmers[stemmer] = snowball.newStemmer(stemmer);
   }
@@ -180,7 +182,7 @@ class TextProcessor {
   private stemmer: (word: string) => string;
   private stopwords: Set<string>;
 
-  constructor(stopwords?: 'dutch' | 'english', stemmer?: snowball.StemmerAlgorithm) {
+  constructor(stopwords?: Language, stemmer?: Language) {
     if (stopwords) {
       this.stopwords = STOPWORDS_PER_LANG[stopwords];
     } else {
