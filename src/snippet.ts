@@ -60,12 +60,18 @@ export const getSnippet = (text: string, query: string, options: SnippetOptions 
   }
 
   return snippet;
-}
+};
 
 /**
  * Find the best snippet of a text for a query, given a scoring function and text processor.
  */
-const findBestSnippet = (text: string, query: string, score: (docterms: string[], qterms: string[]) => number, processor: TextProcessor, size: number) => {
+const findBestSnippet = (
+  text: string,
+  query: string,
+  score: (docterms: string[], qterms: string[]) => number,
+  processor: TextProcessor,
+  size: number,
+) => {
   const qterms = processor.tokenize(query);
   const sentences = splitIntoSentences(text);
 
@@ -98,7 +104,7 @@ const findBestSnippet = (text: string, query: string, score: (docterms: string[]
   }
 
   return bestSnippet;
-}
+};
 
 /**
  * Highlight matching words by wrapping in <mark> tags
@@ -112,7 +118,7 @@ const highlight = (snippet: string, query: string, processor: TextProcessor) => 
     }
     return word;
   });
-}
+};
 
 /**
  * Truncates a piece of text to the desired maximum length and appends '...' to the end.
@@ -122,38 +128,36 @@ export const truncate = (text: string, size = 512): string => {
     return text;
   }
   return `${text.slice(0, size - 3)}...`;
-}
+};
 
 /**
  * Split text into sentence using a Regular Expression.
  */
 export const splitIntoSentences = (text: string): string[] => {
   return text.match(/[^.!?]+[.!?]+/g) || [];
-}
-
+};
 
 /**
  * Scoring function to rank snippets by. Plain term frequency over all query terms
  */
 const termFrequency = (docterms: string[], qterms: string[]) => {
   let score = 0;
-  qterms.forEach(qterm => {
-    score += docterms.filter(s => s === qterm).length;
+  qterms.forEach((qterm) => {
+    score += docterms.filter((s) => s === qterm).length;
   });
   return score;
-}
+};
 
 /**
  * Scoring function to rank snippets by. Takes the log of term frequency per distinct query term.
  */
 const logWeightedTermFrequency = (docterms: string[], qterms: string[]) => {
   let score = 0;
-  qterms.forEach(qterm => {
-    score += Math.log(1 + docterms.filter(s => s === qterm).length);
+  qterms.forEach((qterm) => {
+    score += Math.log(1 + docterms.filter((s) => s === qterm).length);
   });
   return score;
-}
-
+};
 
 // Dictionary of stopword lists per language
 const STOPWORDS_PER_LANG = { dutch, english };
@@ -170,10 +174,9 @@ const getStemmer = (stemmer: snowball.StemmerAlgorithm): snowball.Stemmer => {
     cachedStemmers[stemmer] = snowball.newStemmer(stemmer);
   }
   return cachedStemmers[stemmer] as snowball.Stemmer;
-}
+};
 
 class TextProcessor {
-
   private stemmer: (word: string) => string;
   private stopwords: Set<string>;
 
@@ -202,7 +205,7 @@ class TextProcessor {
 
   /**
    * Processed one word by checking the list of stopwords and stemming
-   * @param word 
+   * @param word
    * @returns null if the word should be ignored
    */
   tokenize_one(word: string) {
