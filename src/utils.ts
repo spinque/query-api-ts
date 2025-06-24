@@ -101,7 +101,7 @@ export const urlFromQueries = (
   config: ApiConfig,
   queries: Query | Query[],
   options?: RequestOptions,
-  requestType: RequestType = 'results',
+  requestType: RequestType = RequestType.Results,
 ): string => {
   if (!(queries instanceof Array)) {
     queries = [queries];

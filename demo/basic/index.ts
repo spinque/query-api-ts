@@ -1,5 +1,5 @@
 import { Api, Query, UnauthorizedError } from '../../src';
-import { EndpointNotFoundError } from '../../src/types';
+import { EndpointNotFoundError, RequestType } from '../../src/types';
 import { urlFromQueries } from '../../src/utils';
 
 async function main() {
@@ -12,6 +12,7 @@ async function main() {
 
   await basic(api);
   await statistics(api);
+  await entityViews(api);
 }
 
 /**
@@ -25,7 +26,7 @@ async function main() {
 
   // Fetch response (or get URL and use your own HTTP library)
   try {
-    const response = await api.fetch(queries, { count: 10, offset: 0 }, 'results');
+    const response = await api.fetch(queries, { count: 10, offset: 0 }, RequestType.Results);
     console.log(response);
 
     const url = urlFromQueries(api.apiConfig, queries, { count: 10, offset: 0 });
@@ -45,7 +46,7 @@ async function main() {
 /**
  * Retrieving statistics for a query
  */
- async function statistics(api: Api) {
+async function statistics(api: Api) {
   console.log('\nStatistics\n');
 
   const queries: Query[] = [{
@@ -53,7 +54,21 @@ async function main() {
     parameters: { id: 'https://imdb.com/data/movie/tt0209144' }
   }];
 
-  const response = await api.fetch(queries, { }, 'statistics');
+  const response = await api.fetch(queries, { }, RequestType.Statistics);
+  console.log(response);
+}
+
+/**
+ * Retrieving results using entity views
+ */
+async function entityViews(api: Api) {
+  console.log('\nEntity views\n');
+
+  const queries: Query[] = [{
+    endpoint: 'movies',
+  }];
+
+  const response = await api.fetch(queries, { }, RequestType.ResultPage);
   console.log(response);
 }
 

@@ -9,7 +9,7 @@ import {
   RequestOptions,
   RequestType,
   ResponseType,
-  ResultItemTupleTypes,
+  TupleTypes,
   ServerError,
   UnauthorizedError,
   WorkspaceConfigNotFoundError,
@@ -153,9 +153,9 @@ export class Api {
 
   /**
    * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
-   * Optionally the `fetch` RequestInit can be passed.
+   * Optionally the `fetch` RequestInit can be passed (see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit).
    */
-  async fetch<T extends ResultItemTupleTypes[] = ResultItemTupleTypes[], R extends RequestType = 'results'>(
+  async fetch<T extends TupleTypes[] = TupleTypes[], R extends RequestType = RequestType.Results>(
     queries: Query | Query[],
     options?: RequestOptions,
     requestType?: R,
@@ -187,7 +187,7 @@ export class Api {
   /**
    * Handle the response of a fetch to Spinque Query API.
    */
-  private async handleResponse<R extends RequestType, T = ResultItemTupleTypes[]>(
+  private async handleResponse<R extends RequestType, T = TupleTypes[]>(
     response: Response,
   ): Promise<ResponseType<R, T>> {
     const json = await response.json();

@@ -1,5 +1,5 @@
 import { Api, Query, UnauthorizedError } from '../../src';
-import { EndpointNotFoundError } from '../../src/types';
+import { EndpointNotFoundError, RequestType } from '../../src/types';
 import { urlFromQueries } from '../../src/utils';
 
 async function main() {
@@ -53,7 +53,7 @@ async function main() {
     parameters: { id: 'https://imdb.com/data/movie/tt0209144' }
   }];
 
-  const response = await api.fetch(queries, { }, 'statistics');
+  const response = await api.fetch(queries, { }, RequestType.Statistics);
   console.log(response);
 }
 

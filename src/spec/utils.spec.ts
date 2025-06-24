@@ -1,5 +1,5 @@
 import { pathFromQueries, pathFromQuery, tupleListToString, urlFromQueries } from '../utils';
-import { ApiConfig, Query } from '..';
+import { ApiConfig, Query, RequestType } from '..';
 
 describe('utils', () => {
   it('pathFromQuery should convert a Query to a string', () => {
@@ -155,7 +155,7 @@ describe('utils', () => {
       config: 'default',
     };
     const query: Query = { endpoint: 'my-endpoint' };
-    expect(urlFromQueries(apiConfig, query, {}, 'statistics')).toEqual(
+    expect(urlFromQueries(apiConfig, query, {}, RequestType.Statistics)).toEqual(
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/statistics?config=default',
     );
   });

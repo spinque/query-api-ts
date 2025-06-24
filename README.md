@@ -88,8 +88,10 @@ try {
 
 You can also fetch other type of responses:
 ```typescript
-const statistics = await api.fetch(query, { count: 10 }, 'statistics');
-const resultsWithCount = await api.fetch(query, { count: 10 }, 'results,count');
+import { RequestType } from "@spinque/query-api";
+
+const statistics = await api.fetch(query, { count: 10 }, RequestType.Statistics);
+const resultsWithCount = await api.fetch(query, { count: 10 }, RequestType.ResultsAndCount);
 ```
 
 You can bring your own [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit) for `fetch`:

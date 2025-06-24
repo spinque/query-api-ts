@@ -116,10 +116,38 @@ export interface Query {
 
 /**
  * Any request to the Spinque Query API must be one of these types.
- * 'results' will return actual result items.
- * 'statistics' will return the probability distribution for the query.
  */
-export type RequestType = 'results' | 'statistics' | 'count' | 'results,count';
+export enum RequestType {
+  /**
+   * Request a count of the results
+   */
+  Count = 'count',
+
+  /**
+   * Request statistics, which includes result count and probability distribution
+   */
+  Statistics = 'statistics',
+
+  /**
+   * Fetch a page with results, using the entity view formatter
+   */
+  ResultPage = 'resultpage',
+
+  /**
+   * Fetch a single item, using the entity view formatter
+   */
+  ResultItem = 'resultitem',
+
+  /**
+   * Fetch a page with results, using the result description formatter
+   */
+  Results = 'results',
+
+  /**
+   * Fetch a page with results, using the result description formatter, and include the total count
+   */
+  ResultsAndCount = 'results,count',
+}
 
 export interface RequestOptions {
   // Number of items returned. Default value is 10. Should be between 1 and 100.
@@ -141,17 +169,19 @@ export interface RequestOptions {
 /**
  * Map from RequestType to a Response type
  */
-type ResponseMap<T = ResultItemTupleTypes[]> = {
-  results: ResultsResponse<T>;
-  statistics: StatisticsResponse;
-  count: CountResponse;
-  'results,count': ResultsAndCountResponse<T>;
+type ResponseMap<T = TupleTypes[]> = {
+  [RequestType.Count]: CountResponse;
+  [RequestType.Statistics]: StatisticsResponse;
+  [RequestType.ResultPage]: ResultsResponse<ResultObject[]>;
+  [RequestType.ResultItem]: ResultObject;
+  [RequestType.Results]: ResultsResponse<T>;
+  [RequestType.ResultsAndCount]: ResultsAndCountResponse<T>;
 };
 
 /**
  * ResponseType based on RequestType
  */
-export type ResponseType<U extends RequestType, T = ResultItemTupleTypes[]> = U extends keyof ResponseMap
+export type ResponseType<U extends RequestType, T = TupleTypes[]> = U extends keyof ResponseMap
   ? ResponseMap<T>[U]
   : never;
 
@@ -163,12 +193,12 @@ export type ResponseType<U extends RequestType, T = ResultItemTupleTypes[]> = U 
  */
 export type DataType = 'OBJ' | 'STRING' | 'DATE' | 'INTEGER' | 'DOUBLE' | 'TUPLE_LIST';
 
-export type ResultItemTupleTypes = string | number | SpinqueResultObject;
+export type TupleTypes = string | number | SpinqueResultObject | ResultObject;
 
 /**
  * Response to a Query that contains the results
  */
-export interface ResultsResponse<T = ResultItemTupleTypes[]> {
+export interface ResultsResponse<T = TupleTypes[]> {
   // Number of results requested. This may be more than the actual number of items returned.
   // If 'count' is larger than the number of items in the response, you've reached the last page.
   count: number;
@@ -180,7 +210,7 @@ export interface ResultsResponse<T = ResultItemTupleTypes[]> {
   items: ResultItem<T>[];
 }
 
-export interface ResultItem<T = ResultItemTupleTypes[]> {
+export interface ResultItem<T = TupleTypes[]> {
   // The rank of this result item, starting with 1.
   rank: number;
   // The probability/score of this result item.
@@ -190,7 +220,7 @@ export interface ResultItem<T = ResultItemTupleTypes[]> {
 }
 
 /**
- * Output format of Spinque's OBJ type
+ * Output format of Spinque's OBJ type, using the result description formatter
  */
 export interface SpinqueResultObject {
   /**
@@ -218,6 +248,11 @@ export interface SpinqueResultObject {
 }
 
 /**
+ * Result object using entity view formatter
+ */
+export type ResultObject = { [key: string]: string | number | ResultObject };
+
+/**
  * Response to a Query that contains statistics
  */
 export interface StatisticsResponse {
@@ -243,7 +278,7 @@ export interface CountResponse {
 }
 
 // TODO: this is unexpected behaviour of the backend (CountResponse is expected). It will be resolved at some point but impacts the public API
-export type ResultsAndCountResponse<T = ResultItemTupleTypes[]> = [ResultsResponse<T>, StatisticsResponse];
+export type ResultsAndCountResponse<T = TupleTypes[]> = [ResultsResponse<T>, StatisticsResponse];
 
 /**
  * Generic error response class. Is implemented by more specific error type classes.
