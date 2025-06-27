@@ -136,7 +136,7 @@ export const truncate = (text: string, size = 512): string => {
  * Split text into sentence using a Regular Expression.
  */
 export const splitIntoSentences = (text: string): string[] => {
-  return text.match(/[^.!?]+[.!?]+/g) || [];
+  return text.match(/[^.!?]+[.!?]+/g) || [text];
 };
 
 /**
