@@ -1,15 +1,15 @@
-import { FacetFilter, FacetType, Query } from './types';
+import { FacetFilter, FacetType, Filter, Query } from './types';
 import { tupleListToString } from './utils';
 
-// for backwards compat
-export type Facet = FacetFilter;
+
+const isFacetFilter = (filter: Filter): filter is FacetFilter => 'optionsEndpoint' in filter;
 
 /**
  * Associate Query objects with each other in a faceted search setup.
  */
-export class FacetedSearch {
+export class FilteredSearch {
   // Internal list of Facet objects
-  private _facets: FacetFilter[] = [];
+  private _filters: Filter[] = [];
 
   private _modifiers?: Query[];
   private _activeModifier?: Query;
@@ -35,7 +35,7 @@ export class FacetedSearch {
   }
 
   /**
-   * Add a facet to the FacetedSearch object.
+   * Add a facet to the FilteredSearch object.
    */
   addFacet(
     endpoint: string,
@@ -44,7 +44,7 @@ export class FacetedSearch {
     filterEndpointPostfix = ':FILTER',
     filterEndpointParameterName = 'value',
   ) {
-    this._facets.push({
+    this._filters.push({
       optionsEndpoint: endpoint,
       filterEndpoint: `${endpoint}${filterEndpointPostfix}`,
       filterParameterName: filterEndpointParameterName,
@@ -54,8 +54,19 @@ export class FacetedSearch {
     });
   }
 
-  get facets(): FacetFilter[] {
-    return this._facets;
+  addSimpleFilter(filterEndpoint: string, resetOnQueryChange = true, filterParameterName = 'value') {
+    this._filters.push({ filterEndpoint, filterParameterName, resetOnQueryChange, filterParameterValue: undefined });
+  }
+
+  /**
+   * Add a filter to the FilteredSearch object.
+   */
+  addFilter(filter: Filter) {
+    this._filters.push(filter);
+  }
+
+  get filters(): Filter[] {
+    return this._filters;
   }
 
   /**
@@ -104,7 +115,7 @@ export class FacetedSearch {
   getResultsQuery(excludeModifier = false): Query[] {
     const q = [
       this.getBaseQuery(),
-      ...this._facets
+      ...this._filters
         .filter((f) => f.filterParameterValue !== undefined && f.filterParameterValue !== '')
         .map((f) => ({
           endpoint: f.filterEndpoint,
@@ -122,19 +133,19 @@ export class FacetedSearch {
    * parameter is required.
    */
   getFacetQuery(facetEndpoint: string, excludeModifier = false): Query[] {
-    const facet = this._facets.find((f) => f.optionsEndpoint === facetEndpoint);
+    const facet = this._filters.find((f): f is FacetFilter => isFacetFilter(f) && f.optionsEndpoint === facetEndpoint);
     if (!facet) {
-      throw new Error('Facet not found in FacetedSearch');
+      throw new Error('Facet not found in FilteredSearch');
     }
 
     const q = [
       this.getBaseQuery(),
-      ...this._facets
+      ...this._filters
         .filter(
           (f) =>
             f.filterParameterValue !== undefined &&
             f.filterParameterValue !== '' &&
-            f.optionsEndpoint !== facetEndpoint,
+            (!isFacetFilter(f) || f.optionsEndpoint !== facetEndpoint),
         )
         .map((f) => ({
           endpoint: f.filterEndpoint,
@@ -159,7 +170,7 @@ export class FacetedSearch {
         [name]: value,
       },
     };
-    this._facets.forEach((f) => {
+    this._filters.forEach((f) => {
       if (f.resetOnQueryChange) {
         f.filterParameterValue = undefined;
       }
@@ -179,40 +190,52 @@ export class FacetedSearch {
   /**
    * Set the selected options for a given facet.
    */
-  public setFacetSelection(facetEndpoint: string, selection: string | string[]) {
-    if (!(selection instanceof Array)) {
-      selection = [selection];
+  public setFilterSelection(endpoint: string, selection: string | string[]) {
+    // Find the filter
+    const filter = this._filters.find(
+      (f) => f.filterEndpoint === endpoint || (isFacetFilter(f) && f.optionsEndpoint === endpoint),
+    );
+    if (!filter) {
+      throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
     }
-    const facet = this._facets.find((f) => f.optionsEndpoint === facetEndpoint);
-    if (!facet) {
-      throw new Error(`FacetedSearch does not contain facet ${facetEndpoint}`);
+
+    // Clear the value if an empty string or empty array was passed
+    if ((Array.isArray(selection) && selection.length === 0) || selection === '') {
+      filter.filterParameterValue = undefined;
+      return;
     }
-    if (selection.length === 0) {
-      facet.filterParameterValue = undefined;
-    } else if (facet.type === 'single') {
-      if (selection.length > 1) {
-        throw new Error(
-          `Facet ${facetEndpoint} is a single selection facet but more than one selected option was given.`,
-        );
+
+    if (isFacetFilter(filter)) {
+      // make sure the selection is an array
+      selection = Array.isArray(selection) ? selection : [selection];
+
+      if (filter.type === 'single') {
+        if (selection.length > 1) {
+          throw new Error(`Facet ${endpoint} is a single selection facet but more than one selected option was given.`);
+        }
+        filter.filterParameterValue = selection[0];
+      } else {
+        filter.filterParameterValue = tupleListToString(selection);
       }
-      facet.filterParameterValue = selection[0];
     } else {
-      facet.filterParameterValue = tupleListToString(selection);
+      filter.filterParameterValue = Array.isArray(selection) ? tupleListToString(selection) : selection;
     }
   }
 
   /**
-   * Clear the selection for a given facet.
+   * Clear the selection for all or a given filter.
    */
-  public clearFacetSelection(facetEndpoint?: string) {
-    if (facetEndpoint) {
-      const facet = this._facets.find((f) => f.optionsEndpoint === facetEndpoint);
+  public clearFilterSelection(endpoint?: string) {
+    if (endpoint) {
+      const facet = this._filters.find(
+        (f) => f.filterEndpoint === endpoint || (isFacetFilter(f) && f.optionsEndpoint === endpoint),
+      );
       if (!facet) {
-        throw new Error(`FacetedSearch does not contain facet ${facetEndpoint}`);
+        throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
       }
       facet.filterParameterValue = '';
     } else {
-      this._facets.forEach((f) => {
+      this._filters.forEach((f) => {
         f.filterParameterValue = '';
       });
     }

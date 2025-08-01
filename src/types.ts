@@ -326,3 +326,47 @@ export class UnauthorizedError implements ErrorResponse {
 export class ServerError implements ErrorResponse {
   constructor(public message: string, public status: number) {}
 }
+
+// Types for FacetedSearch/FilteredSearch convention
+
+export type Filter = FacetFilter | SimpleFilter;
+
+export enum FacetType {
+  single = 'single',
+  multiple = 'multiple',
+}
+
+/**
+ * Interface for objects representing a facet.
+ *
+ * Currently, this interface only supports:
+ *  - facets without a parameter for the optionsEndpoint
+ *  - facets with only one parameter for the filterEndpoint
+ *  - for facets with type=multiple: only disjunctive facets
+ */
+export interface FacetFilter {
+  // Name of the endpoint that returns the options to be displayed in the facet
+  optionsEndpoint: string;
+  // Name of the endpoint that filters search results
+  filterEndpoint: string;
+  // Name of the parameter that is expected by the filterEndpoint
+  filterParameterName: string;
+  // Optional value of the parameter expected by the filterEndpoint
+  filterParameterValue: string | undefined;
+  // Type of this facet: 'single' means only one value can be selected,
+  // 'multiple' means multiple values may be selected.
+  type: FacetType;
+  // Should the facet selection reset when the search query changes?
+  resetOnQueryChange: boolean;
+}
+
+export interface SimpleFilter {
+  // Name of the endpoint that filters search results
+  filterEndpoint: string;
+  // Name of the parameter that is expected by the filterEndpoint
+  filterParameterName: string;
+  // Optional value of the parameter expected by the filterEndpoint
+  filterParameterValue: string | undefined;
+  // Should the facet selection reset when the search query changes?
+  resetOnQueryChange: boolean;
+}
