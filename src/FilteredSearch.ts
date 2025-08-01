@@ -1,7 +1,6 @@
 import { FacetFilter, FacetType, Filter, Query } from './types';
 import { tupleListToString } from './utils';
 
-
 const isFacetFilter = (filter: Filter): filter is FacetFilter => 'optionsEndpoint' in filter;
 
 /**

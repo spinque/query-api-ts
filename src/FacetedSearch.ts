@@ -3,6 +3,7 @@ import { tupleListToString } from './utils';
 
 // for backwards compat
 export type Facet = FacetFilter;
+export { FacetType } from './types';
 
 /**
  * Associate Query objects with each other in a faceted search setup.
