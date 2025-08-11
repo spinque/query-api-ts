@@ -329,7 +329,7 @@ export class ServerError implements ErrorResponse {
 
 // Types for FacetedSearch/FilteredSearch convention
 
-export type Filter = FacetFilter | SimpleFilter;
+export type Filter = FacetFilter | ParameterizedFilter | SimpleFilter;
 
 export enum FacetType {
   single = 'single',
@@ -337,7 +337,8 @@ export enum FacetType {
 }
 
 /**
- * Interface for objects representing a facet.
+ * Endpoints to a) retrieve filter options given a result query stack,
+ * and b) filter results based on a selection of options.
  *
  * Currently, this interface only supports:
  *  - facets without a parameter for the optionsEndpoint
@@ -360,7 +361,10 @@ export interface FacetFilter {
   resetOnQueryChange: boolean;
 }
 
-export interface SimpleFilter {
+/**
+ * Endpoint that filters results based on the value of its parameter.
+ */
+export interface ParameterizedFilter {
   // Name of the endpoint that filters search results
   filterEndpoint: string;
   // Name of the parameter that is expected by the filterEndpoint
@@ -369,4 +373,12 @@ export interface SimpleFilter {
   filterParameterValue: string | undefined;
   // Should the facet selection reset when the search query changes?
   resetOnQueryChange: boolean;
+}
+
+/**
+ * Endpoint that filters results.
+ */
+export interface SimpleFilter {
+  // Name of the endpoint that filters search results
+  filterEndpoint: string;
 }

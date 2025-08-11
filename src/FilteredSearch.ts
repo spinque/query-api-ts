@@ -1,7 +1,8 @@
-import { FacetFilter, FacetType, Filter, Query } from './types';
+import { FacetFilter, FacetType, Filter, ParameterizedFilter, Query, SimpleFilter } from './types';
 import { tupleListToString } from './utils';
 
-const isFacetFilter = (filter: Filter): filter is FacetFilter => 'optionsEndpoint' in filter;
+const hasParameterValueSet = (f: ParameterizedFilter | FacetFilter) =>
+  f.filterParameterValue !== undefined && f.filterParameterValue !== '';
 
 /**
  * Associate Query objects with each other in a faceted search setup.
@@ -53,15 +54,49 @@ export class FilteredSearch {
     });
   }
 
-  addSimpleFilter(filterEndpoint: string, resetOnQueryChange = true, filterParameterName = 'value') {
+  addSimpleFilter(filterEndpoint: string) {
+    this._filters.push({ filterEndpoint });
+  }
+
+  addParameterizedFilter(filterEndpoint: string, resetOnQueryChange = true, filterParameterName = 'value') {
     this._filters.push({ filterEndpoint, filterParameterName, resetOnQueryChange, filterParameterValue: undefined });
   }
 
   /**
    * Add a filter to the FilteredSearch object.
+   *
+   * @param obj the Filter to be added or a Query object, from which a
+   * SimpleFilter or ParameterizedFilter will be deduced
    */
-  addFilter(filter: Filter) {
-    this._filters.push(filter);
+  addFilter(obj: Query | Filter): void {
+    if ('endpoint' in obj) {
+      // Query.endpoint becomes Filter.filterEndpoint
+      const filterEndpoint = obj.endpoint;
+
+      const params = Object.entries(obj.parameters || {});
+      if (params.length === 0) {
+        // No parameters so push as a SimpleFilter
+        const filter: SimpleFilter = { filterEndpoint };
+        this._filters.push(filter);
+      } else if (params[0][1] !== undefined && params[0][1] !== '') {
+        const [filterParameterName, filterParameterValue] = params[0];
+
+        // Push as a ParameterizedFilter
+        const filter: ParameterizedFilter = {
+          filterEndpoint,
+          filterParameterName,
+          filterParameterValue,
+          resetOnQueryChange: true,
+        };
+        this._filters.push(filter);
+      } else {
+        throw new Error(`Provided Query should have a single parameter will a truthy value`);
+      }
+    } else if ('filterEndpoint' in obj) {
+      this._filters.push(obj);
+    } else {
+      throw new Error(`Provided object does not seem to be a filter or query`);
+    }
   }
 
   get filters(): Filter[] {
@@ -115,11 +150,16 @@ export class FilteredSearch {
     const q = [
       this.getBaseQuery(),
       ...this._filters
-        .filter((f) => f.filterParameterValue !== undefined && f.filterParameterValue !== '')
-        .map((f) => ({
-          endpoint: f.filterEndpoint,
-          parameters: { [f.filterParameterName]: f.filterParameterValue as string },
-        })),
+        .filter((f) => !('filterParameterName' in f) || hasParameterValueSet(f))
+        .map((f) => {
+          const parameters = !('filterParameterName' in f)
+            ? {}
+            : { [f.filterParameterName]: f.filterParameterValue as string };
+          return {
+            endpoint: f.filterEndpoint,
+            parameters,
+          };
+        }),
     ];
     if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
       q.push(this._activeModifier);
@@ -132,7 +172,9 @@ export class FilteredSearch {
    * parameter is required.
    */
   getFacetQuery(facetEndpoint: string, excludeModifier = false): Query[] {
-    const facet = this._filters.find((f): f is FacetFilter => isFacetFilter(f) && f.optionsEndpoint === facetEndpoint);
+    const facet = this._filters.find(
+      (f): f is FacetFilter => 'optionsEndpoint' in f && f.optionsEndpoint === facetEndpoint,
+    );
     if (!facet) {
       throw new Error('Facet not found in FilteredSearch');
     }
@@ -142,13 +184,18 @@ export class FilteredSearch {
       ...this._filters
         .filter(
           (f) =>
-            f.filterParameterValue !== undefined &&
-            f.filterParameterValue !== '' &&
-            (!isFacetFilter(f) || f.optionsEndpoint !== facetEndpoint),
+            // Simple filters are always enabled
+            !('filterParameterName' in f) ||
+            // Parameterized filters must have a value set
+            (!('optionsEndpoint' in f) && hasParameterValueSet(f)) ||
+            // Facet filters must have a value set and must not be the facet for which we're building the options query
+            ('optionsEndpoint' in f && f.optionsEndpoint !== facetEndpoint && hasParameterValueSet(f)),
         )
         .map((f) => ({
           endpoint: f.filterEndpoint,
-          parameters: { [f.filterParameterName]: f.filterParameterValue as string },
+          parameters: !('filterParameterName' in f)
+            ? {}
+            : { [f.filterParameterName]: f.filterParameterValue as string },
         })),
     ];
     if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
@@ -170,7 +217,7 @@ export class FilteredSearch {
       },
     };
     this._filters.forEach((f) => {
-      if (f.resetOnQueryChange) {
+      if ('filterParameterName' in f && f.resetOnQueryChange) {
         f.filterParameterValue = undefined;
       }
     });
@@ -192,10 +239,13 @@ export class FilteredSearch {
   public setFilterSelection(endpoint: string, selection: string | string[]) {
     // Find the filter
     const filter = this._filters.find(
-      (f) => f.filterEndpoint === endpoint || (isFacetFilter(f) && f.optionsEndpoint === endpoint),
+      (f) => f.filterEndpoint === endpoint || ('optionsEndpoint' in f && f.optionsEndpoint === endpoint),
     );
     if (!filter) {
       throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
+    }
+    if (!('filterParameterName' in filter)) {
+      throw new Error(`Filter ${endpoint} does not have a parameter (so it cannot be set)`);
     }
 
     // Clear the value if an empty string or empty array was passed
@@ -204,7 +254,7 @@ export class FilteredSearch {
       return;
     }
 
-    if (isFacetFilter(filter)) {
+    if ('optionsEndpoint' in filter) {
       // make sure the selection is an array
       selection = Array.isArray(selection) ? selection : [selection];
 
@@ -226,16 +276,21 @@ export class FilteredSearch {
    */
   public clearFilterSelection(endpoint?: string) {
     if (endpoint) {
-      const facet = this._filters.find(
-        (f) => f.filterEndpoint === endpoint || (isFacetFilter(f) && f.optionsEndpoint === endpoint),
+      const filter = this._filters.find(
+        (f) => f.filterEndpoint === endpoint || ('optionsEndpoint' in f && f.optionsEndpoint === endpoint),
       );
-      if (!facet) {
+      if (!filter) {
         throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
       }
-      facet.filterParameterValue = '';
+      if (!('filterParameterName' in filter)) {
+        throw new Error(`Filter ${endpoint} does not have a parameter (so it cannot be reset)`);
+      }
+      filter.filterParameterValue = '';
     } else {
       this._filters.forEach((f) => {
-        f.filterParameterValue = '';
+        if ('filterParameterName' in f) {
+          f.filterParameterValue = '';
+        }
       });
     }
   }
