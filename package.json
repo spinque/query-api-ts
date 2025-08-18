@@ -1,12 +1,12 @@
 {
   "name": "@spinque/query-api",
-  "version": "0.20.4",
+  "version": "0.20.5",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "demo": "npx ts-node -r tsconfig-paths/register ./demo/basic/filtered-search.ts",
+    "demo": "npx ts-node -r tsconfig-paths/register ./demo/filters/index.ts",
     "docs": "typedoc src/index.ts",
     "check-format": "prettier --check \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",

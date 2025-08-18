@@ -13,11 +13,10 @@ export { FacetType } from './types';
 
 /**
  * Associate Query objects with each other in a faceted search setup.
- * 
+ *
  * @deprecated use FilteredSearch, a generalization of FacetedSearch
  */
 export class FacetedSearch extends FilteredSearch {
-
   get facets(): FacetFilter[] {
     return this._filters.filter((f): f is FacetFilter => 'optionsEndpoint' in f);
   }
