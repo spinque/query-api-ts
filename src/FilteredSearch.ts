@@ -5,11 +5,13 @@ const hasParameterValueSet = (f: ParameterizedFilter | FacetFilter) =>
   f.filterParameterValue !== undefined && f.filterParameterValue !== '';
 
 /**
- * Associate Query objects with each other in a faceted search setup.
+ * Associate Query objects with each other in a filtered search setup.
+ *
+ * Instances of this class respresent search pages with filters and/or modifiers (such as sorting).
  */
 export class FilteredSearch {
-  // Internal list of Facet objects
-  private _filters: Filter[] = [];
+  // Internal list of Filter objects
+  protected _filters: Filter[] = [];
 
   private _modifiers?: Query[];
   private _activeModifier?: Query;
@@ -234,16 +236,19 @@ export class FilteredSearch {
   }
 
   /**
-   * Set the selected options for a given facet.
+   * Set the selected options for a given filter or facet.
    */
-  public setFilterSelection(endpoint: string, selection: string | string[]) {
-    // Find the filter
+  public setFilterSelection(endpoint: string, selection: string | string[] | string[][]) {
+    // Find the filter in the list of defined filters
     const filter = this._filters.find(
       (f) => f.filterEndpoint === endpoint || ('optionsEndpoint' in f && f.optionsEndpoint === endpoint),
     );
+
     if (!filter) {
       throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
     }
+
+    // Filter selections can only be set for parameterized filters
     if (!('filterParameterName' in filter)) {
       throw new Error(`Filter ${endpoint} does not have a parameter (so it cannot be set)`);
     }
@@ -262,7 +267,11 @@ export class FilteredSearch {
         if (selection.length > 1) {
           throw new Error(`Facet ${endpoint} is a single selection facet but more than one selected option was given.`);
         }
-        filter.filterParameterValue = selection[0];
+        if (Array.isArray(selection[0])) {
+          filter.filterParameterValue = selection[0][0];
+        } else {
+          filter.filterParameterValue = selection[0];
+        }
       } else {
         filter.filterParameterValue = tupleListToString(selection);
       }
