@@ -353,7 +353,7 @@ export interface FacetFilter {
   // Name of the parameter that is expected by the filterEndpoint
   filterParameterName: string;
   // Optional value of the parameter expected by the filterEndpoint
-  filterParameterValue: string | undefined;
+  filterParameterValue: string | number | undefined;
   // Type of this facet: 'single' means only one value can be selected,
   // 'multiple' means multiple values may be selected.
   type: FacetType;
@@ -370,7 +370,7 @@ export interface ParameterizedFilter {
   // Name of the parameter that is expected by the filterEndpoint
   filterParameterName: string;
   // Optional value of the parameter expected by the filterEndpoint
-  filterParameterValue: string | undefined;
+  filterParameterValue: string | number | undefined;
   // Should the facet selection reset when the search query changes?
   resetOnQueryChange: boolean;
 }

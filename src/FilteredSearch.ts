@@ -1,5 +1,5 @@
 import { FacetFilter, FacetType, Filter, ParameterizedFilter, Query, SimpleFilter } from './types';
-import { tupleListToString } from './utils';
+import { isTupleList, stringifyQueries, stringToTupleList, tupleListToString } from './utils';
 
 const hasParameterValueSet = (f: ParameterizedFilter | FacetFilter) =>
   f.filterParameterValue !== undefined && f.filterParameterValue !== '';
@@ -92,6 +92,7 @@ export class FilteredSearch {
         };
         this._filters.push(filter);
       } else {
+        console.log(params[0]);
         throw new Error(`Provided Query should have a single parameter will a truthy value`);
       }
     } else if ('filterEndpoint' in obj) {
@@ -238,7 +239,10 @@ export class FilteredSearch {
   /**
    * Set the selected options for a given filter or facet.
    */
-  public setFilterSelection(endpoint: string, selection: string | string[] | string[][]) {
+  public setFilterSelection(
+    endpoint: string,
+    selection: undefined | null | (string | number) | (string | number)[] | (string | number)[][],
+  ) {
     // Find the filter in the list of defined filters
     const filter = this._filters.find(
       (f) => f.filterEndpoint === endpoint || ('optionsEndpoint' in f && f.optionsEndpoint === endpoint),
@@ -254,7 +258,12 @@ export class FilteredSearch {
     }
 
     // Clear the value if an empty string or empty array was passed
-    if ((Array.isArray(selection) && selection.length === 0) || selection === '') {
+    if (
+      (Array.isArray(selection) && selection.length === 0) ||
+      selection === '' ||
+      selection === undefined ||
+      selection === null
+    ) {
       filter.filterParameterValue = undefined;
       return;
     }
@@ -306,5 +315,68 @@ export class FilteredSearch {
 
   public setSearchQuery(query: Query) {
     this.searchQuery = query;
+  }
+
+  /**
+   * Overwrite the entire state with the values in the passed Query stack.
+   *
+   * @param results typically retrieved from a URL query parameter and then parsed with `parseQueries`
+   */
+  setState(results: Query[]) {
+    // If no queries passed, reset the state
+    if (!results || results.length === 0) {
+      Object.entries(this.searchQuery.parameters || {}).forEach(([k, v]) => this.setParameter(k, v));
+      this.clearFilterSelection();
+      return;
+    }
+
+    // Early return if there's nothing to update
+    if (stringifyQueries(results) === stringifyQueries(this.getResultsQuery())) {
+      return;
+    }
+
+    const filtersTouched: string[] = [];
+    results.forEach((query, index) => {
+      console.log(`=== INDEX ${index}`);
+      console.log(query);
+      // The first query on the stack is the main search query
+      if (index === 0) {
+        this.setSearchQuery(query);
+        return;
+      }
+
+      // The last query could be the modifier
+      if (index === results.length - 1 && this.modifiers?.find((m) => m.endpoint === query.endpoint)) {
+        this.setModifier(query);
+        return;
+      }
+
+      // The middle queries are filters
+      const filter = this.filters.find((f) => f.filterEndpoint === query.endpoint);
+      if (!filter) {
+        return;
+      }
+
+      if ('filterParameterName' in filter) {
+        // For FacetFilters, the optionsEndpoint is the identifying endpoint
+        const endpoint = 'optionsEndpoint' in filter ? filter.optionsEndpoint : filter.filterEndpoint;
+        const selection = query.parameters?.[filter.filterParameterName];
+        if (selection && isTupleList(selection)) {
+          const tupleList = stringToTupleList(selection);
+          this.setFilterSelection(endpoint, tupleList?.tuples);
+        } else {
+          this.setFilterSelection(endpoint, selection);
+        }
+        filtersTouched.push(endpoint);
+      }
+    });
+
+    // Reset non-touched endpoints
+    this.filters.forEach((filter) => {
+      const endpoint = 'optionsEndpoint' in filter ? filter.optionsEndpoint : filter.filterEndpoint;
+      if ('filterParameterName' in filter && !filtersTouched.includes(endpoint)) {
+        this.setFilterSelection(endpoint, []);
+      }
+    });
   }
 }

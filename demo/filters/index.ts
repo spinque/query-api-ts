@@ -52,12 +52,14 @@ async function main() {
   }
 
   // optionally, the state can be serialized/parsed, e.g. to store in the page URL
+
+  // serializedState is safe to be put in a URL
   const serializedState = stringifyQueries(results);
+
+  // when read from the URL, the state can be parsed
   const parsedState = parseQueries(serializedState);
- 
-  console.log(results);
-  console.log(serializedState);
-  console.log(parsedState);
+  // and then the entire FilteredSearch state can be set at once
+  fs.setState(parsedState);
 }
 
 main();

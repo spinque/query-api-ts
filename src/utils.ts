@@ -194,6 +194,8 @@ export const tupleListToString = (
     .join('|');
 };
 
+export const isTupleList = (value: string) => /\d(\.\d+)?\(.*\)/.test(value);
+
 /**
  * Takes a value that should be a tuple list and ensures it has a normalized form.
  */
