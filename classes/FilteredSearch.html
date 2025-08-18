@@ -16,15 +16,18 @@
 <li><a href="FilteredSearch.html">FilteredSearch</a></li></ul>
 <h1>Class FilteredSearch</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Associate Query objects with each other in a faceted search setup.</p>
+<div class="tsd-comment tsd-typography"><p>Associate Query objects with each other in a filtered search setup.</p>
+<p>Instances of this class respresent search pages with filters and/or modifiers (such as sorting).</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></section>
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><span class="target">FilteredSearch</span></li></ul></section><aside class="tsd-sources">
+<li><span class="target">FilteredSearch</span>
+<ul class="tsd-hierarchy">
+<li><a href="FacetedSearch.html" class="tsd-signature-type tsd-kind-class">FacetedSearch</a></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L10">FilteredSearch.ts:10</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L12">FilteredSearch.ts:12</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -37,7 +40,7 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="FilteredSearch.html#_activeModifier" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-1024"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)"></path></g></svg><span>_active<wbr/>Modifier?</span></a>
-<a href="FilteredSearch.html#_filters" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_filters</span></a>
+<a href="FilteredSearch.html#_filters" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_filters</span></a>
 <a href="FilteredSearch.html#_modifiers" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_modifiers?</span></a>
 <a href="FilteredSearch.html#emptyParameterQuery" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>empty<wbr/>Parameter<wbr/>Query?</span></a>
 <a href="FilteredSearch.html#modifiers" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>modifiers?</span></a>
@@ -82,39 +85,39 @@
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">modifiers</span>: <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="FilteredSearch.html" class="tsd-signature-type tsd-kind-class">FilteredSearch</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L17">FilteredSearch.ts:17</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L19">FilteredSearch.ts:19</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_activeModifier" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagOptional">Optional</code> <span>_active<wbr/>Modifier</span><a href="#_activeModifier" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_active<wbr/>Modifier</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L15">FilteredSearch.ts:15</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-private"><a id="_filters" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_filters</span><a href="#_filters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L17">FilteredSearch.ts:17</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected"><a id="_filters" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>_filters</span><a href="#_filters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_filters</span><span class="tsd-signature-symbol">:</span> <a href="../types/Filter.html" class="tsd-signature-type tsd-kind-type-alias">Filter</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L12">FilteredSearch.ts:12</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L14">FilteredSearch.ts:14</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_modifiers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagOptional">Optional</code> <span>_modifiers</span><a href="#_modifiers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_modifiers</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L14">FilteredSearch.ts:14</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L16">FilteredSearch.ts:16</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="emptyParameterQuery" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagOptional">Optional</code> <span>empty<wbr/>Parameter<wbr/>Query</span><a href="#emptyParameterQuery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">empty<wbr/>Parameter<wbr/>Query</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L25">FilteredSearch.ts:25</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L27">FilteredSearch.ts:27</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="modifiers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagOptional">Optional</code> <span>modifiers</span><a href="#modifiers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">modifiers</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L26">FilteredSearch.ts:26</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L28">FilteredSearch.ts:28</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="searchQuery" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>search<wbr/>Query</span><a href="#searchQuery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">search<wbr/>Query</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L22">FilteredSearch.ts:22</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L24">FilteredSearch.ts:24</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member"><a id="filters" class="tsd-anchor"></a>
@@ -124,7 +127,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../types/Filter.html" class="tsd-signature-type tsd-kind-type-alias">Filter</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L102">FilteredSearch.ts:102</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L104">FilteredSearch.ts:104</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member"><a id="addFacet" class="tsd-anchor"></a>
@@ -150,7 +153,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L40">FilteredSearch.ts:40</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L42">FilteredSearch.ts:42</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="addFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Filter</span><a href="#addFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -170,7 +173,7 @@ SimpleFilter or ParameterizedFilter will be deduced</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L71">FilteredSearch.ts:71</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L73">FilteredSearch.ts:73</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="addParameterizedFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Parameterized<wbr/>Filter</span><a href="#addParameterizedFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -187,7 +190,7 @@ SimpleFilter or ParameterizedFilter will be deduced</p>
 <h5><span class="tsd-kind-parameter">filterParameterName</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#39;value&#39;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L61">FilteredSearch.ts:61</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L63">FilteredSearch.ts:63</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="addSimpleFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Simple<wbr/>Filter</span><a href="#addSimpleFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -200,7 +203,7 @@ SimpleFilter or ParameterizedFilter will be deduced</p>
 <h5><span class="tsd-kind-parameter">filterEndpoint</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L57">FilteredSearch.ts:57</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L59">FilteredSearch.ts:59</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="clearFilterSelection" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>clear<wbr/>Filter<wbr/>Selection</span><a href="#clearFilterSelection" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -216,7 +219,7 @@ SimpleFilter or ParameterizedFilter will be deduced</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L277">FilteredSearch.ts:277</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L286">FilteredSearch.ts:286</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="clearParameters" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>clear<wbr/>Parameters</span><a href="#clearParameters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -227,7 +230,7 @@ SimpleFilter or ParameterizedFilter will be deduced</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L229">FilteredSearch.ts:229</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L231">FilteredSearch.ts:231</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getBaseQuery" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Base<wbr/>Query</span><a href="#getBaseQuery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -240,7 +243,7 @@ also passed and all parameters for searchQuery are empty.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L133">FilteredSearch.ts:133</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L135">FilteredSearch.ts:135</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getFacetQuery" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Facet<wbr/>Query</span><a href="#getFacetQuery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -259,7 +262,7 @@ parameter is required.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L174">FilteredSearch.ts:174</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L176">FilteredSearch.ts:176</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getModifier" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Modifier</span><a href="#getModifier" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -270,7 +273,7 @@ parameter is required.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L124">FilteredSearch.ts:124</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L126">FilteredSearch.ts:126</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getResultsQuery" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Results<wbr/>Query</span><a href="#getResultsQuery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -286,13 +289,13 @@ parameter is required.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L149">FilteredSearch.ts:149</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L151">FilteredSearch.ts:151</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setFilterSelection" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Filter<wbr/>Selection</span><a href="#setFilterSelection" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="setFilterSelection.setFilterSelection-1"><span class="tsd-kind-call-signature">set<wbr/>Filter<wbr/>Selection</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">endpoint</span>, <span class="tsd-kind-parameter">selection</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#setFilterSelection.setFilterSelection-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Set the selected options for a given facet.</p>
+<div class="tsd-comment tsd-typography"><p>Set the selected options for a given filter or facet.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -300,11 +303,11 @@ parameter is required.</p>
 <li>
 <h5><span class="tsd-kind-parameter">endpoint</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">selection</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">selection</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L239">FilteredSearch.ts:239</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L241">FilteredSearch.ts:241</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setModifier" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Modifier</span><a href="#setModifier" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -320,7 +323,7 @@ parameter is required.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L109">FilteredSearch.ts:109</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L111">FilteredSearch.ts:111</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setParameter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Parameter</span><a href="#setParameter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -338,7 +341,7 @@ parameter is required.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L211">FilteredSearch.ts:211</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L213">FilteredSearch.ts:213</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setSearchQuery" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Search<wbr/>Query</span><a href="#setSearchQuery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -351,7 +354,7 @@ parameter is required.</p>
 <h5><span class="tsd-kind-parameter">query</span>: <a href="../interfaces/Query.html" class="tsd-signature-type tsd-kind-interface">Query</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/6c6f206/src/FilteredSearch.ts#L298">FilteredSearch.ts:298</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/spinque/query-api-ts/blob/41bee5e/src/FilteredSearch.ts#L307">FilteredSearch.ts:307</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -373,7 +376,7 @@ parameter is required.</p>
 <ul>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
 <li><a href="#_activeModifier" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_active<wbr/>Modifier</span></a></li>
-<li><a href="#_filters" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_filters</span></a></li>
+<li><a href="#_filters" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_filters</span></a></li>
 <li><a href="#_modifiers" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_modifiers</span></a></li>
 <li><a href="#emptyParameterQuery" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>empty<wbr/>Parameter<wbr/>Query</span></a></li>
 <li><a href="#modifiers" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>modifiers</span></a></li>
@@ -404,7 +407,7 @@ parameter is required.</p>
 <li><a href="ClientCredentials.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Client<wbr/>Credentials</span></a></li>
 <li><a href="EndpointNotFoundError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Endpoint<wbr/>Not<wbr/>Found<wbr/>Error</span></a></li>
 <li><a href="ErrorResponse.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Error<wbr/>Response</span></a></li>
-<li><a href="FacetedSearch.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Faceted<wbr/>Search</span></a></li>
+<li><a href="FacetedSearch.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Faceted<wbr/>Search</span></a></li>
 <li><a href="FilteredSearch.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Filtered<wbr/>Search</span></a></li>
 <li><a href="PKCE.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>PKCE</span></a></li>
 <li><a href="ServerError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Server<wbr/>Error</span></a></li>
