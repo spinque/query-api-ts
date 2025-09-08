@@ -171,8 +171,11 @@ export class FilteredSearch {
   }
 
   /**
-   * Get the Query objects to retrieve the facet options. When using multiple facets, the facetEndpoint
-   * parameter is required.
+   * Get the Query objects to retrieve the facet options.
+   * 
+   * @param facetEndpoint name of the facet endpoint to fetch options for
+   * @param excludeModifier will skip applying the active modifier
+   * @param includeSelf keep the active facet filter for which options should be fetched in the query stack. Use when requesting RequestType.Options
    */
   getFacetQuery(facetEndpoint: string, excludeModifier = false, includeSelf = false): Query[] {
     const facet = this._filters.find(
