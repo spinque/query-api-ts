@@ -20,7 +20,7 @@ Also check out the
   - [Fetching using custom HTTP-library](https://github.com/spinque/query-api-ts#fetching-using-custom-http-library)
   - [Authentication](https://github.com/spinque/query-api-ts#authentication)
   - [Utility functions](https://github.com/spinque/query-api-ts#utility-functions)
-  - [Faceted search](https://github.com/spinque/query-api-ts#faceted-search)
+  - [Filtered search](https://github.com/spinque/query-api-ts#filtered-search)
   - [Clustered search](https://github.com/spinque/query-api-ts#clustered-search)
   - [Vanilla JavaScript](https://github.com/spinque/query-api-ts#vanilla-javascript)
 
@@ -246,24 +246,21 @@ Many utility functions are available for import under
 See the [documentation](https://spinque.github.io/query-api-ts/) for a complete
 list.
 
-### Faceted search
+### Filtered search
 
-_Faceted search_ is a common pattern found in applications built on Spinque.
-This library provides a FacetedSearch to ease the interaction between queries in
-a faceted search setup.
+_Filtered search_ is a common pattern found in applications built on Spinque.
+This library provides a FilteredSearch abstraction to ease the interaction between queries in a faceted search setup.
 
 The following example shows how a search endpoint 'movie_search' can be used in
-combination with facet endpoints 'genre' and 'director'.
+combination with facet filters 'genre' and 'director'.
 
 ```typescript
-import { Api, FacetedSearch } from "@spinque/query-api";
+import { Api, FilteredSearch } from "@spinque/query-api";
 
-const query: Query = {
+const fs = new FilteredSearch({
   endpoint: "movie_search",
-  parameters: { query: "call me" },
-};
-
-const fs = new FacetedSearch(query);
+  parameters: { query: "" },
+});
 
 fs.addFacet("genre", "multiple");
 fs.addFacet("director", "single");
@@ -276,20 +273,17 @@ let directorOptions = await api.fetch(fs.getFacetQuery("director"));
 // Set the search query parameter (e.g. after the user has typed something)
 fs.setParameter("query", "dia");
 
-// Get updated results and options
-results = await api.fetch(fs.getResultsQuery());
-genreOptions = await api.fetch(fs.getFacetQuery("genre"));
-directorOptions = await api.fetch(fs.getFacetQuery("director"));
-
-// Select some facet options
+// Select some filter values (e.g. after the user has click on some options)
 fs.setFacetSelection("genre", [
   "https://imdb.com/data/Drama",
   "https://imdb.com/data/Biography",
 ]);
 fs.setFacetSelection("director", "https://imdb.com/data/PabloLarrain");
 
-// Get results again, now with facets applied
+// Get updated results and options
 results = await api.fetch(fs.getResultsQuery());
+genreOptions = await api.fetch(fs.getFacetQuery("genre"));
+directorOptions = await api.fetch(fs.getFacetQuery("director"));
 ```
 
 Optionally, you can provide a Query for when the search parameters are empty.
@@ -299,105 +293,11 @@ Optionally, you can provide a Query for when the search parameters are empty.
 
 const listQuery: Query = { endpoint: 'movies' };
 
-const fs = new FacetedSearch(query, listQuery);
+const fs = new FilteredSearch(query, listQuery);
 ```
 
 Note that the exact same behavior can also be achieved _without_ the
-FacetedSearch class (though it's more involved). The following two sections
-produce equal results:
-
-With FacetedSearch:
-
-```typescript
-const query: Query = {
-  endpoint: "movie_search",
-  parameters: { query: "call me" },
-};
-
-const fs = new FacetedSearch(query);
-
-fs.addFacet("genre", "multiple");
-fs.addFacet("director", "single");
-
-let results = await api.fetch(fs.getResultsQuery());
-let genreOptions = await api.fetch(fs.getFacetQuery("genre"));
-let directorOptions = await api.fetch(fs.getFacetQuery("director"));
-
-fs.setParameter("query", "dia");
-
-results = await api.fetch(fs.getResultsQuery());
-genreOptions = await api.fetch(fs.getFacetQuery("genre"));
-directorOptions = await api.fetch(fs.getFacetQuery("director"));
-
-fs.setFacetSelection("genre", [
-  "https://imdb.com/data/Drama",
-  "https://imdb.com/data/Biography",
-]);
-
-results = await api.fetch(fs.getResultsQuery());
-```
-
-Without FacetedSearch:
-
-```typescript
-const query: Query = {
-  endpoint: "movie_search",
-  parameters: { query: "call me" },
-};
-
-const genreOptionsQuery: Query = { endpoint: "genre" };
-const genreFilterQuery: Query = {
-  endpoint: "genre:FILTER",
-  parameters: { value: undefined },
-};
-
-const directorOptionsQuery: Query = { endpoint: "director" };
-const directorFilterQuery: Query = {
-  endpoint: "director:FILTER",
-  parameters: { value: undefined },
-};
-
-let resultsQuery = [query];
-if (genreFilterQuery.parameters.value) {
-  resultsQuery.push(genreFilterQuery);
-}
-if (directorFilterQuery.parameters.value) {
-  resultsQuery.push(directorFilterQuery);
-}
-
-let results = await api.fetch(resultsQuery);
-let genreOptions = await api.fetch([...resultsQuery, genreOptionsQuery]);
-let directorOptions = await api.fetch([...resultsQuery, directorOptionsQuery]);
-
-query.parameters.query = "dia";
-
-let resultsQuery = [query];
-if (genreFilterQuery.parameters.value) {
-  resultsQuery.push(genreFilterQuery);
-}
-if (directorFilterQuery.parameters.value) {
-  resultsQuery.push(directorFilterQuery);
-}
-
-results = await api.fetch(resultsQuery);
-let genreOptions = await api.fetch([...resultsQuery, genreOptionsQuery]);
-let directorOptions = await api.fetch([...resultsQuery, directorOptionsQuery]);
-
-genreFilterQuery.parameters.value = tupleListToString([
-  "https://imdb.com/data/Drama",
-  "https://imdb.com/data/Biography",
-]);
-
-let resultsQuery = [query];
-if (genreFilterQuery.parameters.value) {
-  resultsQuery.push(genreFilterQuery);
-}
-if (directorFilterQuery.parameters.value) {
-  resultsQuery.push(directorFilterQuery);
-}
-
-results = await api.fetch(resultsQuery);
-```
+FilteredSearch class (though it's more involved).
 
 ### Clustered search
 
