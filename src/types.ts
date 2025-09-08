@@ -151,7 +151,7 @@ export enum RequestType {
   /**
    * Fetch facet options for facets following the :FILTER convention
    */
-  Options = 'options'
+  Options = 'options',
 }
 
 export interface CountAndOffset {
@@ -168,7 +168,7 @@ export type ResultsRequestOptions = CountAndOffset & {
 
   // Specifies whether items in a result-tuple are returned as an array (false) or as an object (true). This option was introduced because some programming environments struggle with arrays that contain heterogeneous items (mix of strings, numbers, arrays, objects).
   homogeneousArrays?: boolean;
-}
+};
 
 export type ResultItemRequestOptions = {
   // Rank of the item to be returned. Defaults to 1.
@@ -179,13 +179,12 @@ export type ResultItemRequestOptions = {
 
   // Whether the options are fetched for a multi-select facet (e.g. multiple options can be selected)
   multiselect?: boolean;
-}
+};
 
 export type OptionsRequestOptions = CountAndOffset & {
   // Whether the options are fetched for a multi-select facet (e.g. multiple options can be selected)
   multiselect?: boolean;
-}
-
+};
 
 /**
  * Map from RequestType to a Response type
@@ -203,9 +202,7 @@ type OptionsMap = {
 /**
  * ResponseType based on RequestType
  */
-export type OptionsType<U extends RequestType> = U extends keyof ResponseMap
-  ? OptionsMap[U]
-  : never;
+export type OptionsType<U extends RequestType> = U extends keyof ResponseMap ? OptionsMap[U] : never;
 
 /**
  * Map from RequestType to a Response type

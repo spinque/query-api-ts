@@ -155,7 +155,11 @@ export class Api {
    * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
    * Optionally the `fetch` RequestInit can be passed (see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit).
    */
-  async fetch<O extends OptionsType<R>, T extends TupleTypes[] = TupleTypes[], R extends RequestType = RequestType.Results>(
+  async fetch<
+    O extends OptionsType<R>,
+    T extends TupleTypes[] = TupleTypes[],
+    R extends RequestType = RequestType.Results,
+  >(
     queries: Query | Query[],
     options?: O,
     requestType?: R,

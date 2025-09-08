@@ -206,7 +206,7 @@ describe('utils', () => {
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/resultitem?config=default&rank=1&column=1',
     );
   });
-  
+
   it('urlFromQueries should be able to request Entity Views result page', () => {
     const apiConfig: ApiConfig = {
       baseUrl: 'https://rest.spinque.com/',
@@ -220,7 +220,7 @@ describe('utils', () => {
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/resultpage?config=default',
     );
   });
-  
+
   it('urlFromQueries should be able to request facet options', () => {
     const apiConfig: ApiConfig = {
       baseUrl: 'https://rest.spinque.com/',
@@ -234,7 +234,7 @@ describe('utils', () => {
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/options/other-facet?config=default',
     );
   });
-    
+
   it('urlFromQueries should be able to request facet options with active filters', () => {
     const apiConfig: ApiConfig = {
       baseUrl: 'https://rest.spinque.com/',
@@ -243,7 +243,11 @@ describe('utils', () => {
       api: 'my-api',
       config: 'default',
     };
-    const query: Query[] = [{ endpoint: 'my-endpoint' }, { endpoint: 'some-facet:FILTER', parameters: { value: '1(some-value)' } }, { endpoint: 'other-facet' }];
+    const query: Query[] = [
+      { endpoint: 'my-endpoint' },
+      { endpoint: 'some-facet:FILTER', parameters: { value: '1(some-value)' } },
+      { endpoint: 'other-facet' },
+    ];
     expect(urlFromQueries(apiConfig, query, {}, RequestType.Options)).toEqual(
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/e/some-facet:FILTER/p/value/1(some-value)/options/other-facet?config=default',
     );
@@ -257,7 +261,10 @@ describe('utils', () => {
       api: 'my-api',
       config: 'default',
     };
-    const query: Query[] = [{ endpoint: 'my-endpoint' }, { endpoint: 'some-facet:FILTER', parameters: { value: '1(some-value)' } }];
+    const query: Query[] = [
+      { endpoint: 'my-endpoint' },
+      { endpoint: 'some-facet:FILTER', parameters: { value: '1(some-value)' } },
+    ];
     expect(urlFromQueries(apiConfig, query, {}, RequestType.Options)).toEqual(
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/options/some-facet?config=default',
     );

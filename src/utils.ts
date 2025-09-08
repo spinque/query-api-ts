@@ -132,7 +132,7 @@ export const urlFromQueries = <O extends OptionsType<R>, R extends RequestType =
     // The last endpoint in the query stack should be the facet to fetch options for
     let facet = queries[queries.length - 1].endpoint;
     if (facet.endsWith(':FILTER')) {
-      facet = facet.slice(0, -1 * (':FILTER'.length))
+      facet = facet.slice(0, -1 * ':FILTER'.length);
     }
     url += '/' + join(...queries.slice(0, -1).map(pathFromQuery), requestType, facet);
   } else {
