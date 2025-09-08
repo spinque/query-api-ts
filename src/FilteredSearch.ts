@@ -174,7 +174,7 @@ export class FilteredSearch {
    * Get the Query objects to retrieve the facet options. When using multiple facets, the facetEndpoint
    * parameter is required.
    */
-  getFacetQuery(facetEndpoint: string, excludeModifier = false): Query[] {
+  getFacetQuery(facetEndpoint: string, excludeModifier = false, includeSelf = false): Query[] {
     const facet = this._filters.find(
       (f): f is FacetFilter => 'optionsEndpoint' in f && f.optionsEndpoint === facetEndpoint,
     );
@@ -192,7 +192,7 @@ export class FilteredSearch {
             // Parameterized filters must have a value set
             (!('optionsEndpoint' in f) && hasParameterValueSet(f)) ||
             // Facet filters must have a value set and must not be the facet for which we're building the options query
-            ('optionsEndpoint' in f && f.optionsEndpoint !== facetEndpoint && hasParameterValueSet(f)),
+            ('optionsEndpoint' in f && (includeSelf || f.optionsEndpoint !== facetEndpoint) && hasParameterValueSet(f)),
         )
         .map((f) => ({
           endpoint: f.filterEndpoint,
