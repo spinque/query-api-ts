@@ -31,6 +31,7 @@ async function main() {
 
     const url = urlFromQueries(api.apiConfig, queries, { count: 10, offset: 0 });
     console.log(url);
+
     // const response = await axios.get(url);
   } catch (error: any) {
     if (error instanceof UnauthorizedError) {

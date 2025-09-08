@@ -22,6 +22,11 @@ describe('utils', () => {
     expect(pathFromQuery(q1)).toBe('e/my-%22crazy%24-endpoint');
   });
 
+  it('pathFromQuery should not use URL encoding for the colon in facet filter :FILTER convention', () => {
+    const q1: Query = { endpoint: 'facet:FILTER' };
+    expect(pathFromQuery(q1)).toBe('e/facet:FILTER');
+  });
+
   it('pathFromQuery should add parameters to the path', () => {
     const q1: Query = { endpoint: 'my-endpoint', parameters: { 'my-param': 'my-value' } };
     expect(pathFromQuery(q1)).toBe('e/my-endpoint/p/my-param/my-value');
@@ -157,6 +162,104 @@ describe('utils', () => {
     const query: Query = { endpoint: 'my-endpoint' };
     expect(urlFromQueries(apiConfig, query, {}, RequestType.Statistics)).toEqual(
       'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/statistics?config=default',
+    );
+  });
+
+  it('urlFromQueries should be able to request count', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default',
+    };
+    const query: Query = { endpoint: 'my-endpoint' };
+    expect(urlFromQueries(apiConfig, query, {}, RequestType.Count)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/count?config=default',
+    );
+  });
+
+  it('urlFromQueries should be able to request results and count', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default',
+    };
+    const query: Query = { endpoint: 'my-endpoint' };
+    expect(urlFromQueries(apiConfig, query, {}, RequestType.ResultsAndCount)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/results,count?config=default',
+    );
+  });
+
+  it('urlFromQueries should be able to request result item', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default',
+    };
+    const query: Query = { endpoint: 'my-endpoint' };
+    expect(urlFromQueries(apiConfig, query, { rank: 1, column: 1 }, RequestType.ResultItem)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/resultitem?config=default&rank=1&column=1',
+    );
+  });
+  
+  it('urlFromQueries should be able to request Entity Views result page', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default',
+    };
+    const query: Query = { endpoint: 'my-endpoint' };
+    expect(urlFromQueries(apiConfig, query, {}, RequestType.ResultPage)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/resultpage?config=default',
+    );
+  });
+  
+  it('urlFromQueries should be able to request facet options', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default',
+    };
+    const query: Query[] = [{ endpoint: 'my-endpoint' }, { endpoint: 'other-facet' }];
+    expect(urlFromQueries(apiConfig, query, {}, RequestType.Options)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/options/other-facet?config=default',
+    );
+  });
+    
+  it('urlFromQueries should be able to request facet options with active filters', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default',
+    };
+    const query: Query[] = [{ endpoint: 'my-endpoint' }, { endpoint: 'some-facet:FILTER', parameters: { value: '1(some-value)' } }, { endpoint: 'other-facet' }];
+    expect(urlFromQueries(apiConfig, query, {}, RequestType.Options)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/e/some-facet:FILTER/p/value/1(some-value)/options/other-facet?config=default',
+    );
+  });
+
+  it('urlFromQueries should be able to request facet options with active filters and replace :FILTER if present in the last filter', () => {
+    const apiConfig: ApiConfig = {
+      baseUrl: 'https://rest.spinque.com/',
+      version: '4',
+      workspace: 'my-workspace',
+      api: 'my-api',
+      config: 'default',
+    };
+    const query: Query[] = [{ endpoint: 'my-endpoint' }, { endpoint: 'some-facet:FILTER', parameters: { value: '1(some-value)' } }];
+    expect(urlFromQueries(apiConfig, query, {}, RequestType.Options)).toEqual(
+      'https://rest.spinque.com/4/my-workspace/api/my-api/e/my-endpoint/options/some-facet?config=default',
     );
   });
 

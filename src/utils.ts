@@ -1,5 +1,5 @@
 import { ApiConfig, Query } from '.';
-import { RequestOptions, RequestType } from './types';
+import { OptionsType, RequestType } from './types';
 
 /**
  * Takes an array of Query objects and returns the path they would represent in a Query API request URL.
@@ -12,7 +12,7 @@ export const pathFromQueries = (queries: Query[]): string => {
  * Takes a Query and returns the path it would represent in a Query API request URL.
  */
 export const pathFromQuery = (query: Query): string => {
-  const parts = ['e', encodeURIComponent(query.endpoint)];
+  const parts = ['e', encodeURIComponent(query.endpoint).replace('%3AFILTER', ':FILTER')];
   if (query.parameters) {
     Object.entries(query.parameters).forEach(([name, value]) => {
       parts.push('p', encodeURIComponent(name), encodeURIComponent(value));
@@ -97,11 +97,11 @@ export const apiStatusUrl = (config: ApiConfig): string => {
 /**
  * Takes an ApiConfig object and array of Query objects and returns a Query API request URL.
  */
-export const urlFromQueries = (
+export const urlFromQueries = <O extends OptionsType<R>, R extends RequestType = RequestType.Results>(
   config: ApiConfig,
   queries: Query | Query[],
-  options?: RequestOptions,
-  requestType: RequestType = RequestType.Results,
+  options?: O,
+  requestType: R = RequestType.Results as R,
 ): string => {
   if (!(queries instanceof Array)) {
     queries = [queries];
@@ -128,8 +128,16 @@ export const urlFromQueries = (
   // Construct base URL containing Spinque version and workspace
   url += join(config.version, config.workspace, 'api', config.api);
 
-  // Add the path represented by the Query objects and request type
-  url += '/' + join(pathFromQueries(queries), requestType);
+  if (requestType === RequestType.Options) {
+    // The last endpoint in the query stack should be the facet to fetch options for
+    let facet = queries[queries.length - 1].endpoint;
+    if (facet.endsWith(':FILTER')) {
+      facet = facet.slice(0, -1 * (':FILTER'.length))
+    }
+    url += '/' + join(...queries.slice(0, -1).map(pathFromQuery), requestType, facet);
+  } else {
+    url += '/' + join(...queries.map(pathFromQuery), requestType);
+  }
 
   // Add config if provided
   if (config.config) {

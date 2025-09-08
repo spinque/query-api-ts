@@ -147,24 +147,65 @@ export enum RequestType {
    * Fetch a page with results, using the result description formatter, and include the total count
    */
   ResultsAndCount = 'results,count',
+
+  /**
+   * Fetch facet options for facets following the :FILTER convention
+   */
+  Options = 'options'
 }
 
-export interface RequestOptions {
+export interface CountAndOffset {
   // Number of items returned. Default value is 10. Should be between 1 and 100.
   count?: number;
 
   // Offset on the number of items returned. Default is 0. Should be 0 or more.
   offset?: number;
+}
 
+export type ResultsRequestOptions = CountAndOffset & {
   // Formatting of the results: json/xml/rdf/csv/xlsx. Default value is ‘json’. Note: XML is not enabled by default, and RDF can only be requested when ouput of strategy is [STRING,STRING,STRING]
   format?: 'json' | 'xml' | 'rdf' | 'csv' | 'xlsx';
-
-  // Level of the result descriptions. Default value is 1. Should be 0 or more.
-  level?: number;
 
   // Specifies whether items in a result-tuple are returned as an array (false) or as an object (true). This option was introduced because some programming environments struggle with arrays that contain heterogeneous items (mix of strings, numbers, arrays, objects).
   homogeneousArrays?: boolean;
 }
+
+export type ResultItemRequestOptions = {
+  // Rank of the item to be returned. Defaults to 1.
+  rank?: number;
+
+  // Number of the column of the result that should be returned. Defaults to 1.
+  column?: number;
+
+  // Whether the options are fetched for a multi-select facet (e.g. multiple options can be selected)
+  multiselect?: boolean;
+}
+
+export type OptionsRequestOptions = CountAndOffset & {
+  // Whether the options are fetched for a multi-select facet (e.g. multiple options can be selected)
+  multiselect?: boolean;
+}
+
+
+/**
+ * Map from RequestType to a Response type
+ */
+type OptionsMap = {
+  [RequestType.Count]: CountAndOffset;
+  [RequestType.Statistics]: CountAndOffset;
+  [RequestType.ResultPage]: CountAndOffset;
+  [RequestType.ResultItem]: ResultItemRequestOptions;
+  [RequestType.Results]: ResultsRequestOptions;
+  [RequestType.ResultsAndCount]: ResultsRequestOptions;
+  [RequestType.Options]: OptionsRequestOptions;
+};
+
+/**
+ * ResponseType based on RequestType
+ */
+export type OptionsType<U extends RequestType> = U extends keyof ResponseMap
+  ? OptionsMap[U]
+  : never;
 
 /**
  * Map from RequestType to a Response type
@@ -176,6 +217,7 @@ type ResponseMap<T = TupleTypes[]> = {
   [RequestType.ResultItem]: ResultObject;
   [RequestType.Results]: ResultsResponse<T>;
   [RequestType.ResultsAndCount]: ResultsAndCountResponse<T>;
+  [RequestType.Options]: OptionsResponse;
 };
 
 /**
@@ -279,6 +321,31 @@ export interface CountResponse {
 
 // TODO: this is unexpected behaviour of the backend (CountResponse is expected). It will be resolved at some point but impacts the public API
 export type ResultsAndCountResponse<T = TupleTypes[]> = [ResultsResponse<T>, StatisticsResponse];
+
+/**
+ * Response to a Query for facet options
+ */
+export interface OptionsResponse {
+  /**
+   * Name of the facet options endpoint
+   */
+  id: string;
+  title: string;
+
+  selected: {
+    id: string;
+    score: number;
+    value: string;
+    title: string;
+  }[];
+
+  options: {
+    id: string;
+    score: number;
+    value: string;
+    title: string;
+  }[];
+}
 
 /**
  * Generic error response class. Is implemented by more specific error type classes.
