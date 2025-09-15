@@ -92,7 +92,6 @@ export class FilteredSearch {
         };
         this._filters.push(filter);
       } else {
-        console.log(params[0]);
         throw new Error(`Provided Query should have a single parameter will a truthy value`);
       }
     } else if ('filterEndpoint' in obj) {
@@ -340,8 +339,6 @@ export class FilteredSearch {
 
     const filtersTouched: string[] = [];
     results.forEach((query, index) => {
-      console.log(`=== INDEX ${index}`);
-      console.log(query);
       // The first query on the stack is the main search query
       if (index === 0) {
         this.setSearchQuery(query);
