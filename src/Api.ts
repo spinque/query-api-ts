@@ -181,7 +181,7 @@ export class Api {
     // Possibly set authentication details
     if (this.authentication && this._authenticator) {
       const token = await this._authenticator.accessToken;
-      requestInit = { headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }) };
+      requestInit = { ...requestInit, headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }) };
     }
 
     // Make the request
