@@ -164,7 +164,10 @@ export class Api {
     // Possibly set authentication details
     if (this.authentication && this._authenticator) {
       const token = await this._authenticator.accessToken;
-      requestInit = { ...requestInit, headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }) };
+      requestInit = {
+        ...requestInit,
+        headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }),
+      };
     }
 
     return fetch(url, requestInit).then((res) => this.handleResponse<R>(res));
@@ -200,7 +203,10 @@ export class Api {
     // Possibly set authentication details
     if (this.authentication && this._authenticator) {
       const token = await this._authenticator.accessToken;
-      requestInit = { ...requestInit, headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }) };
+      requestInit = {
+        ...requestInit,
+        headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }),
+      };
     }
 
     // Make the request
@@ -210,9 +216,7 @@ export class Api {
   /**
    * Handle the response of a fetch to Spinque Query API.
    */
-  private async handleResponse<R extends ResponseTypes>(
-    response: Response,
-  ): Promise<R> {
+  private async handleResponse<R extends ResponseTypes>(response: Response): Promise<R> {
     const json = await response.json();
 
     if (response.status === 200) {
