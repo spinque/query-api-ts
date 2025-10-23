@@ -217,6 +217,8 @@ type ResponseMap<T = TupleTypes[]> = {
   [RequestType.Options]: OptionsResponse;
 };
 
+export type ResponseTypes = ResponseMap[keyof ResponseMap];
+
 /**
  * ResponseType based on RequestType
  */

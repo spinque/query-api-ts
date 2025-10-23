@@ -13,6 +13,7 @@ import {
   UnauthorizedError,
   WorkspaceConfigNotFoundError,
   OptionsType,
+  ResponseTypes,
 } from './types';
 import { apiUrl, urlFromQueries } from './utils';
 
@@ -152,6 +153,24 @@ export class Api {
   }
 
   /**
+   * Fetch a url directly, circumventing all {@link Api} configuration except authentication.
+   * Useful when wanting to tap into @spinque/query-api's authentication service while also
+   * wanting to construct your own URLs. This function does not check whether the provided URL
+   * is a valid request to Spinque, take caution.
+   */
+  async fetchUrl<R extends ResponseTypes>(url: string, requestInit: RequestInit = {}) {
+    await this._isInitialized;
+
+    // Possibly set authentication details
+    if (this.authentication && this._authenticator) {
+      const token = await this._authenticator.accessToken;
+      requestInit = { ...requestInit, headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }) };
+    }
+
+    return fetch(url, requestInit).then((res) => this.handleResponse<R>(res));
+  }
+
+  /**
    * Fetch a Query (or array of Queries). Takes optional RequestOptions and RequestType into account.
    * Optionally the `fetch` RequestInit can be passed (see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit).
    */
@@ -185,19 +204,19 @@ export class Api {
     }
 
     // Make the request
-    return fetch(url, requestInit).then((res) => this.handleResponse<R, T>(res));
+    return fetch(url, requestInit).then((res) => this.handleResponse<ResponseType<R, T>>(res));
   }
 
   /**
    * Handle the response of a fetch to Spinque Query API.
    */
-  private async handleResponse<R extends RequestType, T = TupleTypes[]>(
+  private async handleResponse<R extends ResponseTypes>(
     response: Response,
-  ): Promise<ResponseType<R, T>> {
+  ): Promise<R> {
     const json = await response.json();
 
     if (response.status === 200) {
-      return json as ResponseType<R, T>;
+      return json as R;
     }
 
     if (response.status === 401) {
