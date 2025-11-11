@@ -5,7 +5,7 @@ const hasParameterValueSet = (f: ParameterizedFilter | FacetFilter) =>
   f.filterParameterValue !== undefined && f.filterParameterValue !== '';
 
 /**
- * Associate Query objects with each other in a filtered search setup.
+ * Associate {@link Query} objects with each other in a filtered search setup, using {@link Filter} definitions.
  *
  * Instances of this class respresent search pages with filters and/or modifiers (such as sorting).
  */
@@ -17,14 +17,23 @@ export class FilteredSearch {
   private _activeModifier?: Query;
 
   constructor(
-    // Query object for the search results that will serve as the base for this facet.
-    // The searchQuery is used to fetch the options of the facet and will be filtered once
-    // one or more facet options are selected.
-    // The searchQuery must have at least one parameter.
+    /**
+     * Query object for the search results that will serve as the base for this facet.
+     * The searchQuery is used to fetch the options of the facet and will be filtered once
+     * one or more facet options are selected.
+     * The searchQuery must have at least one parameter.
+     */
     private searchQuery: Query,
-    // emptyParameterQuery is used instead of searchQuery when the searchQuery parameters are all empty.
-    // If no emptyParameterQuery is passed, searchQuery is fetched with empty parameters.
+
+    /**
+     * emptyParameterQuery is used instead of searchQuery when the searchQuery parameters are all empty.
+     * If no emptyParameterQuery is passed, searchQuery is fetched with empty parameters.
+     */
     private emptyParameterQuery?: Query,
+
+    /**
+     * Optional list of allowed modifiers. If not given, all modifiers will be allowed.
+     */
     private modifiers?: Query[],
   ) {
     // Throw an error if the searchQuery does not have parameters
@@ -65,10 +74,10 @@ export class FilteredSearch {
   }
 
   /**
-   * Add a filter to the FilteredSearch object.
+   * Add a filter to the {@link FilteredSearch} object.
    *
-   * @param obj the Filter to be added or a Query object, from which a
-   * SimpleFilter or ParameterizedFilter will be deduced
+   * @param obj the Filter to be added or a {@link Query} object, from which a
+   * {@link SimpleFilter} or {@link ParameterizedFilter} will be deduced
    */
   addFilter(obj: Query | Filter): void {
     if ('endpoint' in obj) {
@@ -106,7 +115,7 @@ export class FilteredSearch {
   }
 
   /**
-   * Set a query as modifier. Only modifiers in the list passed to constructor are allowed.
+   * Set a {@link Query} as modifier. Only modifiers in the list passed to constructor are allowed.
    */
   setModifier(modifier: Query | undefined) {
     if (modifier === undefined) {
@@ -121,14 +130,14 @@ export class FilteredSearch {
   }
 
   /**
-   * Get the currently active modifier query.
+   * Get the currently active modifier {@link Query}.
    */
   getModifier(): Query | undefined {
     return this._activeModifier;
   }
 
   /**
-   * Get the Query to get the search results.
+   * Get the {@link Query} to get the search results.
    * Will return searchQuery as passed to the constructor unless a emptyParameterQuery was
    * also passed and all parameters for searchQuery are empty.
    */

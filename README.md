@@ -246,10 +246,10 @@ Many utility functions are available for import under
 See the [documentation](https://spinque.github.io/query-api-ts/) for a complete
 list.
 
-### Filtered search
+### Filtered search (or faceted search)
 
-_Filtered search_ is a common pattern found in applications built on Spinque.
-This library provides a FilteredSearch abstraction to ease the interaction between queries in a faceted search setup.
+_Filtered_ or _faceted search_ is a common pattern found in search applications.
+This library provides a FilteredSearch abstraction to ease the interaction between all different queries in such a setup.
 
 The following example shows how a search endpoint 'movie_search' can be used in
 combination with facet filters 'genre' and 'director'.
@@ -257,10 +257,18 @@ combination with facet filters 'genre' and 'director'.
 ```typescript
 import { Api, FilteredSearch } from "@spinque/query-api";
 
-const fs = new FilteredSearch({
-  endpoint: "movie_search",
-  parameters: { query: "" },
-});
+const search_query =
+
+const fs = new FilteredSearch(
+  {
+    endpoint: "movie_search",
+    parameters: { query: "" },
+  },
+  // optionally, a different query can be used in case the search parameter is empty:
+  {
+    endpoint: "trending_movies"
+  }
+);
 
 fs.addFacet("genre", "multiple");
 fs.addFacet("director", "single");
