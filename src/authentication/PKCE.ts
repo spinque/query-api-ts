@@ -3,6 +3,7 @@ import { join } from '../utils';
 import { isBrowser } from '../utils';
 import { localStorageTokenCache } from './TokenCache';
 import { DEFAULT_BASE_URL } from '..';
+import { AccessTokenResponse, isOAuthTokenResponse } from '../types';
 
 /**
  * An Authenticator class for the OAuth 2.0 Authorization Code with PKCE grant.
@@ -46,11 +47,11 @@ export class PKCE extends Authenticator {
     this.tradeCodeForToken(params['code'], params['state']).catch(() => this.authorize());
   }
 
-  public async fetchAccessToken() {
+  public override async fetchAccessToken(): Promise<AccessTokenResponse | undefined> {
     return this.authorize();
   }
 
-  private async authorize() {
+  private async authorize(): Promise<AccessTokenResponse | undefined> {
     const authServer = this.authServer || DEFAULT_AUTH_SERVER;
     const audience = this.baseUrl || DEFAULT_BASE_URL;
 
@@ -119,14 +120,15 @@ export class PKCE extends Authenticator {
         .join('&'),
     });
 
-    const json = await response.json();
+    const json: unknown = await response.json();
+    const errorJson = json as { error_description?: string; error?: string } | null;
 
-    if (response.status === 403 && json && json.error && json.error === 'invalid_grant') {
+    if (response.status === 403 && errorJson?.error === 'invalid_grant') {
       await this.fetchAccessToken();
     }
 
-    if (response.status !== 200 || !json || !json.access_token || !json.expires_in) {
-      throw new Error(json.error_description || json.error || response.status);
+    if (response.status !== 200 || !isOAuthTokenResponse(json)) {
+      throw new Error(errorJson?.error_description || errorJson?.error || String(response.status));
     }
 
     this.setAccessToken(json.access_token, json.expires_in);
@@ -138,16 +140,33 @@ export class PKCE extends Authenticator {
  * Most of this is taken from: https://github.com/auth0/auth0-spa-js (MIT licensed)
  */
 
-export const getCrypto = () => {
-  return (window.crypto || (window as any).msCrypto) as Crypto;
+// Browser compatibility interfaces for IE11/Safari
+interface ExtendedWindow extends Window {
+  msCrypto?: Crypto;
+}
+
+interface ExtendedCrypto extends Crypto {
+  webkitSubtle?: SubtleCrypto;
+}
+
+interface IE11CryptoOperation {
+  oncomplete: ((event: { target: { result: ArrayBuffer } }) => void) | null;
+  onerror: ((event: ErrorEvent) => void) | null;
+  onabort: (() => void) | null;
+  result?: ArrayBuffer;
+}
+
+export const getCrypto = (): Crypto => {
+  const win = window as ExtendedWindow;
+  return win.crypto || (win.msCrypto as Crypto);
 };
 
-export const getCryptoSubtle = () => {
-  const crypto = getCrypto();
-  return crypto.subtle || (crypto as any).webkitSubtle;
+export const getCryptoSubtle = (): SubtleCrypto => {
+  const crypto = getCrypto() as ExtendedCrypto;
+  return crypto.subtle || (crypto.webkitSubtle as SubtleCrypto);
 };
 
-export const createRandomString = () => {
+export const createRandomString = (): string => {
   const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_~.';
   let random = '';
   const randomValues = Array.from(getCrypto().getRandomValues(new Uint8Array(43)));
@@ -155,20 +174,22 @@ export const createRandomString = () => {
   return random;
 };
 
-export const sha256 = async (s: string) => {
-  const digestOp: any = getCryptoSubtle().digest({ name: 'SHA-256' }, new TextEncoder().encode(s));
-  if ((window as any).msCrypto) {
-    return new Promise((res, rej) => {
-      digestOp.oncomplete = (e: any) => {
-        res(e.target.result);
-      };
+export const sha256 = async (s: string): Promise<ArrayBuffer> => {
+  const win = window as ExtendedWindow;
+  const digestOp = getCryptoSubtle().digest({ name: 'SHA-256' }, new TextEncoder().encode(s));
 
-      digestOp.onerror = (e: ErrorEvent) => {
-        rej(e.error);
+  // IE11 uses a non-standard crypto API with event handlers
+  if (win.msCrypto) {
+    return new Promise((resolve, reject) => {
+      const ie11Op = digestOp as unknown as IE11CryptoOperation;
+      ie11Op.oncomplete = (event) => {
+        resolve(event.target.result);
       };
-
-      digestOp.onabort = () => {
-        rej('The digest operation was aborted');
+      ie11Op.onerror = (event) => {
+        reject(event.error);
+      };
+      ie11Op.onabort = () => {
+        reject(new Error('The digest operation was aborted'));
       };
     });
   }
@@ -176,12 +197,12 @@ export const sha256 = async (s: string) => {
   return await digestOp;
 };
 
-export const bufferToBase64UrlEncoded = (input: number[] | Uint8Array) => {
-  const ie11SafeInput = new Uint8Array(input);
+export const bufferToBase64UrlEncoded = (input: ArrayBuffer | number[] | Uint8Array): string => {
+  const ie11SafeInput = new Uint8Array(input as ArrayBuffer);
   return urlEncodeB64(window.btoa(String.fromCharCode(...Array.from(ie11SafeInput))));
 };
 
-const urlEncodeB64 = (input: string) => {
-  const b64Chars: { [index: string]: string } = { '+': '-', '/': '_', '=': '' };
+const urlEncodeB64 = (input: string): string => {
+  const b64Chars: Record<string, string> = { '+': '-', '/': '_', '=': '' };
   return input.replace(/[+/=]/g, (m: string) => b64Chars[m]);
 };

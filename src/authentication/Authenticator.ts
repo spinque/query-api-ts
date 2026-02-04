@@ -1,3 +1,4 @@
+import { AccessTokenResponse } from '../types';
 import { isBrowser } from '../utils';
 import { TokenCache, localStorageTokenCache } from './TokenCache';
 
@@ -56,7 +57,7 @@ export abstract class Authenticator {
 
     this._authInProgress = true;
 
-    return this.fetchAccessToken().then((res: { accessToken: string; expiresIn: number } | undefined) => {
+    return this.fetchAccessToken().then((res: AccessTokenResponse | undefined) => {
       this._authInProgress = false;
       if (res && 'accessToken' in res && 'expiresIn' in res) {
         this.setAccessToken(res.accessToken, res.expiresIn);
@@ -80,5 +81,5 @@ export abstract class Authenticator {
   /**
    * Abstract method that must be implemented by extending classes for specific OAuth 2.0 grants/flows.
    */
-  abstract fetchAccessToken(): Promise<{ accessToken: string; expiresIn: number } | undefined>;
+  abstract fetchAccessToken(): Promise<AccessTokenResponse | undefined>;
 }

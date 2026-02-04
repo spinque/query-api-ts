@@ -207,9 +207,13 @@ export const isTupleList = (value: string) => /\d(\.\d+)?\(.*\)/.test(value);
 /**
  * Takes a value that should be a tuple list and ensures it has a normalized form.
  */
-const ensureTupleList = (
+function ensureTupleList(value: (string | number)[][]): (string | number)[][];
+function ensureTupleList(value: (string | number)[]): (string | number)[][];
+function ensureTupleList(value: string | number): (string | number)[][];
+function ensureTupleList(value: (string | number)[][] | (string | number)[] | string | number): (string | number)[][];
+function ensureTupleList(
   value: (string | number)[][] | (string | number)[] | (string | number),
-): (string | number)[][] => {
+): (string | number)[][] {
   // Convert string or number to nested array
   if (typeof value === 'string' || typeof value === 'number') {
     return [[value]];
@@ -245,7 +249,7 @@ const ensureTupleList = (
   }
 
   return value as (string | number)[][];
-};
+}
 
 /**
  * Joins together URL parts into an URL

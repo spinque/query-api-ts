@@ -26,10 +26,10 @@ export interface SnippetOptions {
   stemmer?: Language;
 }
 
-const DEFAULT_SIZE = 512;
-const DEFAULT_HIGHLIGHT = false;
-const DEFAULT_STOPWORDS = undefined;
-const DEFAULT_STEMMER = undefined;
+const DEFAULT_SIZE = 512 satisfies SnippetOptions['size'];
+const DEFAULT_HIGHLIGHT = false satisfies SnippetOptions['highlight'];
+const DEFAULT_STOPWORDS = undefined satisfies SnippetOptions['stopwords'];
+const DEFAULT_STEMMER = undefined satisfies SnippetOptions['stemmer'];
 
 /**
  * Takes a piece of text and a text query and returns a snippet of the text that best matches the query.
@@ -162,20 +162,18 @@ const logWeightedTermFrequency = (docterms: string[], qterms: string[]) => {
 };
 
 // Dictionary of stopword lists per language
-const STOPWORDS_PER_LANG = { dutch, english };
+const STOPWORDS_PER_LANG: Record<Language, Set<string>> = { dutch, english };
 
 /**
  * Cache the stemmer in memory to prevent calling `newStemmer` often.
  */
-const cachedStemmers: {
-  [key: string]: snowball.Stemmer;
-} = {};
+const cachedStemmers: Partial<Record<Language, snowball.Stemmer>> = {};
 
-const getStemmer = (stemmer: string): snowball.Stemmer => {
-  if (!cachedStemmers[stemmer]) {
-    cachedStemmers[stemmer] = snowball.newStemmer(stemmer);
+const getStemmer = (language: Language): snowball.Stemmer => {
+  if (!cachedStemmers[language]) {
+    cachedStemmers[language] = snowball.newStemmer(language);
   }
-  return cachedStemmers[stemmer] as snowball.Stemmer;
+  return cachedStemmers[language] as snowball.Stemmer;
 };
 
 class TextProcessor {

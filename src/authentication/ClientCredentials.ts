@@ -3,6 +3,7 @@ import { join } from '../utils';
 import { isBrowser } from '../utils';
 import { TokenCache } from './TokenCache';
 import { DEFAULT_BASE_URL } from '..';
+import { AccessTokenResponse, isOAuthTokenResponse } from '../types';
 
 /**
  * An Authenticator class for the OAuth 2.0 Client Credentials grant.
@@ -35,7 +36,7 @@ export class ClientCredentials extends Authenticator {
   /**
    * This method fetches an access token using the OAuth 2.0 Client Credentials grant and returns it
    */
-  public async fetchAccessToken(): Promise<{ accessToken: string; expiresIn: number }> {
+  public override async fetchAccessToken(): Promise<AccessTokenResponse> {
     const authServer = this.authServer || DEFAULT_AUTH_SERVER;
 
     const body = {
@@ -54,15 +55,16 @@ export class ClientCredentials extends Authenticator {
         .join('&'),
     });
 
-    const json = await response.json();
+    const json: unknown = await response.json();
 
-    if (response.status !== 200 || !json || !json.access_token || !json.expires_in) {
-      throw new Error(json.error_description || json.error || response.status);
+    if (response.status !== 200 || !isOAuthTokenResponse(json)) {
+      const errorJson = json as { error_description?: string; error?: string } | null;
+      throw new Error(errorJson?.error_description || errorJson?.error || String(response.status));
     }
 
     return {
-      accessToken: json.access_token as string,
-      expiresIn: json.expires_in as number,
+      accessToken: json.access_token,
+      expiresIn: json.expires_in,
     };
   }
 }

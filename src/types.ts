@@ -1,6 +1,14 @@
 import { TokenCache } from './authentication';
 
 /**
+ * Response from OAuth token endpoint.
+ */
+export interface AccessTokenResponse {
+  accessToken: string;
+  expiresIn: number;
+}
+
+/**
  * Configuration of an API to send queries to. Used to instantiate the Api class.
  */
 export interface ApiConfig {
@@ -283,9 +291,7 @@ export interface SpinqueResultObject {
    * Object with attribute names and values.
    * Values can be any valid JSON type.
    */
-  attributes?: {
-    [attributeName: string]: any;
-  };
+  attributes?: Record<string, unknown>;
 }
 
 /**
@@ -447,4 +453,73 @@ export interface ParameterizedFilter {
 export interface SimpleFilter {
   // Name of the endpoint that filters search results
   filterEndpoint: string;
+}
+
+// Type guards for API responses
+
+/**
+ * Type guard for ResultsResponse
+ */
+export function isResultsResponse<T>(json: unknown): json is ResultsResponse<T> {
+  return (
+    typeof json === 'object' &&
+    json !== null &&
+    'count' in json &&
+    typeof (json as ResultsResponse<T>).count === 'number' &&
+    'offset' in json &&
+    typeof (json as ResultsResponse<T>).offset === 'number' &&
+    'items' in json &&
+    Array.isArray((json as ResultsResponse<T>).items)
+  );
+}
+
+/**
+ * Type guard for CountResponse
+ */
+export function isCountResponse(json: unknown): json is CountResponse {
+  return (
+    typeof json === 'object' && json !== null && 'total' in json && typeof (json as CountResponse).total === 'number'
+  );
+}
+
+/**
+ * Type guard for StatisticsResponse
+ */
+export function isStatisticsResponse(json: unknown): json is StatisticsResponse {
+  return (
+    typeof json === 'object' &&
+    json !== null &&
+    'total' in json &&
+    typeof (json as StatisticsResponse).total === 'number' &&
+    'stats' in json &&
+    Array.isArray((json as StatisticsResponse).stats)
+  );
+}
+
+/**
+ * Type guard for OptionsResponse
+ */
+export function isOptionsResponse(json: unknown): json is OptionsResponse {
+  return (
+    typeof json === 'object' &&
+    json !== null &&
+    'id' in json &&
+    typeof (json as OptionsResponse).id === 'string' &&
+    'options' in json &&
+    Array.isArray((json as OptionsResponse).options)
+  );
+}
+
+/**
+ * Type guard for OAuth token response from the authorization server
+ */
+export function isOAuthTokenResponse(json: unknown): json is { access_token: string; expires_in: number } {
+  return (
+    typeof json === 'object' &&
+    json !== null &&
+    'access_token' in json &&
+    typeof (json as { access_token: string }).access_token === 'string' &&
+    'expires_in' in json &&
+    typeof (json as { expires_in: number }).expires_in === 'number'
+  );
 }

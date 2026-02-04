@@ -15,9 +15,9 @@ interface GetClustersOptions {
   knownClusters?: string[];
 }
 
-const DEFAULT_CLUSTER_ENDPOINT: NonNullable<GetClustersOptions['clusterEndpoint']> = 'type:FILTER';
-const DEFAULT_CLUSTER_PARAMETER_NAME: NonNullable<GetClustersOptions['clusterParameterName']> = 'value';
-const DEFAULT_CLUSTER_PARAMETER_TYPE: NonNullable<GetClustersOptions['clusterParameterType']> = 'TUPLE_LIST';
+const DEFAULT_CLUSTER_ENDPOINT = 'type:FILTER' satisfies NonNullable<GetClustersOptions['clusterEndpoint']>;
+const DEFAULT_CLUSTER_PARAMETER_NAME = 'value' satisfies NonNullable<GetClustersOptions['clusterParameterName']>;
+const DEFAULT_CLUSTER_PARAMETER_TYPE = 'TUPLE_LIST' satisfies NonNullable<GetClustersOptions['clusterParameterType']>;
 
 const RDFS_CLASS = 'http://www.w3.org/2000/01/rdf-schema#Class';
 
