@@ -14,6 +14,7 @@ import {
   WorkspaceConfigNotFoundError,
   OptionsType,
   ResponseTypes,
+  AccessTokenResponse,
 } from './types';
 import { apiUrl, urlFromQueries } from './utils';
 
@@ -211,6 +212,10 @@ export class Api {
 
     // Make the request
     return fetch(url, requestInit).then((res) => this.handleResponse<ResponseType<R, T>>(res));
+  }
+
+  public async fetchAccessToken(): Promise<AccessTokenResponse | undefined> {
+    return await this._authenticator?.fetchAccessToken();
   }
 
   /**
