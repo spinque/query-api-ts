@@ -106,3 +106,26 @@ describe('Authenticator.accessToken', () => {
     expect(auth.fetchMock).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('Authenticator.invalidate', () => {
+  it('clears the stored token and deletes it from the cache, so the next read fetches a fresh one', async () => {
+    const cache: TokenCache = { get: () => null, set: jest.fn(), delete: jest.fn() };
+    let counter = 0;
+    const auth = new TestAuthenticator(async () => ({ accessToken: `tok-${++counter}`, expiresIn: 3600 }), cache);
+
+    await expect(auth.accessToken).resolves.toBe('tok-1');
+    auth.invalidate();
+
+    expect(cache.delete).toHaveBeenCalledTimes(1);
+    await expect(auth.accessToken).resolves.toBe('tok-2');
+    expect(auth.fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not throw when the token cache has no delete method', async () => {
+    const cache: TokenCache = { get: () => null, set: () => undefined }; // delete is optional and omitted
+    const auth = new TestAuthenticator(async () => ({ accessToken: 'tok', expiresIn: 3600 }), cache);
+
+    await auth.accessToken;
+    expect(() => auth.invalidate()).not.toThrow();
+  });
+});

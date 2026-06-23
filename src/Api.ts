@@ -240,32 +240,42 @@ export class Api {
    * Handle the response of a fetch to Spinque Query API.
    */
   private async handleResponse<R extends ResponseTypes>(response: Response): Promise<R> {
-    const json = await response.json();
+    // Parse the body defensively: some error responses carry no (JSON) body at all.
+    let json: unknown;
+    try {
+      json = await response.json();
+    } catch {
+      json = undefined;
+    }
 
     if (response.status === 200) {
       return json as R;
     }
 
+    // Error bodies may omit `message` entirely; fall back to an empty string so the substring
+    // checks below never throw on a missing field.
+    const message = (json as { message?: string } | null)?.message ?? '';
+
     if (response.status === 401) {
-      throw new UnauthorizedError(json.message, 401);
+      throw new UnauthorizedError(message, 401);
     }
 
-    if (response.status === 400 && json.message.includes('no endpoint')) {
-      throw new EndpointNotFoundError(json.message, 400);
+    if (response.status === 400 && message.includes('no endpoint')) {
+      throw new EndpointNotFoundError(message, 400);
     }
 
     if (response.status === 500) {
-      throw new ServerError(json.message, 401);
+      throw new ServerError(message, 500);
     }
 
-    if (response.status === 404 && json.message.includes('No such api')) {
-      throw new ApiNotFoundError(json.message, 404);
+    if (response.status === 404 && message.includes('No such api')) {
+      throw new ApiNotFoundError(message, 404);
     }
 
-    if (response.status === 404 && json.message.includes('No such workspace configuration')) {
-      throw new WorkspaceConfigNotFoundError(json.message, 404);
+    if (response.status === 404 && message.includes('No such workspace configuration')) {
+      throw new WorkspaceConfigNotFoundError(message, 404);
     }
 
-    throw new ErrorResponse('Unknown error: ' + (json.message || ''), response.status);
+    throw new ErrorResponse('Unknown error: ' + message, response.status);
   }
 }
