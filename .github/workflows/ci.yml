@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '24'
 
       - name: Checkout 🛎️
         uses: actions/checkout@v3
@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '24'
 
       - name: Checkout 🛎️
         uses: actions/checkout@v3
@@ -56,6 +56,10 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '24'
+
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
