@@ -43,8 +43,14 @@ export class PKCE extends Authenticator {
       return;
     }
 
-    this._authInProgress = true;
-    this.tradeCodeForToken(params['code'], params['state']).catch(() => this.authorize());
+    // An authentication is already underway: trade the callback code for a token. Register it
+    // so callers of `accessToken` wait for this exchange instead of triggering a new redirect
+    // via fetchAccessToken(). On failure, fall back to (re)starting the authorize redirect.
+    this.track(
+      this.tradeCodeForToken(params['code'], params['state'])
+        .then(() => this._accessToken)
+        .catch(() => this.authorize().then(() => undefined)),
+    );
   }
 
   public override async fetchAccessToken(): Promise<AccessTokenResponse | undefined> {

@@ -11,6 +11,12 @@ export interface TokenCache {
    * Put a token and expiration timestamp into storage.
    */
   set: (token: string, expires: number) => void;
+
+  /**
+   * Remove any stored token. Optional: when omitted, an invalidated token is simply overwritten
+   * on the next successful authentication.
+   */
+  delete?: () => void;
 }
 
 /**
@@ -41,5 +47,12 @@ export const localStorageTokenCache: TokenCache = {
     }
     localStorage.setItem(`@spinque/query-api/access-token`, token);
     localStorage.setItem(`@spinque/query-api/expires`, `${expires}`);
+  },
+  delete: () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    localStorage.removeItem('@spinque/query-api/access-token');
+    localStorage.removeItem('@spinque/query-api/expires');
   },
 };

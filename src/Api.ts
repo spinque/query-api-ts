@@ -161,17 +161,7 @@ export class Api {
    */
   async fetchUrl<R extends ResponseTypes>(url: string, requestInit: RequestInit = {}) {
     await this._isInitialized;
-
-    // Possibly set authentication details
-    if (this.authentication && this._authenticator) {
-      const token = await this._authenticator.accessToken;
-      requestInit = {
-        ...requestInit,
-        headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }),
-      };
-    }
-
-    return fetch(url, requestInit).then((res) => this.handleResponse<R>(res));
+    return this._authenticatedFetch<R>(url, requestInit);
   }
 
   /**
@@ -201,17 +191,45 @@ export class Api {
     // Construct the URL to request from config and passed queries and options
     const url = urlFromQueries(this.apiConfig, queries, options, requestType);
 
-    // Possibly set authentication details
-    if (this.authentication && this._authenticator) {
-      const token = await this._authenticator.accessToken;
-      requestInit = {
+    // Make the request
+    return this._authenticatedFetch<ResponseType<R, T>>(url, requestInit);
+  }
+
+  /**
+   * Sends an authenticated request.
+   *
+   * Automatically retries once on 401 for Client Credentials. Fails with
+   * {@link UnauthorizedError} for other auth flows or if the retry also 401s.
+   */
+  private async _authenticatedFetch<R extends ResponseTypes>(url: string, requestInit: RequestInit): Promise<R> {
+    // Resolve the authenticator to use, if authentication is currently required.
+    const authenticator = this.authentication ? this._authenticator : undefined;
+
+    const send = async (refresh: boolean): Promise<Response> => {
+      if (!authenticator) {
+        return fetch(url, requestInit);
+      }
+      if (refresh) {
+        // Drop the token the server just rejected so a fresh one is fetched.
+        authenticator.invalidate();
+      }
+      const token = await authenticator.accessToken;
+      // Build headers from the original requestInit each time so retries don't accumulate headers.
+      return fetch(url, {
         ...requestInit,
         headers: new Headers({ ...requestInit.headers, Authorization: `Bearer ${token}` }),
-      };
+      });
+    };
+
+    let response = await send(false);
+
+    // The server rejected a token we still considered valid. Only the Client Credentials grant
+    // can fetch a new one non-interactively, so refresh and replay the request once.
+    if (response.status === 401 && authenticator instanceof ClientCredentials) {
+      response = await send(true);
     }
 
-    // Make the request
-    return fetch(url, requestInit).then((res) => this.handleResponse<ResponseType<R, T>>(res));
+    return this.handleResponse<R>(response);
   }
 
   public async fetchAccessToken(): Promise<AccessTokenResponse | undefined> {
