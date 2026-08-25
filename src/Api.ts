@@ -15,19 +15,12 @@ import {
   OptionsType,
   ResponseTypes,
   AccessTokenResponse,
+  QueryStackResult,
 } from './types';
 import { apiUrl, urlFromQueries } from './utils';
 
 // This is the default base URL to the Spinque Query API.
 export const DEFAULT_BASE_URL = 'https://rest.spinque.com/';
-
-type QueryResult<Q> = Q extends Query<infer T> ? T : never;
-
-type QueryChainResult<Q> = Q extends Query
-  ? QueryResult<Q>
-  : Q extends [...Query[], infer Last]
-  ? QueryResult<Last>
-  : never;
 
 /**
  * Send queries to the Spinque Query API using fetch.
@@ -180,7 +173,7 @@ export class Api {
     const Q extends Query | Query[],
     R extends RequestType = RequestType.Results,
     O extends OptionsType<R> = OptionsType<R>,
-  >(queries: Q, options?: O, requestType?: R, requestInit?: RequestInit): Promise<ResponseType<R, QueryChainResult<Q>>>;
+  >(queries: Q, options?: O, requestType?: R, requestInit?: RequestInit): Promise<ResponseType<R, QueryStackResult<Q>>>;
   /**
    * Backwards-compatible overload allowing callers to explicitly specify
    * the response tuple type.

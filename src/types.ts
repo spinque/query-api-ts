@@ -122,6 +122,16 @@ export interface Query<T = TupleTypes[]> {
   };
 }
 
+export type QueryResult<Q> =
+  Q extends Query<infer T> ? T : never;
+
+export type QueryStackResult<Q> =
+  Q extends Query
+    ? QueryResult<Q>
+    : Q extends [...Query[], infer Last]
+      ? QueryResult<Last>
+      : never;
+
 /**
  * Any request to the Spinque Query API must be one of these types.
  */
