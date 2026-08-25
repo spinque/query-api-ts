@@ -170,7 +170,7 @@ export class Api {
    * Optionally the `fetch` RequestInit can be passed (see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit).
    */
   async fetch<
-    const Q extends Query | Query[],
+    const Q extends readonly Query[],
     R extends RequestType = RequestType.Results,
     O extends OptionsType<R> = OptionsType<R>,
   >(queries: Q, options?: O, requestType?: R, requestInit?: RequestInit): Promise<ResponseType<R, QueryStackResult<Q>>>;
