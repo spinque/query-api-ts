@@ -108,7 +108,7 @@ export type ApiAuthenticationConfig =
 /**
  * Represent a single query, consisting of an endpoint name and a map of parameters (name and value).
  */
-export interface Query {
+export interface Query<T = TupleTypes[]> {
   /**
    * Name of the endpoint.
    */
