@@ -1,53 +1,488 @@
 import { FacetFilter, FacetType, Filter, ParameterizedFilter, Query, SimpleFilter } from './types';
 import { isTupleList, stringifyQueries, stringToTupleList, tupleListToString } from './utils';
 
-const hasParameterValueSet = (f: ParameterizedFilter | FacetFilter) =>
-  f.filterParameterValue !== undefined && f.filterParameterValue !== '';
+export type FilterSelection = undefined | null | string | number | (string | number)[] | (string | number)[][];
 
-/**
- * Associate {@link Query} objects with each other in a filtered search setup, using {@link Filter} definitions.
- *
- * Instances of this class respresent search pages with filters and/or modifiers (such as sorting).
- */
-export class FilteredSearch {
-  // Internal list of Filter objects
-  protected _filters: Filter[] = [];
+export interface FilteredSearchState {
+  readonly searchQuery: Query;
+  readonly emptyParameterQuery?: Query;
+  readonly filters: readonly Filter[];
+  readonly modifiers?: readonly Query[];
+  readonly activeModifier?: Query;
+}
 
-  private _modifiers?: Query[];
-  private _activeModifier?: Query;
+export interface FilteredSearchConfig {
+  readonly searchQuery: Query;
+  readonly emptyParameterQuery?: Query;
+  readonly filters?: readonly Filter[];
+  readonly modifiers?: readonly Query[];
+  readonly activeModifier?: Query;
+}
 
-  constructor(
-    /**
-     * Query object for the search results that will serve as the base for this facet.
-     * The searchQuery is used to fetch the options of the facet and will be filtered once
-     * one or more facet options are selected.
-     * The searchQuery must have at least one parameter.
-     */
-    private searchQuery: Query,
+export interface FacetOptions {
+  readonly type?: FacetType;
+  readonly resetOnQueryChange?: boolean;
+  readonly filterEndpointPostfix?: string;
+  readonly filterParameterName?: string;
+  readonly filterParameterValue?: string | number;
+}
 
-    /**
-     * emptyParameterQuery is used instead of searchQuery when the searchQuery parameters are all empty.
-     * If no emptyParameterQuery is passed, searchQuery is fetched with empty parameters.
-     */
-    private emptyParameterQuery?: Query,
+export interface ParameterizedFilterOptions {
+  readonly resetOnQueryChange?: boolean;
+  readonly filterParameterName?: string;
+  readonly filterParameterValue?: string | number;
+}
 
-    /**
-     * Optional list of allowed modifiers. If not given, all modifiers will be allowed.
-     */
-    private modifiers?: Query[],
-  ) {
-    // Throw an error if the searchQuery does not have parameters
-    if (!searchQuery.parameters || Object.keys(searchQuery.parameters).length === 0) {
-      throw new Error('searchQuery has no parameters. Please initialize with an empty parameter');
-    }
-    if (modifiers) {
-      this._modifiers = modifiers;
-    }
+const hasParameterValueSet = (filter: ParameterizedFilter | FacetFilter) =>
+  filter.filterParameterValue !== undefined && filter.filterParameterValue !== '';
+
+const cloneQuery = (query: Query): Query => ({
+  ...query,
+  parameters: query.parameters ? { ...query.parameters } : undefined,
+});
+
+const cloneFilter = (filter: Filter): Filter => ({ ...filter });
+
+const cloneState = (state: FilteredSearchState): FilteredSearchState => ({
+  searchQuery: cloneQuery(state.searchQuery),
+  emptyParameterQuery: state.emptyParameterQuery ? cloneQuery(state.emptyParameterQuery) : undefined,
+  filters: state.filters.map(cloneFilter),
+  modifiers: state.modifiers?.map(cloneQuery),
+  activeModifier: state.activeModifier ? cloneQuery(state.activeModifier) : undefined,
+});
+
+const assertValidSearchQuery = (searchQuery: Query) => {
+  if (!searchQuery.parameters || Object.keys(searchQuery.parameters).length === 0) {
+    throw new Error('searchQuery has no parameters. Please initialize with an empty parameter');
+  }
+};
+
+const findFilter = (filters: readonly Filter[], endpoint: string): Filter | undefined =>
+  filters.find(
+    (filter) =>
+      filter.filterEndpoint === endpoint || ('optionsEndpoint' in filter && filter.optionsEndpoint === endpoint),
+  );
+
+const identifyFilter = (filter: Filter): string =>
+  'optionsEndpoint' in filter ? filter.optionsEndpoint : filter.filterEndpoint;
+
+const queryFromFilter = (filter: Filter): Query => ({
+  endpoint: filter.filterEndpoint,
+  parameters: !('filterParameterName' in filter)
+    ? {}
+    : { [filter.filterParameterName]: filter.filterParameterValue as string },
+});
+
+const isEmptySelection = (selection: FilterSelection): boolean =>
+  (Array.isArray(selection) && selection.length === 0) ||
+  selection === '' ||
+  selection === undefined ||
+  selection === null;
+
+const normalizeFilterSelection = (
+  filter: ParameterizedFilter | FacetFilter,
+  endpoint: string,
+  selection: FilterSelection,
+) => {
+  if (isEmptySelection(selection)) {
+    return undefined;
   }
 
-  /**
-   * Add a facet to the FilteredSearch object.
-   */
+  if ('optionsEndpoint' in filter) {
+    const values = (Array.isArray(selection) ? selection : [selection]) as (string | number)[] | (string | number)[][];
+
+    if (filter.type === FacetType.single) {
+      if (values.length > 1) {
+        throw new Error(`Facet ${endpoint} is a single selection facet but more than one selected option was given.`);
+      }
+      return Array.isArray(values[0]) ? values[0][0] : values[0];
+    }
+
+    return tupleListToString(values);
+  }
+
+  return Array.isArray(selection) ? tupleListToString(selection) : selection;
+};
+
+export const facet = (endpoint: string, options: FacetOptions = {}): FacetFilter => ({
+  optionsEndpoint: endpoint,
+  filterEndpoint: `${endpoint}${options.filterEndpointPostfix ?? ':FILTER'}`,
+  filterParameterName: options.filterParameterName ?? 'value',
+  filterParameterValue: options.filterParameterValue,
+  resetOnQueryChange: options.resetOnQueryChange ?? true,
+  type: options.type ?? FacetType.single,
+});
+
+export const simpleFilter = (filterEndpoint: string): SimpleFilter => ({ filterEndpoint });
+
+export const parameterizedFilter = (
+  filterEndpoint: string,
+  options: ParameterizedFilterOptions = {},
+): ParameterizedFilter => ({
+  filterEndpoint,
+  filterParameterName: options.filterParameterName ?? 'value',
+  filterParameterValue: options.filterParameterValue,
+  resetOnQueryChange: options.resetOnQueryChange ?? true,
+});
+
+const stateFromConfig = (config: FilteredSearchConfig): FilteredSearchState => {
+  const searchQuery = cloneQuery(config.searchQuery);
+  assertValidSearchQuery(searchQuery);
+
+  return {
+    searchQuery,
+    emptyParameterQuery: config.emptyParameterQuery ? cloneQuery(config.emptyParameterQuery) : undefined,
+    filters: config.filters?.map(cloneFilter) ?? [],
+    modifiers: config.modifiers?.map(cloneQuery),
+    activeModifier: config.activeModifier ? cloneQuery(config.activeModifier) : undefined,
+  };
+};
+
+/**
+ * Create immutable state for a filtered search setup.
+ *
+ * The returned object is plain data so framework adapters can store it in
+ * React state, Angular services, Solid stores/signals, or any other reactive
+ * layer without depending on this library for reactivity.
+ */
+export function createFilteredSearchState(config: FilteredSearchConfig): FilteredSearchState;
+export function createFilteredSearchState(
+  searchQuery: Query,
+  emptyParameterQuery?: Query,
+  modifiers?: Query[],
+): FilteredSearchState;
+export function createFilteredSearchState(
+  configOrSearchQuery: FilteredSearchConfig | Query,
+  emptyParameterQuery?: Query,
+  modifiers?: Query[],
+): FilteredSearchState {
+  if ('searchQuery' in configOrSearchQuery) {
+    return stateFromConfig(configOrSearchQuery);
+  }
+
+  return stateFromConfig({
+    searchQuery: configOrSearchQuery,
+    emptyParameterQuery,
+    modifiers,
+  });
+}
+
+export const getFilteredSearchFilters = (state: FilteredSearchState): Filter[] => state.filters.map(cloneFilter);
+
+export const withFacet = (
+  state: FilteredSearchState,
+  endpoint: string,
+  type: FacetType = FacetType.single,
+  resetOnQueryChange = true,
+  filterEndpointPostfix = ':FILTER',
+  filterEndpointParameterName = 'value',
+): FilteredSearchState => ({
+  ...cloneState(state),
+  filters: [
+    ...state.filters.map(cloneFilter),
+    facet(endpoint, {
+      type,
+      resetOnQueryChange,
+      filterEndpointPostfix,
+      filterParameterName: filterEndpointParameterName,
+    }),
+  ],
+});
+
+export const withSimpleFilter = (state: FilteredSearchState, filterEndpoint: string): FilteredSearchState => ({
+  ...cloneState(state),
+  filters: [...state.filters.map(cloneFilter), simpleFilter(filterEndpoint)],
+});
+
+export const withParameterizedFilter = (
+  state: FilteredSearchState,
+  filterEndpoint: string,
+  resetOnQueryChange = true,
+  filterParameterName = 'value',
+): FilteredSearchState => ({
+  ...cloneState(state),
+  filters: [
+    ...state.filters.map(cloneFilter),
+    parameterizedFilter(filterEndpoint, { filterParameterName, resetOnQueryChange }),
+  ],
+});
+
+export const withFilter = (state: FilteredSearchState, obj: Query | Filter): FilteredSearchState => {
+  if ('endpoint' in obj) {
+    const params = Object.entries(obj.parameters || {});
+
+    if (params.length === 0) {
+      const filter: SimpleFilter = { filterEndpoint: obj.endpoint };
+      return { ...cloneState(state), filters: [...state.filters.map(cloneFilter), filter] };
+    }
+
+    if (params[0][1] !== undefined && params[0][1] !== '') {
+      const [filterParameterName, filterParameterValue] = params[0];
+      const filter: ParameterizedFilter = {
+        filterEndpoint: obj.endpoint,
+        filterParameterName,
+        filterParameterValue,
+        resetOnQueryChange: true,
+      };
+      return { ...cloneState(state), filters: [...state.filters.map(cloneFilter), filter] };
+    }
+
+    throw new Error(`Provided Query should have a single parameter will a truthy value`);
+  }
+
+  if ('filterEndpoint' in obj) {
+    return { ...cloneState(state), filters: [...state.filters.map(cloneFilter), cloneFilter(obj)] };
+  }
+
+  throw new Error(`Provided object does not seem to be a filter or query`);
+};
+
+export const withModifier = (state: FilteredSearchState, modifier: Query | undefined): FilteredSearchState => {
+  if (modifier === undefined) {
+    return { ...cloneState(state), activeModifier: undefined };
+  }
+
+  if (state.modifiers && !state.modifiers.find((allowedModifier) => allowedModifier.endpoint === modifier.endpoint)) {
+    return cloneState(state);
+  }
+
+  return { ...cloneState(state), activeModifier: cloneQuery(modifier) };
+};
+
+export const getFilteredSearchModifier = (state: FilteredSearchState): Query | undefined =>
+  state.activeModifier ? cloneQuery(state.activeModifier) : undefined;
+
+export const getFilteredSearchBaseQuery = (state: FilteredSearchState): Query => {
+  const parameters = state.searchQuery.parameters;
+  const hasEmptyParameters =
+    !parameters ||
+    Object.keys(parameters).length === 0 ||
+    Object.values(parameters).every((value) => !value || value === '');
+
+  return cloneQuery(state.emptyParameterQuery && hasEmptyParameters ? state.emptyParameterQuery : state.searchQuery);
+};
+
+export const getFilteredSearchResultsQuery = (state: FilteredSearchState, excludeModifier = false): Query[] => {
+  const queries = [
+    getFilteredSearchBaseQuery(state),
+    ...state.filters
+      .filter((filter) => !('filterParameterName' in filter) || hasParameterValueSet(filter))
+      .map(queryFromFilter),
+  ];
+
+  if (!excludeModifier && state.activeModifier !== undefined && state.activeModifier !== null) {
+    queries.push(cloneQuery(state.activeModifier));
+  }
+
+  return queries;
+};
+
+export const getFilteredSearchFacetQuery = (
+  state: FilteredSearchState,
+  facetEndpoint: string,
+  excludeModifier = false,
+  includeSelf = false,
+): Query[] => {
+  const facet = state.filters.find(
+    (filter): filter is FacetFilter => 'optionsEndpoint' in filter && filter.optionsEndpoint === facetEndpoint,
+  );
+
+  if (!facet) {
+    throw new Error('Facet not found in FilteredSearch');
+  }
+
+  const queries = [
+    getFilteredSearchBaseQuery(state),
+    ...state.filters
+      .filter(
+        (filter) =>
+          !('filterParameterName' in filter) ||
+          (!('optionsEndpoint' in filter) && hasParameterValueSet(filter)) ||
+          ('optionsEndpoint' in filter &&
+            (includeSelf || filter.optionsEndpoint !== facetEndpoint) &&
+            hasParameterValueSet(filter)),
+      )
+      .map(queryFromFilter),
+  ];
+
+  if (!excludeModifier && state.activeModifier !== undefined && state.activeModifier !== null) {
+    queries.push(cloneQuery(state.activeModifier));
+  }
+
+  queries.push({ endpoint: facet.optionsEndpoint });
+  return queries;
+};
+
+export const withParameter = (state: FilteredSearchState, name: string, value: string): FilteredSearchState => ({
+  ...cloneState(state),
+  searchQuery: {
+    ...cloneQuery(state.searchQuery),
+    parameters: {
+      ...state.searchQuery.parameters,
+      [name]: value,
+    },
+  },
+  filters: state.filters.map((filter) =>
+    'filterParameterName' in filter && filter.resetOnQueryChange
+      ? { ...filter, filterParameterValue: undefined }
+      : cloneFilter(filter),
+  ),
+});
+
+export const withClearedParameters = (state: FilteredSearchState): FilteredSearchState => ({
+  ...cloneState(state),
+  searchQuery: {
+    ...cloneQuery(state.searchQuery),
+    parameters: Object.keys(state.searchQuery.parameters || {}).reduce<{ [name: string]: string }>(
+      (acc, key) => ({ ...acc, [key]: '' }),
+      {},
+    ),
+  },
+});
+
+export const withFilterSelection = (
+  state: FilteredSearchState,
+  endpoint: string,
+  selection: FilterSelection,
+): FilteredSearchState => {
+  const filter = findFilter(state.filters, endpoint);
+
+  if (!filter) {
+    throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
+  }
+
+  if (!('filterParameterName' in filter)) {
+    throw new Error(`Filter ${endpoint} does not have a parameter (so it cannot be set)`);
+  }
+
+  const filterParameterValue = normalizeFilterSelection(filter, endpoint, selection);
+
+  return {
+    ...cloneState(state),
+    filters: state.filters.map((currentFilter) =>
+      currentFilter === filter ? { ...filter, filterParameterValue } : cloneFilter(currentFilter),
+    ),
+  };
+};
+
+export const withClearedFilterSelection = (state: FilteredSearchState, endpoint?: string): FilteredSearchState => {
+  if (endpoint) {
+    const filter = findFilter(state.filters, endpoint);
+
+    if (!filter) {
+      throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
+    }
+
+    if (!('filterParameterName' in filter)) {
+      throw new Error(`Filter ${endpoint} does not have a parameter (so it cannot be reset)`);
+    }
+
+    return withFilterSelection(state, endpoint, '');
+  }
+
+  return {
+    ...cloneState(state),
+    filters: state.filters.map((filter) =>
+      'filterParameterName' in filter ? { ...filter, filterParameterValue: '' } : cloneFilter(filter),
+    ),
+  };
+};
+
+export const withSearchQuery = (state: FilteredSearchState, query: Query): FilteredSearchState => ({
+  ...cloneState(state),
+  searchQuery: cloneQuery(query),
+});
+
+/**
+ * Overwrite the entire state with values from the passed Query stack.
+ *
+ * @param results typically retrieved from a URL query parameter and then parsed with `parseQueries`
+ */
+export const withFilteredSearchState = (state: FilteredSearchState, results: Query[]): FilteredSearchState => {
+  if (!results || results.length === 0) {
+    return withClearedFilterSelection(
+      Object.entries(state.searchQuery.parameters || {}).reduce(
+        (nextState, [name, value]) => withParameter(nextState, name, value),
+        state,
+      ),
+    );
+  }
+
+  if (stringifyQueries(results) === stringifyQueries(getFilteredSearchResultsQuery(state))) {
+    return cloneState(state);
+  }
+
+  let nextState = cloneState(state);
+  const filtersTouched: string[] = [];
+
+  results.forEach((query, index) => {
+    if (index === 0) {
+      nextState = withSearchQuery(nextState, query);
+      return;
+    }
+
+    if (index === results.length - 1 && nextState.modifiers?.find((modifier) => modifier.endpoint === query.endpoint)) {
+      nextState = withModifier(nextState, query);
+      return;
+    }
+
+    const filter = nextState.filters.find((currentFilter) => currentFilter.filterEndpoint === query.endpoint);
+    if (!filter || !('filterParameterName' in filter)) {
+      return;
+    }
+
+    const endpoint = identifyFilter(filter);
+    const selection = query.parameters?.[filter.filterParameterName];
+
+    if (selection && isTupleList(selection)) {
+      nextState = withFilterSelection(nextState, endpoint, stringToTupleList(selection)?.tuples);
+    } else {
+      nextState = withFilterSelection(nextState, endpoint, selection);
+    }
+
+    filtersTouched.push(endpoint);
+  });
+
+  nextState.filters.forEach((filter) => {
+    const endpoint = identifyFilter(filter);
+    if ('filterParameterName' in filter && !filtersTouched.includes(endpoint)) {
+      nextState = withFilterSelection(nextState, endpoint, []);
+    }
+  });
+
+  return nextState;
+};
+
+export const getFilters = getFilteredSearchFilters;
+export const getModifier = getFilteredSearchModifier;
+export const getBaseQuery = getFilteredSearchBaseQuery;
+export const getResultsQuery = getFilteredSearchResultsQuery;
+export const getFacetQuery = getFilteredSearchFacetQuery;
+
+/**
+ * Associate {@link Query} objects with each other in a filtered search setup,
+ * using {@link Filter} definitions.
+ *
+ * This class is a backwards-compatible wrapper around the plain state helpers.
+ * New framework-specific integrations should prefer storing
+ * {@link FilteredSearchState} directly and updating it with the `with*`
+ * functions exported from this module.
+ */
+export class FilteredSearch {
+  protected _state: FilteredSearchState;
+
+  constructor(searchQuery: Query, emptyParameterQuery?: Query, modifiers?: Query[]) {
+    this._state = createFilteredSearchState(searchQuery, emptyParameterQuery, modifiers);
+  }
+
+  protected get _filters(): Filter[] {
+    return getFilteredSearchFilters(this._state);
+  }
+
+  get state(): FilteredSearchState {
+    return cloneState(this._state);
+  }
+
   addFacet(
     endpoint: string,
     type: FacetType = FacetType.single,
@@ -55,337 +490,73 @@ export class FilteredSearch {
     filterEndpointPostfix = ':FILTER',
     filterEndpointParameterName = 'value',
   ) {
-    this._filters.push({
-      optionsEndpoint: endpoint,
-      filterEndpoint: `${endpoint}${filterEndpointPostfix}`,
-      filterParameterName: filterEndpointParameterName,
-      filterParameterValue: undefined,
-      resetOnQueryChange,
+    this._state = withFacet(
+      this._state,
+      endpoint,
       type,
-    });
+      resetOnQueryChange,
+      filterEndpointPostfix,
+      filterEndpointParameterName,
+    );
   }
 
   addSimpleFilter(filterEndpoint: string) {
-    this._filters.push({ filterEndpoint });
+    this._state = withSimpleFilter(this._state, filterEndpoint);
   }
 
   addParameterizedFilter(filterEndpoint: string, resetOnQueryChange = true, filterParameterName = 'value') {
-    this._filters.push({ filterEndpoint, filterParameterName, resetOnQueryChange, filterParameterValue: undefined });
+    this._state = withParameterizedFilter(this._state, filterEndpoint, resetOnQueryChange, filterParameterName);
   }
 
-  /**
-   * Add a filter to the {@link FilteredSearch} object.
-   *
-   * @param obj the Filter to be added or a {@link Query} object, from which a
-   * {@link SimpleFilter} or {@link ParameterizedFilter} will be deduced
-   */
   addFilter(obj: Query | Filter): void {
-    if ('endpoint' in obj) {
-      // Query.endpoint becomes Filter.filterEndpoint
-      const filterEndpoint = obj.endpoint;
-
-      const params = Object.entries(obj.parameters || {});
-      if (params.length === 0) {
-        // No parameters so push as a SimpleFilter
-        const filter: SimpleFilter = { filterEndpoint };
-        this._filters.push(filter);
-      } else if (params[0][1] !== undefined && params[0][1] !== '') {
-        const [filterParameterName, filterParameterValue] = params[0];
-
-        // Push as a ParameterizedFilter
-        const filter: ParameterizedFilter = {
-          filterEndpoint,
-          filterParameterName,
-          filterParameterValue,
-          resetOnQueryChange: true,
-        };
-        this._filters.push(filter);
-      } else {
-        throw new Error(`Provided Query should have a single parameter will a truthy value`);
-      }
-    } else if ('filterEndpoint' in obj) {
-      this._filters.push(obj);
-    } else {
-      throw new Error(`Provided object does not seem to be a filter or query`);
-    }
+    this._state = withFilter(this._state, obj);
   }
 
   get filters(): Filter[] {
-    return this._filters;
+    return getFilteredSearchFilters(this._state);
   }
 
-  /**
-   * Set a {@link Query} as modifier. Only modifiers in the list passed to constructor are allowed.
-   */
   setModifier(modifier: Query | undefined) {
-    if (modifier === undefined) {
-      this._activeModifier = undefined;
-    } else if (this._modifiers) {
-      const allowed = this._modifiers.find((m) => m.endpoint === modifier?.endpoint);
-      if (!allowed) {
-        return;
-      }
-      this._activeModifier = modifier;
-    }
+    this._state = withModifier(this._state, modifier);
   }
 
-  /**
-   * Get the currently active modifier {@link Query}.
-   */
   getModifier(): Query | undefined {
-    return this._activeModifier;
+    return getFilteredSearchModifier(this._state);
   }
 
-  /**
-   * Get the {@link Query} to get the search results.
-   * Will return searchQuery as passed to the constructor unless a emptyParameterQuery was
-   * also passed and all parameters for searchQuery are empty.
-   */
   getBaseQuery(): Query {
-    if (
-      this.emptyParameterQuery &&
-      (!this.searchQuery.parameters ||
-        Object.keys(this.searchQuery.parameters).length === 0 ||
-        Object.values(this.searchQuery.parameters).every((p) => !p || p === ''))
-    ) {
-      return this.emptyParameterQuery;
-    } else {
-      return this.searchQuery;
-    }
+    return getFilteredSearchBaseQuery(this._state);
   }
 
-  /**
-   * Get the Query objects to retrieve search results. This includes the facet Query, if applicable.
-   */
   getResultsQuery(excludeModifier = false): Query[] {
-    const q = [
-      this.getBaseQuery(),
-      ...this._filters
-        .filter((f) => !('filterParameterName' in f) || hasParameterValueSet(f))
-        .map((f) => {
-          const parameters = !('filterParameterName' in f)
-            ? {}
-            : { [f.filterParameterName]: f.filterParameterValue as string };
-          return {
-            endpoint: f.filterEndpoint,
-            parameters,
-          };
-        }),
-    ];
-    if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
-      q.push(this._activeModifier);
-    }
-    return q;
+    return getFilteredSearchResultsQuery(this._state, excludeModifier);
   }
 
-  /**
-   * Get the Query objects to retrieve the facet options.
-   *
-   * @param facetEndpoint name of the facet endpoint to fetch options for
-   * @param excludeModifier will skip applying the active modifier
-   * @param includeSelf keep the active facet filter for which options should be fetched in the query stack. Use when requesting RequestType.Options
-   */
   getFacetQuery(facetEndpoint: string, excludeModifier = false, includeSelf = false): Query[] {
-    const facet = this._filters.find(
-      (f): f is FacetFilter => 'optionsEndpoint' in f && f.optionsEndpoint === facetEndpoint,
-    );
-    if (!facet) {
-      throw new Error('Facet not found in FilteredSearch');
-    }
-
-    const q = [
-      this.getBaseQuery(),
-      ...this._filters
-        .filter(
-          (f) =>
-            // Simple filters are always enabled
-            !('filterParameterName' in f) ||
-            // Parameterized filters must have a value set
-            (!('optionsEndpoint' in f) && hasParameterValueSet(f)) ||
-            // Facet filters must have a value set and must not be the facet for which we're building the options query
-            ('optionsEndpoint' in f && (includeSelf || f.optionsEndpoint !== facetEndpoint) && hasParameterValueSet(f)),
-        )
-        .map((f) => ({
-          endpoint: f.filterEndpoint,
-          parameters: !('filterParameterName' in f)
-            ? {}
-            : { [f.filterParameterName]: f.filterParameterValue as string },
-        })),
-    ];
-    if (!excludeModifier && this._activeModifier !== undefined && this._activeModifier !== null) {
-      q.push(this._activeModifier);
-    }
-    q.push({ endpoint: facet.optionsEndpoint });
-    return q;
+    return getFilteredSearchFacetQuery(this._state, facetEndpoint, excludeModifier, includeSelf);
   }
 
-  /**
-   * Set a parameter value for the searchQuery
-   */
   public setParameter(name: string, value: string) {
-    this.searchQuery = {
-      ...this.searchQuery,
-      parameters: {
-        ...this.searchQuery.parameters,
-        [name]: value,
-      },
-    };
-    this._filters.forEach((f) => {
-      if ('filterParameterName' in f && f.resetOnQueryChange) {
-        f.filterParameterValue = undefined;
-      }
-    });
+    this._state = withParameter(this._state, name, value);
   }
 
-  /**
-   * Clear all searchQuery parameters
-   */
   public clearParameters() {
-    this.searchQuery = {
-      ...this.searchQuery,
-      parameters: Object.keys(this.searchQuery.parameters || {}).reduce((acc, cur) => ({ ...acc, [cur]: '' }), {}),
-    };
+    this._state = withClearedParameters(this._state);
   }
 
-  /**
-   * Set the selected options for a given filter or facet.
-   */
-  public setFilterSelection(
-    endpoint: string,
-    selection: undefined | null | (string | number) | (string | number)[] | (string | number)[][],
-  ) {
-    // Find the filter in the list of defined filters
-    const filter = this._filters.find(
-      (f) => f.filterEndpoint === endpoint || ('optionsEndpoint' in f && f.optionsEndpoint === endpoint),
-    );
-
-    if (!filter) {
-      throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
-    }
-
-    // Filter selections can only be set for parameterized filters
-    if (!('filterParameterName' in filter)) {
-      throw new Error(`Filter ${endpoint} does not have a parameter (so it cannot be set)`);
-    }
-
-    // Clear the value if an empty string or empty array was passed
-    if (
-      (Array.isArray(selection) && selection.length === 0) ||
-      selection === '' ||
-      selection === undefined ||
-      selection === null
-    ) {
-      filter.filterParameterValue = undefined;
-      return;
-    }
-
-    if ('optionsEndpoint' in filter) {
-      // make sure the selection is an array
-      selection = Array.isArray(selection) ? selection : [selection];
-
-      if (filter.type === 'single') {
-        if (selection.length > 1) {
-          throw new Error(`Facet ${endpoint} is a single selection facet but more than one selected option was given.`);
-        }
-        if (Array.isArray(selection[0])) {
-          filter.filterParameterValue = selection[0][0];
-        } else {
-          filter.filterParameterValue = selection[0];
-        }
-      } else {
-        filter.filterParameterValue = tupleListToString(selection);
-      }
-    } else {
-      filter.filterParameterValue = Array.isArray(selection) ? tupleListToString(selection) : selection;
-    }
+  public setFilterSelection(endpoint: string, selection: FilterSelection) {
+    this._state = withFilterSelection(this._state, endpoint, selection);
   }
 
-  /**
-   * Clear the selection for all or a given filter.
-   */
   public clearFilterSelection(endpoint?: string) {
-    if (endpoint) {
-      const filter = this._filters.find(
-        (f) => f.filterEndpoint === endpoint || ('optionsEndpoint' in f && f.optionsEndpoint === endpoint),
-      );
-      if (!filter) {
-        throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
-      }
-      if (!('filterParameterName' in filter)) {
-        throw new Error(`Filter ${endpoint} does not have a parameter (so it cannot be reset)`);
-      }
-      filter.filterParameterValue = '';
-    } else {
-      this._filters.forEach((f) => {
-        if ('filterParameterName' in f) {
-          f.filterParameterValue = '';
-        }
-      });
-    }
+    this._state = withClearedFilterSelection(this._state, endpoint);
   }
 
   public setSearchQuery(query: Query) {
-    this.searchQuery = query;
+    this._state = withSearchQuery(this._state, query);
   }
 
-  /**
-   * Overwrite the entire state with the values in the passed Query stack.
-   *
-   * @param results typically retrieved from a URL query parameter and then parsed with `parseQueries`
-   */
   setState(results: Query[]) {
-    // If no queries passed, reset the state
-    if (!results || results.length === 0) {
-      Object.entries(this.searchQuery.parameters || {}).forEach(([k, v]) => this.setParameter(k, v));
-      this.clearFilterSelection();
-      return;
-    }
-
-    // Early return if there's nothing to update
-    if (stringifyQueries(results) === stringifyQueries(this.getResultsQuery())) {
-      return;
-    }
-
-    const filtersTouched: string[] = [];
-    results.forEach((query, index) => {
-      // The first query on the stack is the main search query
-      if (index === 0) {
-        this.setSearchQuery(query);
-        return;
-      }
-
-      // The last query could be the modifier
-      if (index === results.length - 1 && this.modifiers?.find((m) => m.endpoint === query.endpoint)) {
-        this.setModifier(query);
-        return;
-      }
-
-      // The middle queries are filters
-      const filter = this.filters.find((f) => f.filterEndpoint === query.endpoint);
-      if (!filter) {
-        return;
-      }
-
-      if ('filterParameterName' in filter) {
-        // For FacetFilters, the optionsEndpoint is the identifying endpoint
-        const endpoint = 'optionsEndpoint' in filter ? filter.optionsEndpoint : filter.filterEndpoint;
-        const selection = query.parameters?.[filter.filterParameterName];
-        if (selection && isTupleList(selection)) {
-          const tupleList = stringToTupleList(selection);
-          this.setFilterSelection(endpoint, tupleList?.tuples);
-        } else {
-          this.setFilterSelection(endpoint, selection);
-        }
-        filtersTouched.push(endpoint);
-      }
-    });
-
-    // Reset non-touched endpoints
-    this.filters.forEach((filter) => {
-      const endpoint = 'optionsEndpoint' in filter ? filter.optionsEndpoint : filter.filterEndpoint;
-      if ('filterParameterName' in filter && !filtersTouched.includes(endpoint)) {
-        this.setFilterSelection(endpoint, []);
-      }
-    });
+    this._state = withFilteredSearchState(this._state, results);
   }
 }

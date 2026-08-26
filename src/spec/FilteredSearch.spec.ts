@@ -1,5 +1,17 @@
 import { Api, FacetType, Query, stringifyQueries } from '..';
-import { FilteredSearch } from '../FilteredSearch';
+import {
+  createFilteredSearchState,
+  facet,
+  FilteredSearch,
+  getFacetQuery,
+  getFilteredSearchResultsQuery,
+  getResultsQuery,
+  parameterizedFilter,
+  simpleFilter,
+  withFacet,
+  withFilterSelection,
+  withParameter,
+} from '../FilteredSearch';
 
 describe('FilteredSearch', () => {
   it('should be constructable with only a searchQuery', () => {
@@ -152,5 +164,62 @@ describe('FilteredSearch', () => {
     fs2.setState(fs1.getResultsQuery());
 
     expect(stringifyQueries(fs1.getResultsQuery())).not.toEqual(stringifyQueries(fs2.getResultsQuery()));
+  });
+
+  it('should support immutable plain state updates', () => {
+    const searchQuery: Query = { endpoint: 'my-endpoint', parameters: { q: '' } };
+    const state = createFilteredSearchState(searchQuery);
+    const withGenre = withFacet(state, 'genre');
+    const withQuery = withParameter(withGenre, 'q', 'pulp fiction');
+    const withSelection = withFilterSelection(withQuery, 'genre', 'Drama');
+
+    expect(state.filters).toHaveLength(0);
+    expect(withGenre.filters).toHaveLength(1);
+    expect(withQuery.searchQuery.parameters?.['q']).toBe('pulp fiction');
+    expect(getFilteredSearchResultsQuery(withSelection)).toEqual([
+      { endpoint: 'my-endpoint', parameters: { q: 'pulp fiction' } },
+      { endpoint: 'genre:FILTER', parameters: { value: 'Drama' } },
+    ]);
+  });
+
+  it('should support declarative setup with filter factories', () => {
+    const search = createFilteredSearchState({
+      searchQuery: { endpoint: 'movie-search', parameters: { query: '' } },
+      emptyParameterQuery: { endpoint: 'trending-movies' },
+      filters: [
+        facet('genre', { type: FacetType.multiple }),
+        facet('director'),
+        simpleFilter('type:movies'),
+        parameterizedFilter('personalization', { filterParameterName: 'userid' }),
+      ],
+    });
+
+    const withQuery = withParameter(search, 'query', 'pulp fiction');
+    const withGenre = withFilterSelection(withQuery, 'genre', ['Drama', 'Crime']);
+    const withUser = withFilterSelection(withGenre, 'personalization', 'user_123');
+
+    expect(getResultsQuery(withUser)).toEqual([
+      { endpoint: 'movie-search', parameters: { query: 'pulp fiction' } },
+      { endpoint: 'genre:FILTER', parameters: { value: '1(Drama)|1(Crime)' } },
+      { endpoint: 'type:movies', parameters: {} },
+      { endpoint: 'personalization', parameters: { userid: 'user_123' } },
+    ]);
+    expect(getFacetQuery(withUser, 'director')).toEqual([
+      { endpoint: 'movie-search', parameters: { query: 'pulp fiction' } },
+      { endpoint: 'genre:FILTER', parameters: { value: '1(Drama)|1(Crime)' } },
+      { endpoint: 'type:movies', parameters: {} },
+      { endpoint: 'personalization', parameters: { userid: 'user_123' } },
+      { endpoint: 'director' },
+    ]);
+  });
+
+  it('should expose snapshots instead of mutable internals', () => {
+    const searchQuery: Query = { endpoint: 'my-endpoint', parameters: { q: '' } };
+    const fs = new FilteredSearch(searchQuery);
+
+    fs.addFacet('genre');
+    fs.filters[0].filterEndpoint = 'mutated';
+
+    expect(fs.filters[0].filterEndpoint).toBe('genre:FILTER');
   });
 });
