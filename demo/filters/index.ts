@@ -59,7 +59,7 @@ async function main() {
   // when read from the URL, the state can be parsed
   const parsedState = parseQueries(serializedState);
   // and then the entire FilteredSearch state can be set at once
-  fs.setState(parsedState);
+  fs.setQueryStack(parsedState);
 }
 
 main();

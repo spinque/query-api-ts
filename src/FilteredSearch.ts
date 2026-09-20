@@ -365,6 +365,64 @@ export const withFilterSelection = (
   };
 };
 
+const findParameterizedFilter = (state: FilteredSearchState, endpoint: string): ParameterizedFilter | FacetFilter => {
+  const filter = findFilter(state.filters, endpoint);
+
+  if (!filter) {
+    throw new Error(`FilteredSearch does not contain filter ${endpoint}`);
+  }
+
+  if (!('filterParameterName' in filter)) {
+    throw new Error(`Filter ${endpoint} does not have a parameter (so it has no selection)`);
+  }
+
+  return filter;
+};
+
+/**
+ * The read side of {@link withFilterSelection}: the current selection of a filter as a list of tuples.
+ *
+ * @param state - The filtered search state.
+ * @param endpoint - The endpoint of the filter or facet (for facets, the options endpoint).
+ * @returns The selected tuples, or `[]` when nothing is selected.
+ * @throws If the state has no such filter, or the filter has no parameter.
+ */
+export const getFilterSelectionTuples = (state: FilteredSearchState, endpoint: string): (string | number)[][] => {
+  const filter = findParameterizedFilter(state, endpoint);
+  const value = filter.filterParameterValue;
+
+  if (value === undefined || value === '') {
+    return [];
+  }
+
+  const isFacet = 'optionsEndpoint' in filter;
+  if (isFacet && filter.type === FacetType.single) {
+    return [[value]];
+  }
+
+  const stringValue = String(value);
+  // Facets always store a tuple list when multiple; for other filters it is only one if it looks like one.
+  const selection = isFacet || isTupleList(stringValue) ? stringToTupleList(stringValue) : null;
+  return selection ? selection.tuples : [[value]];
+};
+
+/**
+ * The read side of {@link withFilterSelection}: the current selection of a filter as scalar values.
+ *
+ * @param state - The filtered search state.
+ * @param endpoint - The endpoint of the filter or facet (for facets, the options endpoint).
+ * @returns The selected values, or `[]` when nothing is selected.
+ * @throws If the state has no such filter, the filter has no parameter, or the selection contains tuples of more than
+ * one value (use {@link getFilterSelectionTuples} for those).
+ */
+export const getFilterSelection = (state: FilteredSearchState, endpoint: string): (string | number)[] =>
+  getFilterSelectionTuples(state, endpoint).map((tuple) => {
+    if (tuple.length !== 1) {
+      throw new Error(`Filter ${endpoint} has tuple selections; use getFilterSelectionTuples instead`);
+    }
+    return tuple[0];
+  });
+
 export const withClearedFilterSelection = (state: FilteredSearchState, endpoint?: string): FilteredSearchState => {
   if (endpoint) {
     const filter = findFilter(state.filters, endpoint);
@@ -394,12 +452,16 @@ export const withSearchQuery = (state: FilteredSearchState, query: Query): Filte
 });
 
 /**
- * Overwrite the entire state with values from the passed Query stack.
+ * Apply a Query stack (as produced by `getResultsQuery`) to the state: the inverse of `getResultsQuery`.
  *
- * @param results typically retrieved from a URL query parameter and then parsed with `parseQueries`
+ * Only the search query, the active modifier and the selections of already configured filters are set; the filter
+ * structure itself is kept, and queries for unknown filters are ignored. Filters that do not occur in the stack are
+ * cleared. An empty stack resets the parameters and all selections.
+ *
+ * @param queries typically retrieved from a URL query parameter and then parsed with `parseQueries`
  */
-export const withFilteredSearchState = (state: FilteredSearchState, results: Query[]): FilteredSearchState => {
-  if (!results || results.length === 0) {
+export const withQueryStack = (state: FilteredSearchState, queries: Query[]): FilteredSearchState => {
+  if (!queries || queries.length === 0) {
     return withClearedFilterSelection(
       Object.entries(state.searchQuery.parameters || {}).reduce(
         (nextState, [name, value]) => withParameter(nextState, name, value),
@@ -408,20 +470,20 @@ export const withFilteredSearchState = (state: FilteredSearchState, results: Que
     );
   }
 
-  if (stringifyQueries(results) === stringifyQueries(getFilteredSearchResultsQuery(state))) {
+  if (stringifyQueries(queries) === stringifyQueries(getFilteredSearchResultsQuery(state))) {
     return cloneState(state);
   }
 
   let nextState = cloneState(state);
   const filtersTouched: string[] = [];
 
-  results.forEach((query, index) => {
+  queries.forEach((query, index) => {
     if (index === 0) {
       nextState = withSearchQuery(nextState, query);
       return;
     }
 
-    if (index === results.length - 1 && nextState.modifiers?.find((modifier) => modifier.endpoint === query.endpoint)) {
+    if (index === queries.length - 1 && nextState.modifiers?.find((modifier) => modifier.endpoint === query.endpoint)) {
       nextState = withModifier(nextState, query);
       return;
     }
@@ -548,6 +610,10 @@ export class FilteredSearch {
     this._state = withFilterSelection(this._state, endpoint, selection);
   }
 
+  public getFilterSelection(endpoint: string): (string | number)[] {
+    return getFilterSelection(this._state, endpoint);
+  }
+
   public clearFilterSelection(endpoint?: string) {
     this._state = withClearedFilterSelection(this._state, endpoint);
   }
@@ -556,7 +622,7 @@ export class FilteredSearch {
     this._state = withSearchQuery(this._state, query);
   }
 
-  setState(results: Query[]) {
-    this._state = withFilteredSearchState(this._state, results);
+  public setQueryStack(queries: Query[]) {
+    this._state = withQueryStack(this._state, queries);
   }
 }

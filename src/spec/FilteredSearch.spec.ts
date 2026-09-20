@@ -5,6 +5,8 @@ import {
   FilteredSearch,
   getFacetQuery,
   getFilteredSearchResultsQuery,
+  getFilterSelection,
+  getFilterSelectionTuples,
   getResultsQuery,
   parameterizedFilter,
   simpleFilter,
@@ -91,7 +93,7 @@ describe('FilteredSearch', () => {
     const fs1 = new FilteredSearch(searchQuery);
     const fs2 = new FilteredSearch(searchQuery);
 
-    fs2.setState(fs1.getResultsQuery());
+    fs2.setQueryStack(fs1.getResultsQuery());
     expect(stringifyQueries(fs1.getResultsQuery())).toEqual(stringifyQueries(fs2.getResultsQuery()));
   });
 
@@ -103,7 +105,7 @@ describe('FilteredSearch', () => {
 
     fs1.setParameter('q', 'pulp fiction');
 
-    fs2.setState(fs1.getResultsQuery());
+    fs2.setQueryStack(fs1.getResultsQuery());
 
     expect(stringifyQueries(fs1.getResultsQuery())).toEqual(stringifyQueries(fs2.getResultsQuery()));
   });
@@ -132,7 +134,7 @@ describe('FilteredSearch', () => {
     ]);
 
     // transfer state to fs2
-    fs2.setState(fs1.getResultsQuery());
+    fs2.setQueryStack(fs1.getResultsQuery());
 
     expect(stringifyQueries(fs1.getResultsQuery())).toEqual(stringifyQueries(fs2.getResultsQuery()));
   });
@@ -161,7 +163,7 @@ describe('FilteredSearch', () => {
     ]);
 
     // transfer state to fs2
-    fs2.setState(fs1.getResultsQuery());
+    fs2.setQueryStack(fs1.getResultsQuery());
 
     expect(stringifyQueries(fs1.getResultsQuery())).not.toEqual(stringifyQueries(fs2.getResultsQuery()));
   });
@@ -221,5 +223,64 @@ describe('FilteredSearch', () => {
     fs.filters[0].filterEndpoint = 'mutated';
 
     expect(fs.filters[0].filterEndpoint).toBe('genre:FILTER');
+  });
+
+  describe('filter selection', () => {
+    const state = createFilteredSearchState({
+      searchQuery: { endpoint: 'search', parameters: { q: '' } },
+      filters: [
+        facet('genre', { type: FacetType.multiple }),
+        facet('director'),
+        simpleFilter('type:movies'),
+        parameterizedFilter('personalization', { filterParameterName: 'userid' }),
+      ],
+    });
+
+    it('returns [] when nothing is selected', () => {
+      expect(getFilterSelection(state, 'genre')).toEqual([]);
+      expect(getFilterSelection(state, 'director')).toEqual([]);
+      expect(getFilterSelection(state, 'personalization')).toEqual([]);
+    });
+
+    it('round-trips single, multiple and parameterized selections', () => {
+      const s1 = withFilterSelection(state, 'director', 'Tarantino');
+      const s2 = withFilterSelection(s1, 'genre', ['Drama', 'Crime']);
+      const s3 = withFilterSelection(s2, 'personalization', 'user_123');
+
+      expect(getFilterSelection(s3, 'director')).toEqual(['Tarantino']);
+      expect(getFilterSelection(s3, 'genre')).toEqual(['Drama', 'Crime']);
+      expect(getFilterSelection(s3, 'personalization')).toEqual(['user_123']);
+      expect(getFilterSelection(withFilterSelection(s3, 'genre', []), 'genre')).toEqual([]);
+    });
+
+    it('reads a facet selection via its options endpoint and a filter via its filter endpoint', () => {
+      const selected = withFilterSelection(state, 'genre', 'Drama');
+      expect(getFilterSelection(selected, 'genre')).toEqual(['Drama']);
+      expect(getFilterSelection(selected, 'genre:FILTER')).toEqual(['Drama']);
+    });
+
+    it('supports tuple selections through getFilterSelectionTuples only', () => {
+      const selected = withFilterSelection(state, 'genre', [
+        ['a', 'b'],
+        ['c', 'd'],
+      ]);
+      expect(getFilterSelectionTuples(selected, 'genre')).toEqual([
+        ['a', 'b'],
+        ['c', 'd'],
+      ]);
+      expect(() => getFilterSelection(selected, 'genre')).toThrow('tuple selections');
+    });
+
+    it('throws for unknown filters and filters without a parameter', () => {
+      expect(() => getFilterSelection(state, 'nope')).toThrow('does not contain filter nope');
+      expect(() => getFilterSelection(state, 'type:movies')).toThrow('does not have a parameter');
+    });
+
+    it('is available on the FilteredSearch class', () => {
+      const fs = new FilteredSearch({ endpoint: 'search', parameters: { q: '' } });
+      fs.addFacet('genre', FacetType.multiple);
+      fs.setFilterSelection('genre', ['Drama', 'Crime']);
+      expect(fs.getFilterSelection('genre')).toEqual(['Drama', 'Crime']);
+    });
   });
 });
