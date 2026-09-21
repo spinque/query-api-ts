@@ -1,4 +1,11 @@
-import { pathFromQueries, pathFromQuery, tupleListToString, urlFromQueries } from '../utils';
+import {
+  isTupleList,
+  pathFromQueries,
+  pathFromQuery,
+  stringToTupleList,
+  tupleListToString,
+  urlFromQueries,
+} from '../utils';
 import { ApiConfig, Query, RequestType } from '..';
 
 describe('utils', () => {
@@ -321,5 +328,86 @@ describe('utils', () => {
     expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1])).toThrow();
     expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1, 2])).toThrow();
     expect(() => tupleListToString([['hello', 'there'], ['marco'], [123, 456]], [1, 2, 3, 4])).toThrow();
+  });
+
+  // The Query API tuple list grammar quotes values with `"` and escapes `\` and `"` inside a quoted value.
+  // It has no way to represent `|`, because entries are split on it before quotes are considered.
+  const ROUND_TRIP_VALUES = [
+    'plain',
+    '(geheel) drukinkt',
+    'Schilderij, olieverf',
+    'Aardewerk',
+    'a(b',
+    'a)b',
+    'a,b',
+    'a"b',
+    'a\\b',
+    '1(x)',
+    'Room 2(b)',
+    '',
+  ];
+
+  it.each(ROUND_TRIP_VALUES)('tupleListToString and stringToTupleList should round trip %j', (value) => {
+    expect(stringToTupleList(tupleListToString([[value]]))?.tuples).toEqual([[value]]);
+  });
+
+  it('tupleListToString and stringToTupleList should round trip multi column tuples', () => {
+    const tuples = [
+      ['Schilderij, olieverf', '(geheel) drukinkt'],
+      ['a"b', 'a\\b'],
+    ];
+    expect(stringToTupleList(tupleListToString(tuples))?.tuples).toEqual(tuples);
+  });
+
+  it('tupleListToString should quote only values that need it', () => {
+    expect(tupleListToString([['Aardewerk'], ['Schilderij, olieverf'], ['(geheel) drukinkt']])).toEqual(
+      '1(Aardewerk)|1("Schilderij, olieverf")|1("(geheel) drukinkt")',
+    );
+  });
+
+  it('tupleListToString should throw on values containing a pipe, which the grammar cannot represent', () => {
+    expect(() => tupleListToString([['a|b']])).toThrow();
+    // A backslash is not an escape in this grammar, so it does not rescue a pipe either.
+    expect(() => tupleListToString([['a\\|b']])).toThrow();
+  });
+
+  it('stringToTupleList should not truncate a value containing parentheses', () => {
+    expect(stringToTupleList('1((geheel) drukinkt)')).toEqual({ scores: [1], tuples: [['(geheel) drukinkt']] });
+    expect(stringToTupleList('1(Aardewerk)|1((geheel) drukinkt)')).toEqual({
+      scores: [1, 1],
+      tuples: [['Aardewerk'], ['(geheel) drukinkt']],
+    });
+  });
+
+  it('stringToTupleList should still read unquoted legacy values', () => {
+    expect(stringToTupleList('1(Aardewerk)|1(Glas)')).toEqual({ scores: [1, 1], tuples: [['Aardewerk'], ['Glas']] });
+    expect(stringToTupleList('0.5(a,b)')).toEqual({ scores: [0.5], tuples: [['a', 'b']] });
+  });
+
+  it('stringToTupleList should accept a doubled quote as an escaped quote', () => {
+    expect(stringToTupleList('1("a""b")')?.tuples).toEqual([['a"b']]);
+  });
+
+  it('stringToTupleList should return null on malformed input rather than a partial result', () => {
+    expect(stringToTupleList('')).toBeNull();
+    expect(stringToTupleList('Aardewerk')).toBeNull();
+    expect(stringToTupleList('Room 2(b)')).toBeNull();
+    expect(stringToTupleList('1(a')).toBeNull();
+    expect(stringToTupleList('1("a)')).toBeNull();
+    expect(stringToTupleList('1(a)trailing')).toBeNull();
+    expect(stringToTupleList('1("a"trailing)')).toBeNull();
+    expect(stringToTupleList('1(a)|Glas')).toBeNull();
+  });
+
+  it('isTupleList should not accept a plain value that merely contains parentheses', () => {
+    expect(isTupleList('Room 2(b)')).toBe(false);
+    expect(isTupleList('(geheel) drukinkt')).toBe(false);
+    expect(isTupleList('Schilderij, olieverf')).toBe(false);
+  });
+
+  it('isTupleList should accept well formed tuple lists', () => {
+    expect(isTupleList('1(Aardewerk)')).toBe(true);
+    expect(isTupleList('1(Aardewerk)|1(Glas)')).toBe(true);
+    expect(isTupleList('0.5("Schilderij, olieverf")')).toBe(true);
   });
 });

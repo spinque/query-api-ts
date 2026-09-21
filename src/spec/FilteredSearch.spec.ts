@@ -276,6 +276,11 @@ describe('FilteredSearch', () => {
       expect(() => getFilterSelection(state, 'type:movies')).toThrow('does not have a parameter');
     });
 
+    it('reads back values containing tuple list syntax', () => {
+      const selected = withFilterSelection(state, 'genre', ['Schilderij, olieverf', '(geheel) drukinkt', 'Aardewerk']);
+      expect(getFilterSelection(selected, 'genre')).toEqual(['Schilderij, olieverf', '(geheel) drukinkt', 'Aardewerk']);
+    });
+
     it('is available on the FilteredSearch class', () => {
       const fs = new FilteredSearch({ endpoint: 'search', parameters: { q: '' } });
       fs.addFacet('genre', FacetType.multiple);

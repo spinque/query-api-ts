@@ -243,6 +243,11 @@ Many utility functions are available for import under
 - [`tupleListToString`](https://spinque.github.io/query-api-ts/functions/tupleListToString.html), given a tuple list, return a string representation.
 - [`isTupleList`](https://spinque.github.io/query-api-ts/functions/isTupleList.html), checks whether a string value is valid tuple list notation.
 
+Values that contain `(`, `)`, `,` or `"` are written in quoted form, so
+`Schilderij, olieverf` becomes `1("Schilderij, olieverf")` and survives a round
+trip through the backend. A value containing `|` cannot be expressed in this
+notation at all, and `tupleListToString` throws for one.
+
 See the [documentation](https://spinque.github.io/query-api-ts/) for a complete
 list.
 
