@@ -93,6 +93,10 @@ arrays of numbers or strings, and array of scores).</li>
 <li><a href="https://spinque.github.io/query-api-ts/functions/tupleListToString.html" target="_blank" class="external"><code>tupleListToString</code></a>, given a tuple list, return a string representation.</li>
 <li><a href="https://spinque.github.io/query-api-ts/functions/isTupleList.html" target="_blank" class="external"><code>isTupleList</code></a>, checks whether a string value is valid tuple list notation.</li>
 </ul>
+<p>Values that contain <code>(</code>, <code>)</code>, <code>,</code> or <code>&quot;</code> are written in quoted form, so
+<code>Schilderij, olieverf</code> becomes <code>1(&quot;Schilderij, olieverf&quot;)</code> and survives a round
+trip through the backend. A value containing <code>|</code> cannot be expressed in this
+notation at all, and <code>tupleListToString</code> throws for one.</p>
 <p>See the <a href="https://spinque.github.io/query-api-ts/" target="_blank" class="external">documentation</a> for a complete
 list.</p>
 <a id="md:filtered-search-or-faceted-search" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Filtered search (or faceted search)<a href="#md:filtered-search-or-faceted-search" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p><em>Filtered</em> or <em>faceted search</em> is a common pattern found in search applications.
